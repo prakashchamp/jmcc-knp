@@ -1,0 +1,253 @@
+players/
+  {playerId}/                         // auto-generated ID
+    name:           "Rohit Sharma"    // string
+    role:           "batsman"         // string: batsman | bowler | allrounder
+    created_at:     Timestamp         // timestamp
+
+matches/
+  {matchId}/                          // auto-generated ID
+    date:               Timestamp     // timestamp
+    year:               "2024"        // string
+    month:              "2024-03"     // string: YYYY-MM
+    opponent:           "Royal Blaze" // string
+    venue:              "Home"        // string: Home | Away | Neutral
+    toss_won_by:        "Us"          // string: Us | Opponent
+    toss_decision:      "bat"         // string: bat | field
+    result:             "won"         // string: won | lost | tie | no_result
+    win_margin:         "24 runs"     // string: "24 runs" | "5 wickets" | ""
+
+    best_batter_id:     "playerId"    // string: ref to players doc
+    best_batter_name:   "R. Sharma"   // string: denormalized
+    best_batter_runs:   87            // number
+    best_batter_balls:  52            // number
+
+    best_bowler_id:     "playerId"    // string: ref to players doc
+    best_bowler_name:   "B. Kumar"    // string: denormalized
+    best_bowler_wickets: 3            // number
+    best_bowler_runs:   22            // number
+
+    created_at:         Timestamp     // timestamp
+
+performances/
+  {matchId_playerId}/
+    // References
+    match_id:           "match001"    // string
+    player_id:          "player007"   // string
+    player_name:        "R. Sharma"   // string: denormalized
+    player_role:        "batsman"     // string: denormalized
+
+    // Match context (copied from match doc)
+    date:               Timestamp     // timestamp
+    year:               "2024"        // string
+    month:              "2024-03"     // string
+    opponent:           "Royal Blaze" // string
+
+    // Batting
+    bat_did_bat:        true          // boolean
+    bat_innings:        1             // number: 0 | 1
+    bat_runs:           87            // number
+    bat_balls:          52            // number
+    bat_fours:          8             // number
+    bat_sixes:          3             // number
+    bat_dismissed:      true          // boolean
+    bat_is_duck:        false         // boolean: dismissed for 0
+    bat_is_thirty:      false         // boolean: 30-49
+    bat_is_fifty:       true          // boolean: 50-99
+    bat_is_hundred:     false         // boolean: 100+
+    bat_strike_rate:    167.3         // number: pre-computed (runs/balls)*100
+
+    // Bowling
+    bowl_did_bowl:      true          // boolean
+    bowl_innings:       1             // number: 0 | 1
+    bowl_overs:         4.0           // number
+    bowl_balls:         24            // number: actual balls bowled
+    bowl_runs:          28            // number
+    bowl_wickets:       3             // number
+    bowl_maidens:       1             // number
+    bowl_is_three_fer:  true          // boolean: exactly 3 wickets
+    bowl_is_four_fer:   false         // boolean: exactly 4 wickets
+    bowl_is_five_fer:   false         // boolean: 5+ wickets
+    bowl_economy:       7.0           // number: pre-computed runs/overs
+
+    created_at:         Timestamp     // timestamp
+
+performances/
+  {matchId_playerId}/
+    // References
+    match_id:           "match001"    // string
+    player_id:          "player007"   // string
+    player_name:        "R. Sharma"   // string: denormalized
+    player_role:        "batsman"     // string: denormalized
+
+    // Match context (copied from match doc)
+    date:               Timestamp     // timestamp
+    year:               "2024"        // string
+    month:              "2024-03"     // string
+    opponent:           "Royal Blaze" // string
+
+    // Batting
+    bat_did_bat:        true          // boolean
+    bat_innings:        1             // number: 0 | 1
+    bat_runs:           87            // number
+    bat_balls:          52            // number
+    bat_fours:          8             // number
+    bat_sixes:          3             // number
+    bat_dismissed:      true          // boolean
+    bat_is_duck:        false         // boolean: dismissed for 0
+    bat_is_thirty:      false         // boolean: 30-49
+    bat_is_fifty:       true          // boolean: 50-99
+    bat_is_hundred:     false         // boolean: 100+
+    bat_strike_rate:    167.3         // number: pre-computed (runs/balls)*100
+
+    // Bowling
+    bowl_did_bowl:      true          // boolean
+    bowl_innings:       1             // number: 0 | 1
+    bowl_overs:         4.0           // number
+    bowl_balls:         24            // number: actual balls bowled
+    bowl_runs:          28            // number
+    bowl_wickets:       3             // number
+    bowl_maidens:       1             // number
+    bowl_is_three_fer:  true          // boolean: exactly 3 wickets
+    bowl_is_four_fer:   false         // boolean: exactly 4 wickets
+    bowl_is_five_fer:   false         // boolean: 5+ wickets
+    bowl_economy:       7.0           // number: pre-computed runs/overs
+
+    created_at:         Timestamp     // timestamp
+
+player_stats_alltime/
+  {playerId}/
+    // Identity (denormalized)
+    player_id:              "player007"   // string
+    player_name:            "R. Sharma"   // string
+    player_role:            "batsman"     // string
+
+    // General
+    matches:                45            // number
+
+    // Batting
+    bat_innings:            43            // number
+    bat_runs:               1840          // number
+    bat_balls:              1320          // number
+    bat_fours:              145           // number
+    bat_sixes:              67            // number
+    bat_dismissed:          38            // number: times out
+    bat_not_out:            5             // number
+    bat_highest:            112           // number
+    bat_ducks:              3             // number
+    bat_thirties:           8             // number: 30-49
+    bat_fifties:            12            // number: 50-99
+    bat_hundreds:           2             // number: 100+
+    bat_average:            48.4          // number: runs/dismissed
+    bat_strike_rate:        139.4         // number: (runs/balls)*100
+
+    // Bowling
+    bowl_innings:           20            // number
+    bowl_overs:             72.0          // number
+    bowl_balls:             432           // number
+    bowl_runs:              580           // number
+    bowl_wickets:           38            // number
+    bowl_maidens:           6             // number
+    bowl_best_wickets:      4             // number: for sorting
+    bowl_best_runs:         18            // number: for sorting
+    bowl_best:              "4/18"        // string: display
+    bowl_three_fers:        5             // number
+    bowl_four_fers:         2             // number
+    bowl_five_fers:         0             // number
+    bowl_average:           15.3          // number: runs/wickets
+    bowl_economy:           8.1           // number: runs/overs
+    bowl_strike_rate:       11.4          // number: balls/wickets
+
+    last_updated:           Timestamp     // timestamp
+
+player_stats_yearly/
+  {playerId_year}/
+    // Identity
+    player_id:              "player007"   // string
+    player_name:            "R. Sharma"   // string
+    player_role:            "batsman"     // string
+    year:                   "2024"        // string
+
+    // General
+    matches:                12            // number
+
+    // Batting — same fields as alltime
+    bat_innings:            11
+    bat_runs:               520
+    bat_balls:              380
+    bat_fours:              42
+    bat_sixes:              18
+    bat_dismissed:          9
+    bat_not_out:            2
+    bat_highest:            87
+    bat_ducks:              1
+    bat_thirties:           2
+    bat_fifties:            4
+    bat_hundreds:           0
+    bat_average:            57.8
+    bat_strike_rate:        136.8
+
+    // Bowling — same fields as alltime
+    bowl_innings:           8
+    bowl_overs:             28.0
+    bowl_balls:             168
+    bowl_runs:              210
+    bowl_wickets:           12
+    bowl_maidens:           2
+    bowl_best_wickets:      3
+    bowl_best_runs:         22
+    bowl_best:              "3/22"
+    bowl_three_fers:        2
+    bowl_four_fers:         0
+    bowl_five_fers:         0
+    bowl_average:           17.5
+    bowl_economy:           7.5
+    bowl_strike_rate:       14.0
+
+    last_updated:           Timestamp
+
+player_stats_monthly/
+  {playerId_month}/
+    // Identity
+    player_id:              "player007"   // string
+    player_name:            "R. Sharma"   // string
+    player_role:            "batsman"     // string
+    month:                  "2024-03"     // string: YYYY-MM
+    year:                   "2024"        // string: for yearly range queries
+
+    // General
+    matches:                4             // number
+
+    // Batting — same fields as alltime
+    bat_innings:            4
+    bat_runs:               320
+    bat_balls:              210
+    bat_fours:              28
+    bat_sixes:              12
+    bat_dismissed:          3
+    bat_not_out:            1
+    bat_highest:            87
+    bat_ducks:              0
+    bat_thirties:           1
+    bat_fifties:            2
+    bat_hundreds:           0
+    bat_average:            106.7
+    bat_strike_rate:        152.4
+
+    // Bowling — same fields as alltime
+    bowl_innings:           3
+    bowl_overs:             10.0
+    bowl_balls:             60
+    bowl_runs:              78
+    bowl_wickets:           5
+    bowl_maidens:           1
+    bowl_best_wickets:      3
+    bowl_best_runs:         22
+    bowl_best:              "3/22"
+    bowl_three_fers:        1
+    bowl_four_fers:         0
+    bowl_five_fers:         0
+    bowl_average:           15.6
+    bowl_economy:           7.8
+    bowl_strike_rate:       12.0
+
+    last_updated:           Timestamp

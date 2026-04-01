@@ -1,0 +1,70 @@
+'use client';
+
+import { TeamStats } from '@/app/lib/cricket-schema';
+
+interface TeamStatsCardProps {
+  stats: TeamStats | null;
+  loading: boolean;
+  error: Error | null;
+}
+
+/**
+ * Team Stats Card Component
+ * Displays overall team statistics in a 4-column grid
+ */
+export function TeamStatsCard({ stats, loading, error }: TeamStatsCardProps) {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-100">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 rounded-lg p-6 border border-red-200">
+        <p className="text-red-700 font-semibold">Error loading team stats</p>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+        <p className="text-gray-600">No stats available</p>
+      </div>
+    );
+  }
+
+  const statsList = [
+    { label: 'Total Matches', value: stats.totalMatches, color: 'from-blue-500 to-blue-600' },
+    { label: 'Wins', value: stats.wins, color: 'from-green-500 to-green-600' },
+    { label: 'Losses', value: stats.losses, color: 'from-red-500 to-red-600' },
+    { label: 'No Results', value: stats.noResults, color: 'from-gray-500 to-gray-600' },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-100">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Team Overview</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {statsList.map((stat, index) => (
+          <div
+            key={index}
+            className={`bg-gradient-to-br ${stat.color} rounded-lg p-6 text-white shadow-sm hover:shadow-md transition-shadow`}
+          >
+            <div className="text-4xl font-bold mb-2">{stat.value}</div>
+            <p className="text-sm font-medium opacity-90">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
