@@ -50,27 +50,27 @@ export default function MonthlyStatsPage() {
   const { players, loading, error } = useMonthlyStats(selectedMonth);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Monthly Statistics</h1>
-          <p className="text-gray-600 mt-2">Detailed player statistics by month</p>
+          <h1 className="text-4xl font-bold text-white">Monthly Statistics</h1>
+          <p className="text-gray-400 mt-2">Detailed player statistics by month</p>
         </div>
 
         {/* Month Dropdown */}
         <div className="mb-8">
           <div className="max-w-xs">
-            <label htmlFor="month-select" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="month-select" className="block text-sm font-medium text-gray-300 mb-2">
               Select Month
             </label>
             <select
               id="month-select"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium shadow-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {availableMonths.map((month) => (
                 <option key={month.value} value={month.value}>
@@ -82,7 +82,7 @@ export default function MonthlyStatsPage() {
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
             <p className="font-semibold">Error loading stats</p>
             <p>{error}</p>
           </div>

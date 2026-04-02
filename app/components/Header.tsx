@@ -72,7 +72,7 @@ export function Header() {
   };
 
   return (
-    <header className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg">
+    <header className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg">
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         {/* Logo */}
         <div className="flex-shrink-0">
@@ -116,15 +116,15 @@ export function Header() {
 
           {/* Dropdown Menu */}
           {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 rounded-lg shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-lg shadow-xl z-50 overflow-hidden">
               {menuItems.map((item) => (
                 <button
                   key={item.value}
                   onClick={() => handleMenuClick(item.value)}
-                  className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-gray-100 font-medium text-sm ${
+                  className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-gray-700 font-medium text-sm ${
                     isActive(item.value)
-                      ? 'bg-blue-100 text-blue-900 border-l-4 border-l-blue-600 pl-3'
-                      : 'hover:bg-blue-50 text-gray-900'
+                      ? 'bg-blue-800 text-blue-100 border-l-4 border-l-blue-400 pl-3'
+                      : 'hover:bg-gray-700 text-gray-100'
                   }`}
                 >
                   {item.label}

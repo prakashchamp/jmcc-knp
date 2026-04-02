@@ -98,22 +98,22 @@ export default function TeamStatsPage() {
   const winRate = stats.total > 0 ? ((stats.won / stats.total) * 100).toFixed(1) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <Header />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Title and View Toggle */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Team Statistics</h1>
+          <h1 className="text-4xl font-bold text-white mb-6">Team Statistics</h1>
 
           {/* View Toggle Tabs */}
-          <div className="flex gap-2 mb-6 bg-gray-200 p-1 rounded-lg w-fit">
+          <div className="flex gap-2 mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
             <button
               onClick={() => setActiveView('month')}
               className={`px-4 py-2 rounded-md font-medium transition-colors ${
                 activeView === 'month'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-300 hover:text-white'
               }`}
             >
               By Month
@@ -122,8 +122,8 @@ export default function TeamStatsPage() {
               onClick={() => setActiveView('year')}
               className={`px-4 py-2 rounded-md font-medium transition-colors ${
                 activeView === 'year'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-700 hover:text-gray-900'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-300 hover:text-white'
               }`}
             >
               By Year
@@ -133,14 +133,14 @@ export default function TeamStatsPage() {
           {/* Month Selector for Month View */}
           {activeView === 'month' && availableMonths.length > 0 && (
             <div className="mb-6 flex items-center gap-3">
-              <label htmlFor="month-select" className="font-medium text-gray-700">
+              <label htmlFor="month-select" className="font-medium text-gray-300">
                 Select Month:
               </label>
               <select
                 id="month-select"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 font-medium hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {availableMonths.map((month) => (
                   <option key={month.value} value={month.value}>
@@ -153,25 +153,25 @@ export default function TeamStatsPage() {
 
           {/* Overview cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
-              <p className="text-gray-600 text-sm font-medium">Total Matches</p>
-              <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 border border-blue-500 shadow-sm text-white">
+              <p className="text-blue-100 text-sm font-medium">Total Matches</p>
+              <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200 shadow-sm">
-              <p className="text-green-700 text-sm font-medium">Wins</p>
-              <p className="text-3xl font-bold text-green-900 mt-1">{stats.won}</p>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 border border-green-400 shadow-sm text-white">
+              <p className="text-green-100 text-sm font-medium">Wins</p>
+              <p className="text-3xl font-bold text-white mt-1">{stats.won}</p>
             </div>
-            <div className="bg-red-50 rounded-lg p-4 border border-red-200 shadow-sm">
-              <p className="text-red-700 text-sm font-medium">Losses</p>
-              <p className="text-3xl font-bold text-red-900 mt-1">{stats.lost}</p>
+            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-4 border border-red-400 shadow-sm text-white">
+              <p className="text-red-100 text-sm font-medium">Losses</p>
+              <p className="text-3xl font-bold text-white mt-1">{stats.lost}</p>
             </div>
-            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200 shadow-sm">
-              <p className="text-yellow-700 text-sm font-medium">Ties</p>
-              <p className="text-3xl font-bold text-yellow-900 mt-1">{stats.tied}</p>
+            <div className="bg-gradient-to-br from-yellow-700 to-yellow-800 rounded-lg p-4 border border-yellow-600 shadow-sm text-white">
+              <p className="text-yellow-100 text-sm font-medium">Ties</p>
+              <p className="text-3xl font-bold text-white mt-1">{stats.tied}</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 shadow-sm">
-              <p className="text-blue-700 text-sm font-medium">Win Rate</p>
-              <p className="text-3xl font-bold text-blue-900 mt-1">{winRate}%</p>
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 border border-blue-500 shadow-sm text-white">
+              <p className="text-blue-100 text-sm font-medium">Win Rate</p>
+              <p className="text-3xl font-bold text-white mt-1">{winRate}%</p>
             </div>
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function TeamStatsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedResult === 'all'
                   ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'
               }`}
             >
               All Matches ({stats.total})
@@ -194,7 +194,7 @@ export default function TeamStatsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedResult === 'won'
                   ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
               }`}
             >
               Wins ({stats.won})
@@ -204,7 +204,7 @@ export default function TeamStatsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedResult === 'lost'
                   ? 'bg-red-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
               }`}
             >
               Losses ({stats.lost})
@@ -214,7 +214,7 @@ export default function TeamStatsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedResult === 'tie'
                   ? 'bg-yellow-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
               }`}
             >
               Ties ({stats.tied})
@@ -224,7 +224,7 @@ export default function TeamStatsPage() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedResult === 'no_result'
                   ? 'bg-gray-600 text-white shadow-md'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
               }`}
             >
               No Result ({stats.noResult})
@@ -238,11 +238,11 @@ export default function TeamStatsPage() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-                <p className="mt-4 text-gray-600">Loading matches...</p>
+                <p className="mt-4 text-gray-400">Loading matches...</p>
               </div>
             ) : filteredMonthMatches.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 border border-gray-200 text-center">
-                <p className="text-gray-600 text-lg">No matches found for the selected filter</p>
+              <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
+                <p className="text-gray-400 text-lg">No matches found for the selected filter</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -260,11 +260,11 @@ export default function TeamStatsPage() {
             {loading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
-                <p className="mt-4 text-gray-600">Loading matches...</p>
+                <p className="mt-4 text-gray-400">Loading matches...</p>
               </div>
             ) : filteredYearMatches.length === 0 ? (
-              <div className="bg-white rounded-lg p-12 border border-gray-200 text-center">
-                <p className="text-gray-600 text-lg">No matches found for the selected filter</p>
+              <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
+                <p className="text-gray-400 text-lg">No matches found for the selected filter</p>
               </div>
             ) : (
               <>
@@ -280,7 +280,7 @@ export default function TeamStatsPage() {
                     <button
                       onClick={() => setCurrentYearPage(Math.max(0, currentYearPage - 1))}
                       disabled={currentYearPage === 0}
-                      className="px-4 py-2 rounded-lg border border-gray-300 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 rounded-lg border border-gray-600 font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Previous
                     </button>
@@ -291,8 +291,8 @@ export default function TeamStatsPage() {
                           onClick={() => setCurrentYearPage(idx)}
                           className={`px-3 py-2 rounded-lg font-medium transition-colors ${
                             currentYearPage === idx
-                              ? 'bg-blue-600 text-white shadow-md'
-                              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                              ? 'bg-green-600 text-white shadow-md'
+                              : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-green-900'
                           }`}
                         >
                           {idx + 1}
@@ -302,11 +302,11 @@ export default function TeamStatsPage() {
                     <button
                       onClick={() => setCurrentYearPage(Math.min(totalPages - 1, currentYearPage + 1))}
                       disabled={currentYearPage === totalPages - 1}
-                      className="px-4 py-2 rounded-lg border border-gray-300 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 rounded-lg border border-gray-600 font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Next
                     </button>
-                    <div className="text-gray-600 ml-4">
+                    <div className="text-gray-400 ml-4">
                       Page {currentYearPage + 1} of {totalPages} ({filteredYearMatches.length} total)
                     </div>
                   </div>

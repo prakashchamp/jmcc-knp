@@ -13,18 +13,18 @@ export default function PlayerStatsPage() {
   const selectedPlayer = players.find((p) => p.playerId === selectedPlayerId) || null;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Player Statistics</h1>
-          <p className="text-gray-600 mt-2">Click on a player to view their all-time statistics</p>
+          <h1 className="text-4xl font-bold text-white">Player Statistics</h1>
+          <p className="text-gray-400 mt-2">Click on a player to view their all-time statistics</p>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
             <p className="font-semibold">Error loading players</p>
             <p>{error}</p>
           </div>
@@ -35,7 +35,7 @@ export default function PlayerStatsPage() {
           {/* Players List */}
           <div className="lg:col-span-1">
             <div className="sticky top-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Players</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">Players</h2>
               <PlayersList
                 players={players}
                 selectedPlayerId={selectedPlayerId}

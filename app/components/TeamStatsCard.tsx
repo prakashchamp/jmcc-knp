@@ -15,12 +15,12 @@ interface TeamStatsCardProps {
 export function TeamStatsCard({ stats, loading, error }: TeamStatsCardProps) {
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-100">
+      <div className="bg-gray-800 rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-700">
         <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-4 bg-gray-700 rounded w-1/3"></div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+              <div key={i} className="h-20 bg-gray-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -30,30 +30,30 @@ export function TeamStatsCard({ stats, loading, error }: TeamStatsCardProps) {
 
   if (error) {
     return (
-      <div className="bg-red-50 rounded-lg p-6 border border-red-200">
-        <p className="text-red-700 font-semibold">Error loading team stats</p>
+      <div className="bg-red-900 rounded-lg p-6 border border-red-700">
+        <p className="text-red-200 font-semibold">Error loading team stats</p>
       </div>
     );
   }
 
   if (!stats) {
     return (
-      <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-        <p className="text-gray-600">No stats available</p>
+      <div className="bg-slate-800 rounded-lg p-6 border border-blue-700 shadow-lg">
+        <p className="text-gray-300">No stats available</p>
       </div>
     );
   }
 
   const statsList = [
-    { label: 'Total Matches', value: stats.totalMatches, color: 'from-blue-500 to-blue-600' },
+    { label: 'Total Matches', value: stats.totalMatches, color: 'from-blue-600 to-blue-700' },
     { label: 'Wins', value: stats.wins, color: 'from-green-500 to-green-600' },
     { label: 'Losses', value: stats.losses, color: 'from-red-500 to-red-600' },
     { label: 'No Results', value: stats.noResults, color: 'from-gray-500 to-gray-600' },
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-100">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Team Overview</h2>
+    <div className="bg-gray-800 rounded-lg p-8 backdrop-blur-sm border border-gray-700 shadow-lg">
+      <h2 className="text-2xl font-bold text-white mb-6">Team Overview</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {statsList.map((stat, index) => (
           <div

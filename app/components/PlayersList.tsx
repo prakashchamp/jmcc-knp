@@ -21,7 +21,7 @@ export function PlayersList({
         {[1, 2, 3, 4, 5].map((i) => (
           <div
             key={i}
-            className="h-16 bg-gray-200 rounded-lg animate-pulse"
+            className="h-16 bg-slate-700 rounded-lg animate-pulse"
           />
         ))}
       </div>
@@ -37,7 +37,7 @@ export function PlayersList({
           className={`w-full p-4 rounded-lg transition-all text-left ${
             selectedPlayerId === player.playerId
               ? 'bg-blue-600 text-white shadow-lg'
-              : 'bg-white text-gray-900 hover:bg-gray-50 border border-gray-200'
+              : 'bg-slate-700 text-gray-100 hover:bg-blue-600 border border-blue-500'
           }`}
         >
           <div className="font-semibold">{player.playerName}</div>

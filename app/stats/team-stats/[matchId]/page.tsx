@@ -91,11 +91,11 @@ export default function MatchDetailPage() {
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
         <Header />
         <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="bg-white rounded-lg p-12 border border-gray-200 text-center">
-            <p className="text-gray-600 text-lg">Match not found</p>
+          <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
+            <p className="text-gray-400 text-lg">Match not found</p>
             <button
               onClick={() => router.back()}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -138,7 +138,7 @@ export default function MatchDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900">
       <Header />
 
       <div className="max-w-6xl mx-auto px-6 py-8">
@@ -151,81 +151,81 @@ export default function MatchDetailPage() {
         </button>
 
         {/* Match Header */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8 shadow-md">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Match Details</h1>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-8 shadow-md">
+          <h1 className="text-3xl font-bold text-white mb-4">Match Details</h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <p className="text-gray-600 text-sm">Date</p>
-              <p className="text-lg font-semibold text-gray-900">{formatDate(match.date)}</p>
+              <p className="text-gray-400 text-sm">Date</p>
+              <p className="text-lg font-semibold text-white">{formatDate(match.date)}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm">Opponent</p>
-              <p className="text-lg font-semibold text-gray-900">{match.opponent}</p>
+              <p className="text-gray-400 text-sm">Opponent</p>
+              <p className="text-lg font-semibold text-white">{match.opponent}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm">Venue</p>
-              <p className="text-lg font-semibold text-gray-900">{match.venue}</p>
+              <p className="text-gray-400 text-sm">Venue</p>
+              <p className="text-lg font-semibold text-white">{match.venue}</p>
             </div>
             <div>
-              <p className="text-gray-600 text-sm">Result</p>
+              <p className="text-gray-400 text-sm">Result</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  match.result === 'won' ? 'bg-green-100 text-green-800' :
-                  match.result === 'lost' ? 'bg-red-100 text-red-800' :
-                  match.result === 'tie' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
+                  match.result === 'won' ? 'bg-green-900 text-green-200' :
+                  match.result === 'lost' ? 'bg-red-900 text-red-200' :
+                  match.result === 'tie' ? 'bg-yellow-900 text-yellow-200' :
+                  'bg-gray-700 text-gray-200'
                 }`}>
                   {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
                 </span>
-                {match.winMargin && <span className="text-gray-900 font-medium">{match.winMargin}</span>}
+                {match.winMargin && <span className="text-white font-medium">{match.winMargin}</span>}
               </div>
             </div>
           </div>
         </div>
 
         {/* Batting Stats */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden mb-8 shadow-md">
-          <h2 className="text-2xl font-bold text-gray-900 p-6 pb-4">Batting Statistics</h2>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden mb-8 shadow-md">
+          <h2 className="text-2xl font-bold text-white p-6 pb-4">Batting Statistics</h2>
           {sortedBattingPerformances.length === 0 ? (
-            <p className="p-6 text-gray-600">No batting statistics available</p>
+            <p className="p-6 text-gray-400">No batting statistics available</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-gray-200">
+                <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
                   <tr>
                     <th 
-                      className="px-4 py-3 text-left font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
                       onClick={() => handleBattingSort('playerName')}
                     >
                       Player {battingSortField === 'playerName' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'playerName' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('runs')}
                     >
                       Runs {battingSortField === 'runs' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'runs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('balls')}
                     >
                       Balls {battingSortField === 'balls' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'balls' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('fours')}
                     >
                       4s {battingSortField === 'fours' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'fours' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('sixes')}
                     >
                       6s {battingSortField === 'sixes' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'sixes' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-blue-200"
+                      className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
                       onClick={() => handleBattingSort('strikeRate')}
                     >
                       SR {battingSortField === 'strikeRate' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'strikeRate' && '⇅'}
@@ -236,13 +236,13 @@ export default function MatchDetailPage() {
                   {sortedBattingPerformances.map((perf, idx) => (
                     <tr 
                       key={perf.id}
-                      className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-blue-50'}
+                      className={idx % 2 === 0 ? 'bg-slate-800 text-gray-100' : 'bg-slate-700 text-gray-100 hover:bg-slate-600'}
                     >
-                      <td className="px-4 py-3 font-semibold text-gray-900">{perf.playerName}</td>
+                      <td className="px-4 py-3 font-semibold text-white">{perf.playerName}</td>
                       <td className="px-4 py-3 text-center font-semibold text-blue-600">{perf.batting.runs}</td>
-                      <td className="px-4 py-3 text-center text-gray-700">{perf.batting.balls}</td>
-                      <td className="px-4 py-3 text-center text-gray-700">{perf.batting.fours}</td>
-                      <td className="px-4 py-3 text-center text-gray-700">{perf.batting.sixes}</td>
+                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.balls}</td>
+                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.fours}</td>
+                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.sixes}</td>
                       <td className="px-4 py-3 text-center text-orange-600">{perf.batting.strikeRate.toFixed(2)}</td>
                     </tr>
                   ))}
@@ -253,41 +253,41 @@ export default function MatchDetailPage() {
         </div>
 
         {/* Bowling Stats */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-md">
-          <h2 className="text-2xl font-bold text-gray-900 p-6 pb-4">Bowling Statistics</h2>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden shadow-md">
+          <h2 className="text-2xl font-bold text-white p-6 pb-4">Bowling Statistics</h2>
           {sortedBowlingPerformances.length === 0 ? (
-            <p className="p-6 text-gray-600">No bowling statistics available</p>
+            <p className="p-6 text-gray-400">No bowling statistics available</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-red-50 to-red-100 border-b border-gray-200">
+                <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-yellow-700">
                   <tr>
                     <th 
-                      className="px-4 py-3 text-left font-semibold text-gray-900 cursor-pointer select-none hover:bg-red-200"
+                      className="px-4 py-3 text-left font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('playerName')}
                     >
                       Player {bowlingSortField === 'playerName' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'playerName' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-red-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('overs')}
                     >
                       Overs {bowlingSortField === 'overs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'overs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-red-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('runs')}
                     >
                       Runs {bowlingSortField === 'runs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'runs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-red-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('wickets')}
                     >
                       Wkts {bowlingSortField === 'wickets' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'wickets' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-red-200"
+                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('economy')}
                     >
                       Econ {bowlingSortField === 'economy' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'economy' && '⇅'}
@@ -298,15 +298,15 @@ export default function MatchDetailPage() {
                   {sortedBowlingPerformances.map((perf, idx) => (
                     <tr 
                       key={perf.id}
-                      className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-red-50'}
+                      className={idx % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'}
                     >
-                      <td className="px-4 py-3 font-semibold text-gray-900">{perf.playerName}</td>
-                      <td className="px-4 py-3 text-center text-gray-700">{perf.bowling.overs}</td>
-                      <td className="px-4 py-3 text-center text-gray-700">{perf.bowling.runs}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-red-600">{perf.bowling.wickets}</td>
-                      <td className="px-4 py-3 text-center text-blue-600">{perf.bowling.economy.toFixed(2)}</td>
+                      <td className="px-4 py-3 font-semibold text-white">{perf.playerName}</td>
+                      <td className="px-4 py-3 text-center text-gray-300">{perf.bowling.overs}</td>
+                      <td className="px-4 py-3 text-center text-gray-300">{perf.bowling.runs}</td>
+                      <td className="px-4 py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
+                      <td className="px-4 py-3 text-center text-blue-400">{perf.bowling.economy.toFixed(2)}</td>
                     </tr>
-                  ))}
+                  ))}  
                 </tbody>
               </table>
             </div>
