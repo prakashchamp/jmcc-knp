@@ -1,14 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Header } from '@/app/components/Header';
 import { PlayersList } from '@/app/components/PlayersList';
 import { PlayerStatsDetail } from '@/app/components/PlayerStatsDetail';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
 
 export default function PlayerStatsPage() {
+  const searchParams = useSearchParams();
   const { players, loading, error } = useAllPlayers();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  // Set selected player from query parameter on mount
+  useEffect(() => {
+    const playerId = searchParams.get('playerId');
+    if (playerId) {
+      setSelectedPlayerId(playerId);
+    }
+  }, [searchParams]);
 
   const selectedPlayer = players.find((p) => p.playerId === selectedPlayerId) || null;
 

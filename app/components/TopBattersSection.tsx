@@ -48,6 +48,7 @@ export function TopBattersSection() {
             key={batter.playerId}
             rank={(index + 1) as 1 | 2 | 3}
             playerName={batter.playerName}
+            playerId={batter.playerId}
             stats={[
               { label: 'Matches', value: batter.totalMatches },
               { label: 'Innings', value: batter.totalInnings },

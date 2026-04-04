@@ -15,6 +15,25 @@ export interface Player {
 }
 
 // ============================================================================
+// TEAM MANAGEMENT (Cricket Scorer)
+// ============================================================================
+
+export interface TeamPlayer {
+  id: string;
+  name: string;
+  role: 'batsman' | 'bowler' | 'allrounder';
+  jerseyNumber?: number;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  players: TeamPlayer[];
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
+}
+
+// ============================================================================
 // MATCHES
 // ============================================================================
 
@@ -25,9 +44,9 @@ export interface Match {
   month: string; // "2024-03"
   opponent: string;
   venue: 'Home' | 'Away' | 'Neutral';
-  tossWonBy: 'Us' | 'Opponent';
+  tossWonBy: 'Us' | 'Opponent' | 'Them'; // Support both old and new formats
   tossDecision: 'bat' | 'field';
-  result: 'won' | 'lost' | 'tie' | 'no_result';
+  result: 'won' | 'lost' | 'tie' | 'no_result' | 'no_result';
   winMargin: string; // "24 runs", "5 wickets", ""
 
   bestBatterId: string;
@@ -41,6 +60,12 @@ export interface Match {
   bestBowlerRuns: number;
 
   createdAt: string; // ISO 8601
+
+  // NEW: Scorer app fields
+  matchFormat?: 'T20' | 'ODI' | 'Custom'; // Match format
+  totalOvers?: number; // Total overs in match format
+  ballHistory?: any[]; // Ball-by-ball history (Ball[])
+  scorerInitiatedFrom?: 'scorer-app' | 'manual-entry' | 'ocr'; // Data source
 }
 
 // ============================================================================

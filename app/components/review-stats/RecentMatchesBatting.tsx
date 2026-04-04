@@ -1,0 +1,232 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Match, Performance } from '@/app/lib/cricket-schema';
+
+interface RecentMatchesBattingProps {
+  matches: Match[];
+  performances: Performance[];
+  loading: boolean;
+}
+
+interface ConsolidatedBattingStats {
+  playerName: string;
+  playerId: string;
+  matchesPlayed: number;
+  totalRuns: number;
+  totalBalls: number;
+  totalFours: number;
+  totalSixes: number;
+  strikeRate: number;
+}
+
+type SortField = 'playerName' | 'matchesPlayed' | 'totalRuns' | 'totalBalls' | 'totalFours' | 'totalSixes' | 'strikeRate';
+
+export function RecentMatchesBatting({ matches, performances, loading }: RecentMatchesBattingProps) {
+  const router = useRouter();
+  const [sortField, setSortField] = useState<SortField>('totalRuns');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Filter performances for matching matches and with batting data
+  const relevantPerformances = performances.filter((perf) => {
+    const matchFound = matches.find((m) => m.id === perf.matchId);
+    return matchFound && perf.batting.didBat;
+  });
+
+  // Consolidate stats by player
+  const playerStatsMap = useMemo(() => {
+    const map = new Map<string, ConsolidatedBattingStats>();
+
+    relevantPerformances.forEach((perf) => {
+      const existing = map.get(perf.playerName) || {
+        playerName: perf.playerName,
+        playerId: perf.playerId,
+        matchesPlayed: 0,
+        totalRuns: 0,
+        totalBalls: 0,
+        totalFours: 0,
+        totalSixes: 0,
+        strikeRate: 0,
+      };
+
+      existing.matchesPlayed += 1;
+      existing.totalRuns += perf.batting.runs;
+      existing.totalBalls += perf.batting.balls;
+      existing.totalFours += perf.batting.fours;
+      existing.totalSixes += perf.batting.sixes;
+
+      map.set(perf.playerName, existing);
+    });
+
+    // Calculate strike rates
+    map.forEach((stats) => {
+      stats.strikeRate = stats.totalBalls > 0 ? (stats.totalRuns / stats.totalBalls) * 100 : 0;
+    });
+
+    return map;
+  }, [relevantPerformances]);
+
+  // Sort consolidated stats
+  const sortedStats = useMemo(() => {
+    const statsArray = Array.from(playerStatsMap.values()).sort((a, b) => {
+      let aVal: string | number = '';
+      let bVal: string | number = '';
+
+      if (sortField === 'playerName') {
+        aVal = a.playerName;
+        bVal = b.playerName;
+      } else if (sortField === 'matchesPlayed') {
+        aVal = a.matchesPlayed;
+        bVal = b.matchesPlayed;
+      } else if (sortField === 'totalRuns') {
+        aVal = a.totalRuns;
+        bVal = b.totalRuns;
+      } else if (sortField === 'totalBalls') {
+        aVal = a.totalBalls;
+        bVal = b.totalBalls;
+      } else if (sortField === 'totalFours') {
+        aVal = a.totalFours;
+        bVal = b.totalFours;
+      } else if (sortField === 'totalSixes') {
+        aVal = a.totalSixes;
+        bVal = b.totalSixes;
+      } else if (sortField === 'strikeRate') {
+        aVal = a.strikeRate;
+        bVal = b.strikeRate;
+      }
+
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+    });
+    return statsArray;
+  }, [playerStatsMap, sortField, sortDirection]);
+
+  const handlePlayerClick = (playerId: string) => {
+    router.push(`/player-stats?playerId=${playerId}`);
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+        <h3 className="text-2xl font-bold text-white p-6 pb-4">Recent Matches Batting Stats</h3>
+        <div className="h-64 bg-slate-700 rounded animate-pulse" />
+      </div>
+    );
+  }
+
+  if (sortedStats.length === 0) {
+    return (
+      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+        <h3 className="text-2xl font-bold text-white mb-6">Recent Matches Batting Stats</h3>
+        <p className="text-gray-400 text-center py-8">No batting data available</p>
+      </div>
+    );
+  }
+
+  const renderSortIndicator = (field: SortField) => {
+    if (sortField === field) {
+      return <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+    }
+    return <span className="text-gray-500 ml-1">⇅</span>;
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      <h3 className="text-2xl font-bold text-white p-6 pb-4">Recent Matches Batting Stats</h3>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
+            <tr>
+              <th
+                className="px-4 py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('playerName')}
+              >
+                Player
+                {renderSortIndicator('playerName')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('matchesPlayed')}
+              >
+                Matches
+                {renderSortIndicator('matchesPlayed')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('totalRuns')}
+              >
+                Runs
+                {renderSortIndicator('totalRuns')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('totalBalls')}
+              >
+                Balls
+                {renderSortIndicator('totalBalls')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('totalFours')}
+              >
+                4s
+                {renderSortIndicator('totalFours')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('totalSixes')}
+              >
+                6s
+                {renderSortIndicator('totalSixes')}
+              </th>
+              <th
+                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                onClick={() => handleSort('strikeRate')}
+              >
+                SR
+                {renderSortIndicator('strikeRate')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedStats.map((stats, idx) => (
+              <tr
+                key={stats.playerName}
+                className={
+                  idx % 2 === 0 ? 'bg-gray-800 text-gray-100' : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
+                }
+              >
+                <td 
+                  className="px-4 py-3 font-semibold text-blue-400 cursor-pointer hover:text-blue-300 transition-colors"
+                  onClick={() => handlePlayerClick(stats.playerId)}
+                >
+                  {stats.playerName}
+                </td>
+                <td className="px-4 py-3 text-center text-gray-300">{stats.matchesPlayed}</td>
+                <td className="px-4 py-3 text-center font-semibold text-blue-400">{stats.totalRuns}</td>
+                <td className="px-4 py-3 text-center text-gray-300">{stats.totalBalls}</td>
+                <td className="px-4 py-3 text-center text-gray-300">{stats.totalFours}</td>
+                <td className="px-4 py-3 text-center text-gray-300">{stats.totalSixes}</td>
+                <td className="px-4 py-3 text-center text-orange-400">
+                  {stats.strikeRate > 0 ? stats.strikeRate.toFixed(1) : '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

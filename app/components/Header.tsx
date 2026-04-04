@@ -7,6 +7,7 @@ import Image from 'next/image';
 /**
  * Header Component
  * Displays team logo (left), team name (centered), and hamburger menu (right)
+ * On larger screens, shows a horizontal navbar below the header
  */
 export function Header() {
   const router = useRouter();
@@ -30,11 +31,15 @@ export function Header() {
 
   const menuItems = [
     { label: 'Home', value: 'home' },
-    { label: 'Monthly stats', value: 'monthly' },
-    { label: 'Yearly stats', value: 'yearly' },
-    { label: 'All time stats', value: 'all-time' },
-    { label: 'Team stats', value: 'team-stats' },
-    { label: 'Player stats', value: 'player' },
+    { label: 'Monthly Stats', value: 'monthly' },
+    { label: 'Yearly Stats', value: 'yearly' },
+    { label: 'All Time Stats', value: 'all-time' },
+    { label: 'Team Stats', value: 'team-stats' },
+    { label: 'Player Stats', value: 'player' },
+    { label: 'Review Stats', value: 'review-stats' },
+    { label: 'Live Scorer', value: 'scorer' },
+    { label: 'Team Setup', value: 'team-setup' },
+    { label: 'Admin', value: 'admin' },
   ];
 
   const handleMenuClick = (value: string) => {
@@ -59,6 +64,18 @@ export function Header() {
       case 'player':
         router.push('/player-stats');
         break;
+      case 'review-stats':
+        router.push('/review-stats');
+        break;
+      case 'scorer':
+        router.push('/scorer');
+        break;
+      case 'team-setup':
+        router.push('/admin/team-setup');
+        break;
+      case 'admin':
+        router.push('/admin');
+        break;
       default:
         break;
     }
@@ -68,11 +85,24 @@ export function Header() {
     if (value === 'home') {
       return pathname === '/';
     }
+    if (value === 'admin') {
+      return pathname === '/admin';
+    }
+    if (value === 'review-stats') {
+      return pathname === '/review-stats';
+    }
+    if (value === 'scorer') {
+      return pathname === '/scorer';
+    }
+    if (value === 'team-setup') {
+      return pathname === '/admin/team-setup';
+    }
     return pathname.includes(value);
   };
 
   return (
     <header className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg">
+      {/* Top Header Section */}
       <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
         {/* Logo */}
         <div className="flex-shrink-0">
@@ -82,6 +112,7 @@ export function Header() {
             width={48}
             height={48}
             className="rounded-full object-cover shadow-md"
+            style={{ width: 'auto', height: 'auto' }}
             priority
           />
         </div>
@@ -92,8 +123,8 @@ export function Header() {
           <p className="text-blue-100 text-sm mt-1">Cricket Team</p>
         </div>
 
-        {/* Hamburger Menu */}
-        <div className="flex-shrink-0 relative" ref={menuRef}>
+        {/* Hamburger Menu - Mobile Only */}
+        <div className="flex-shrink-0 relative md:hidden" ref={menuRef}>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="w-12 h-12 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
@@ -123,7 +154,7 @@ export function Header() {
                   onClick={() => handleMenuClick(item.value)}
                   className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-gray-700 font-medium text-sm ${
                     isActive(item.value)
-                      ? 'bg-blue-800 text-blue-100 border-l-4 border-l-blue-400 pl-3'
+                      ? 'bg-blue-600 text-white border-l-4 border-l-blue-300 pl-3'
                       : 'hover:bg-gray-700 text-gray-100'
                   }`}
                 >
@@ -134,6 +165,27 @@ export function Header() {
           )}
         </div>
       </div>
+
+      {/* Navbar - Desktop Only */}
+      <nav className="hidden md:block bg-blue-800/50 border-t border-blue-700">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center space-x-8">
+            {menuItems.map((item) => (
+              <button
+                key={item.value}
+                onClick={() => handleMenuClick(item.value)}
+                className={`py-3 px-1 text-sm font-medium transition-all border-b-2 ${
+                  isActive(item.value)
+                    ? 'text-white border-b-2 border-blue-300'
+                    : 'text-blue-100 border-b-2 border-transparent hover:text-white hover:border-b-blue-400'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
     </header>
   );
 }
