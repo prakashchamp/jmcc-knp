@@ -38,7 +38,15 @@ export function BatsmenDisplay() {
           <div className="font-bold text-lg mb-2">
             {currentInnings.striker.name} <span className="text-teal-600 text-xl">*</span>
           </div>
-          <div className="grid grid-cols-4 gap-2 text-sm">
+          <div className="grid grid-cols-6 gap-2 text-sm">
+            <div>
+              <div className="text-gray-600 text-xs">R</div>
+              <div className="font-bold text-lg">{currentInnings.striker.runs}</div>
+            </div>
+            <div>
+              <div className="text-gray-600 text-xs">B</div>
+              <div className="font-bold text-lg">{currentInnings.striker.balls}</div>
+            </div>
             <div>
               <div className="text-gray-600 text-xs">0s</div>
               <div className="font-bold text-lg">{calculateZeros(currentInnings.striker.id)}</div>
@@ -65,7 +73,15 @@ export function BatsmenDisplay() {
           <div className="font-bold text-lg mb-2">
             {currentInnings.nonStriker.name}
           </div>
-          <div className="grid grid-cols-4 gap-2 text-sm">
+          <div className="grid grid-cols-6 gap-2 text-sm">
+            <div>
+              <div className="text-gray-600 text-xs">R</div>
+              <div className="font-bold text-lg">{currentInnings.nonStriker.runs}</div>
+            </div>
+            <div>
+              <div className="text-gray-600 text-xs">B</div>
+              <div className="font-bold text-lg">{currentInnings.nonStriker.balls}</div>
+            </div>
             <div>
               <div className="text-gray-600 text-xs">0s</div>
               <div className="font-bold text-lg">{calculateZeros(currentInnings.nonStriker.id)}</div>

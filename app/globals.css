@@ -30,3 +30,36 @@ html::-webkit-scrollbar {
 body {
   -ms-overflow-style: none; /* Internet Explorer and Edge */
 }
+
+/* Custom scrollbar for horizontal scroll containers */
+.scrollbar-custom {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.5) transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5);
+  border-radius: 3px;
+}
+
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.8);
+}
+
+/* Hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}

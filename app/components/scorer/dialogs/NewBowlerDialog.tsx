@@ -38,7 +38,7 @@ export function NewBowlerDialog() {
                 className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold rounded transition-colors text-left flex justify-between items-center"
               >
                 <span>{bowler.name}</span>
-                <span className="text-xs text-gray-400">#{bowler.number}</span>
+                <span className="text-xs text-gray-400">#{bowler.jerseyNumber}</span>
               </button>
             ))}
           </div>

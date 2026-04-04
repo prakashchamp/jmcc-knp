@@ -7,7 +7,7 @@ import { LiveMatch, Ball, InningsState, CurrentBatsman, CurrentBowler, TeamPlaye
  * Dialog state for modals
  */
 export interface DialogState {
-  activeDialog: 'extra' | 'wicket' | 'runOut' | 'batsmanSelect' | 'finishInnings' | null;
+  activeDialog: 'extra' | 'wicket' | 'stumped' | 'runOut' | 'batsmanSelect' | 'finishInnings' | 'options' | 'newBatsman' | 'newBowler' | 'bowlerRetired' | 'batsmanRetired' | 'matchDetails' | 'initialBatters' | 'startNewMatchConfirm' | null;
   dialogData?: {
     extraType?: ExtraType;
     hasWicket?: boolean;
@@ -57,32 +57,6 @@ const initialState: ScorerState = {
  * Initialize a new live match
  */
 function createEmptyInnings(inningsNumber: 1 | 2, teamPlayers: TeamPlayer[]): InningsState {
-  const striker: CurrentBatsman = {
-    id: teamPlayers[0]?.id || '',
-    name: teamPlayers[0]?.name || 'Batsman 1',
-    jerseyNumber: teamPlayers[0]?.jerseyNumber,
-    role: 'striker',
-    runs: 0,
-    balls: 0,
-    fours: 0,
-    sixes: 0,
-    status: 'batting',
-    strikeRate: 0,
-  };
-
-  const nonStriker: CurrentBatsman = {
-    id: teamPlayers[1]?.id || '',
-    name: teamPlayers[1]?.name || 'Batsman 2',
-    jerseyNumber: teamPlayers[1]?.jerseyNumber,
-    role: 'non-striker',
-    runs: 0,
-    balls: 0,
-    fours: 0,
-    sixes: 0,
-    status: 'batting',
-    strikeRate: 0,
-  };
-
   return {
     inningsNumber,
     battingTeam: 'Us',
@@ -90,8 +64,9 @@ function createEmptyInnings(inningsNumber: 1 | 2, teamPlayers: TeamPlayer[]): In
     totalWickets: 0,
     totalBalls: 0,
     ballHistory: [],
-    striker,
-    nonStriker,
+    striker: undefined,
+    nonStriker: undefined,
+    currentBowler: undefined,
     dismissedBatsmen: [],
   };
 }
@@ -167,6 +142,39 @@ const scorerSlice = createSlice({
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
+
+      // Find current over number BEFORE incrementing totalBalls
+      const currentOver = Math.floor(innings.totalBalls / 6);
+      const ballInOver = innings.totalBalls % 6;
+
+      // Create ball record
+      const newBall: Ball = {
+        id: `ball_${Date.now()}_${Math.random()}`,
+        over: currentOver,
+        ball: ballInOver,
+        timestamp: Date.now(),
+        bowler: {
+          id: innings.currentBowler.id,
+          name: innings.currentBowler.name,
+        },
+        batter: {
+          id: innings.striker.id,
+          name: innings.striker.name,
+        },
+        nonStriker: {
+          id: innings.nonStriker?.id || '',
+          name: innings.nonStriker?.name || '',
+        },
+        runs: {
+          batter: runs,
+          extras: 0,
+          total: runs,
+        },
+        isWicket: false,
+      };
+
+      // Add to ball history
+      innings.ballHistory.push(newBall);
 
       // Update batsman stats
       innings.striker.runs += runs;
@@ -397,6 +405,60 @@ const scorerSlice = createSlice({
     },
 
     /**
+     * Set initial batters and bowler at start of innings
+     */
+    setInitialBattersAndBowler: (state, action: PayloadAction<{ striker: TeamPlayer; nonStriker: TeamPlayer; bowler?: TeamPlayer }>) => {
+      if (!state.currentInnings || !state.liveMatch) return;
+      
+      const { striker: strikerPlayer, nonStriker: nonStrikerPlayer, bowler: bowlerPlayer } = action.payload;
+      const innings = state.currentInnings;
+
+      // Set striker
+      innings.striker = {
+        id: strikerPlayer.id,
+        name: strikerPlayer.name,
+        jerseyNumber: strikerPlayer.jerseyNumber,
+        role: 'striker',
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        status: 'batting',
+        strikeRate: 0,
+      };
+
+      // Set non-striker
+      innings.nonStriker = {
+        id: nonStrikerPlayer.id,
+        name: nonStrikerPlayer.name,
+        jerseyNumber: nonStrikerPlayer.jerseyNumber,
+        role: 'non-striker',
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        status: 'batting',
+        strikeRate: 0,
+      };
+
+      // Set bowler (default to first player if not provided)
+      const bowler = bowlerPlayer || state.liveMatch.teamPlayers[0];
+      if (bowler) {
+        innings.currentBowler = {
+          id: bowler.id,
+          name: bowler.name,
+          jerseyNumber: bowler.jerseyNumber,
+          runs: 0,
+          wickets: 0,
+          balls: 0,
+          overs: 0,
+          economy: 0,
+          extras: 0,
+        };
+      }
+    },
+
+    /**
      * Open dialog
      */
     openDialog: (state, action: PayloadAction<{ dialog: DialogState['activeDialog']; data?: DialogState['dialogData'] }>) => {
@@ -434,6 +496,17 @@ const scorerSlice = createSlice({
     },
 
     /**
+     * Clear match and reset to initial state
+     */
+    clearMatch: (state) => {
+      state.liveMatch = null;
+      state.currentInnings = null;
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
+      state.error = null;
+    },
+
+    /**
      * Rehydrate scorer state from persisted storage
      */
     rehydrateScorer: (state, action: PayloadAction<ScorerState>) => {
@@ -454,11 +527,13 @@ export const {
   recordWicket,
   replaceBatsman,
   swapBatsmen,
+  setInitialBattersAndBowler,
   openDialog,
   closeDialog,
   updateDialogData,
   setError,
   setLoading,
+  clearMatch,
   rehydrateScorer,
 } = scorerSlice.actions;
 

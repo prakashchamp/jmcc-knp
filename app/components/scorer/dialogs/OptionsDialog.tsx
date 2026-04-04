@@ -79,6 +79,12 @@ export function OptionsDialog() {
       enabled: true,
       tooltip: ''
     },
+    {
+      label: 'Complete This Match',
+      action: 'startNewMatch',
+      enabled: true,
+      tooltip: ''
+    },
   ];
 
   const handleOptionClick = (action: string, enabled: boolean) => {
@@ -99,6 +105,9 @@ export function OptionsDialog() {
         break;
       case 'changeMatchDetails':
         dispatch(openDialog({ dialog: 'matchDetails' }));
+        break;
+      case 'startNewMatch':
+        dispatch(openDialog({ dialog: 'startNewMatchConfirm' }));
         break;
     }
   };
