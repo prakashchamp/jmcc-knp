@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import {
@@ -13,8 +13,11 @@ import {
   swapBatsmen,
   setInitialBattersAndBowler,
   clearMatch,
+  recordPenaltyRuns,
+  recordQuickWicket,
 } from '@/app/lib/redux/slices/scorerSlice';
-import type { LiveMatch, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import type { Ball, LiveMatch, TeamPlayer, InningsState } from '@/app/lib/cricket-scorer-types';
+import { getCurrentBowlerStats } from '@/app/lib/bowling-stats-utils';
 
 // Landing Page Component
 import { ScorerLandingPage } from './ScorerLandingPage';
@@ -33,6 +36,8 @@ import { BatsmanRetiredDialog } from './dialogs/BatsmanRetiredDialog';
 import { MatchDetailsDialog } from './dialogs/MatchDetailsDialog';
 import { InitialBattersDialog } from './dialogs/InitialBattersDialog';
 import { StartNewMatchConfirmDialog } from './dialogs/StartNewMatchConfirmDialog';
+import { OverEndPopup } from './dialogs/OverEndPopup';
+import { SixPlusDialog } from './dialogs/SixPlusDialog';
 import { ScorerMenu } from './ScorerMenu';
 import { BattingScorecard } from './review-screens/BattingScorecard';
 import { BowlingScorecard } from './review-screens/BowlingScorecard';
@@ -75,16 +80,76 @@ export function LiveScorer(props: LiveScorerProps) {
   const { liveMatch, currentInnings, dialogState, loading, error } = useSelector(
     (state: RootState) => state.scorer
   );
-  const [positionedBatsman1, setPositionedBatsman1] = useState<any>(null);
-  const [positionedBatsman2, setPositionedBatsman2] = useState<any>(null);
+  const [positionedBatsman1Id, setPositionedBatsman1Id] = useState<string | null>(null);
+  const [positionedBatsman2Id, setPositionedBatsman2Id] = useState<string | null>(null);
+  const [previousOverNumber, setPreviousOverNumber] = useState(0);
 
-  // Initialize positioned batsmen when innings data becomes available
+  const viewTitles: Record<typeof view, string> = {
+    scorer: 'Live Scorer',
+    batting: 'Batting',
+    bowling: 'Bowling',
+    overs: 'Overs',
+    wickets: 'Wickets',
+    partnerships: 'Partnerships',
+    details: 'Match Info',
+  };
+
+  // Keep batter rows stable across strike rotation.
+  // Row 1 starts with the first-ball striker, and after a wicket the surviving batter stays/moves to row 1.
   useEffect(() => {
-    if (currentInnings && currentInnings.striker && currentInnings.nonStriker) {
-      setPositionedBatsman1(currentInnings.striker);
-      setPositionedBatsman2(currentInnings.nonStriker);
+    if (!currentInnings?.striker || !currentInnings?.nonStriker) return;
+
+    const currentPairIds = [currentInnings.striker.id, currentInnings.nonStriker.id];
+
+    // At the start of an innings, always honor the user's selected striker/non-striker order.
+    if (currentInnings.totalBalls === 0) {
+      if (
+        positionedBatsman1Id !== currentInnings.striker.id ||
+        positionedBatsman2Id !== currentInnings.nonStriker.id
+      ) {
+        setPositionedBatsman1Id(currentInnings.striker.id);
+        setPositionedBatsman2Id(currentInnings.nonStriker.id);
+      }
+      return;
     }
-  }, [currentInnings?.striker?.id, currentInnings?.nonStriker?.id]);
+
+    if (!positionedBatsman1Id || !positionedBatsman2Id) {
+      setPositionedBatsman1Id(currentInnings.striker.id);
+      setPositionedBatsman2Id(currentInnings.nonStriker.id);
+      return;
+    }
+
+    const batsman1StillBatting = currentPairIds.includes(positionedBatsman1Id);
+    const batsman2StillBatting = currentPairIds.includes(positionedBatsman2Id);
+
+    if (batsman1StillBatting && batsman2StillBatting) {
+      return;
+    }
+
+    if (!batsman1StillBatting && batsman2StillBatting) {
+      const newBatsmanId = currentPairIds.find((id) => id !== positionedBatsman2Id) || null;
+      setPositionedBatsman1Id(positionedBatsman2Id);
+      setPositionedBatsman2Id(newBatsmanId);
+      return;
+    }
+
+    if (batsman1StillBatting && !batsman2StillBatting) {
+      const newBatsmanId = currentPairIds.find((id) => id !== positionedBatsman1Id) || null;
+      setPositionedBatsman2Id(newBatsmanId);
+      return;
+    }
+
+    setPositionedBatsman1Id(currentInnings.striker.id);
+    setPositionedBatsman2Id(currentInnings.nonStriker.id);
+  }, [currentInnings?.striker?.id, currentInnings?.nonStriker?.id, positionedBatsman1Id, positionedBatsman2Id]);
+
+  // Helper to get batsman data from innings by ID (always the current updated stats)
+  const getBatsmanById = (id: string | null, inningsData: InningsState | undefined) => {
+    if (!id || !inningsData) return null;
+    if (inningsData.striker?.id === id) return inningsData.striker;
+    if (inningsData.nonStriker?.id === id) return inningsData.nonStriker;
+    return null;
+  };
 
   // Show initial batters selection dialog when match starts
   useEffect(() => {
@@ -95,12 +160,52 @@ export function LiveScorer(props: LiveScorerProps) {
     }
   }, [currentInnings, dialogState.activeDialog, dispatch]);
 
+  // Detect when an over ends (6 legal deliveries)
+  useEffect(() => {
+    if (!currentInnings || !liveMatch) return;
+    
+    const currentOverNumber = Math.floor(currentInnings.totalBalls / 6);
+
+    // If the last ball was undone, allow the over-end popup to trigger again.
+    if (currentOverNumber < previousOverNumber) {
+      setPreviousOverNumber(currentOverNumber);
+      return;
+    }
+    
+    // Check if we've completed a new over (totalBalls is a multiple of 6 and greater than before)
+    if (currentInnings.totalBalls > 0 && currentInnings.totalBalls % 6 === 0 && currentOverNumber > previousOverNumber) {
+      setPreviousOverNumber(currentOverNumber);
+      
+      // Show over end popup - only if not already showing
+      if (dialogState.activeDialog === null) {
+        dispatch(openDialog({ dialog: 'overEnd' }));
+      }
+    }
+  }, [currentInnings?.totalBalls, previousOverNumber, dispatch, dialogState.activeDialog, liveMatch, currentInnings]);
+
+  // Keep the active ball slot centered so previous/current/next remain visible
+  const ballsContainerRef = useRef<HTMLDivElement>(null);
+  const currentBallRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (currentBallRef.current) {
+      currentBallRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [currentInnings?.ballHistory, currentInnings?.totalBalls]);
+
   const handleStartNewMatch = (matchDetails: {
     opponent: string;
-    venue: 'Home' | 'Away' | 'Neutral';
+    venue: string;
     tossWonBy: 'Us' | 'Them';
     tossDecision: 'bat' | 'field';
     totalOvers: number;
+    striker?: TeamPlayer;
+    nonStriker?: TeamPlayer;
+    bowler?: TeamPlayer;
   }) => {
     const newMatch: LiveMatch = {
       id: `match_${Date.now()}`,
@@ -119,6 +224,15 @@ export function LiveScorer(props: LiveScorerProps) {
     };
 
     dispatch(initializeLiveMatch(newMatch));
+
+    // If we have striker and bowler, set them immediately
+    if (matchDetails.striker && matchDetails.nonStriker && matchDetails.bowler) {
+      dispatch(setInitialBattersAndBowler({
+        striker: matchDetails.striker,
+        nonStriker: matchDetails.nonStriker,
+        bowler: matchDetails.bowler,
+      }));
+    }
   };
 
   const handleResumeMatch = () => {
@@ -133,6 +247,7 @@ export function LiveScorer(props: LiveScorerProps) {
         onStartNewMatch={handleStartNewMatch}
         onResumeMatch={handleResumeMatch}
         hasMatchToResume={false}
+        teamPlayers={teamPlayers}
       />
     );
   }
@@ -171,21 +286,22 @@ export function LiveScorer(props: LiveScorerProps) {
     );
   }
 
+  // Now that innings is defined, we can safely call our helper
+  const displayBatsman1 = getBatsmanById(positionedBatsman1Id, innings);
+  const displayBatsman2 = getBatsmanById(positionedBatsman2Id, innings);
+  const currentBowlerStats = getCurrentBowlerStats(innings, innings.currentBowler);
+
   /**
    * Calculate number of zero-run balls (dots) faced by a batsman
+   * Excludes WD as they don't count as balls faced
+   * Includes NB (no-balls count as balls for striker)
    */
   const calculateZeros = (batterId: string): number => {
     if (!innings.ballHistory) return 0;
     return innings.ballHistory.filter(
-      (ball) => ball.batter.id === batterId && ball.runs.batter === 0
+      (ball) => ball.batter.id === batterId && ball.runs.batter === 0 && ball.extra?.type !== 'wide'
     ).length;
   };
-
-  // Calculate current over balls
-  const currentOversCount = Math.floor(innings.totalBalls / 6);
-  const currentOverBalls = innings.ballHistory ? innings.ballHistory.filter(
-    (b) => b.over === currentOversCount
-  ) : [];
 
   // Calculate CRR (Current Run Rate)
   const totalOversPlayed = innings.totalBalls / 6;
@@ -199,21 +315,71 @@ export function LiveScorer(props: LiveScorerProps) {
   const oversRemaining = ballsRemaining / 6;
   const rrr = oversRemaining > 0 ? (runsRequired / oversRemaining).toFixed(2) : '0.00';
 
-  // Calculate total extras
-  const totalExtras = innings.ballHistory ? innings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0) : 0;
+  // Calculate total extras (from balls + penalty runs)
+  const ballExtras = innings.ballHistory ? innings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0) : 0;
+  const totalExtras = ballExtras + (innings.penaltyExtras || 0);
 
-  // Dummy data for This Over section
-  const dummyBalls = ['0', '4', '2WD', '6NB', '3', 'W', '1+W', 'WD+W', '1B'];
-  const ballsToDisplay = currentOverBalls.length > 0 ? currentOverBalls : dummyBalls;
+  // Get current partnership data from Redux state (tracked incrementally as balls are recorded)
+  const partnershipRuns = innings.currentPartnership?.partnershipRuns || 0;
+  const partnershipBalls = innings.currentPartnership?.partnershipBalls || 0;
+
+  // Calculate current over number and get balls from this over
+  const totalOversNumber = Math.floor(innings.totalBalls / 6);
+  const currentOverBalls = innings.ballHistory ? innings.ballHistory.filter((b) => b.over === totalOversNumber) : [];
+
+  const ballsToDisplay = currentOverBalls;
+  const legalBallsThisOver = ballsToDisplay.filter((ball) => {
+    return !(ball.extra?.type === 'wide' || ball.extra?.type === 'no-ball');
+  });
+  const remainingBallSlots = Math.max(0, 6 - legalBallsThisOver.length);
+  const thisOverSlots = [
+    ...ballsToDisplay.map((ball, index: number) => ({
+      key: `ball-${index}`,
+      type: 'ball' as const,
+      ball,
+    })),
+    ...Array.from({ length: remainingBallSlots }, (_, index) => ({
+      key: `empty-${index}`,
+      type: 'empty' as const,
+    })),
+  ];
+  const currentBallIndex = remainingBallSlots > 0
+    ? ballsToDisplay.length
+    : Math.max(0, thisOverSlots.length - 1);
 
   // Helper function to determine box color based on ball value
-  const getBallColor = (ball: any): string => {
+  const getBallColor = (ball: Ball | string): string => {
     let ballStr = '';
     
     // Handle Ball object
     if (typeof ball !== 'string') {
+      // Priority 1: Wickets (highest priority)
       if (ball.isWicket || ball.dismissal) {
-        return 'bg-red-800 border-red-700'; // Wicket - highest priority
+        return 'bg-red-800 border-red-700'; // Wicket - red
+      }
+      
+      // Priority 2: Byes, Leg-byes, and Wides (ALWAYS yellow, no override)
+      if (ball.extra?.type === 'bye' || ball.extra?.type === 'leg-bye' || ball.extra?.type === 'wide') {
+        return 'bg-yellow-600 border-yellow-500'; // B, LB, or WD - always yellow
+      }
+      
+      // Priority 3: No-balls with special run colors
+      if (ball.extra?.type === 'no-ball') {
+        // Exactly 7 runs on NB - green
+        if (ball.runs.total === 7) {
+          return 'bg-green-800 border-green-700'; // 7NB - green
+        }
+        // Exactly 5 runs on NB - blue
+        if (ball.runs.total === 5) {
+          return 'bg-blue-800 border-blue-700'; // 5NB - blue
+        }
+        // All other runs on NB - amber
+        return 'bg-amber-700 border-amber-600'; // 0-4NB, 6NB, 8+NB - amber
+      }
+      
+      // For regular runs (no extras)
+      if (ball.runs.total > 6) {
+        return 'bg-violet-800 border-violet-700'; // 6+ runs - violet
       }
       if (ball.runs.total === 6) {
         return 'bg-green-800 border-green-700'; // 6 - green
@@ -221,10 +387,8 @@ export function LiveScorer(props: LiveScorerProps) {
       if (ball.runs.total === 4) {
         return 'bg-blue-800 border-blue-700'; // 4 - blue
       }
-      if (ball.runs.extras > 0) {
-        return 'bg-amber-700 border-amber-600'; // Extras - amber
-      }
-      return 'bg-gray-700 border-gray-600'; // 0-7 and other numbers - gray
+      
+      return 'bg-gray-700 border-gray-600'; // 0-3 - gray
     }
     
     // Handle string data
@@ -234,16 +398,39 @@ export function LiveScorer(props: LiveScorerProps) {
     // Using regex to match W not followed by D
     if (ballStr.match(/W(?!D)/)) return 'bg-red-800 border-red-700';
     
-    // Priority 2: 6 (always green)
+    // Priority 2: B, LB, and WD - ALWAYS yellow (no override)
+    if ((ballStr.includes('B') && !ballStr.includes('NB')) || ballStr.includes('WD')) {
+      return 'bg-yellow-600 border-yellow-500'; // B, LB, or WD - always yellow
+    }
+    
+    // Priority 3: NB with special run colors
+    if (ballStr.includes('NB')) {
+      const runMatch = ballStr.match(/^(\d+)/);
+      if (runMatch) {
+        const runs = parseInt(runMatch[1]);
+        // Exactly 7 runs on NB - green
+        if (runs === 7) {
+          return 'bg-green-800 border-green-700'; // 7NB - green
+        }
+        // Exactly 5 runs on NB - blue
+        if (runs === 5) {
+          return 'bg-blue-800 border-blue-700'; // 5NB - blue
+        }
+      }
+      // All other runs on NB - amber
+      return 'bg-amber-700 border-amber-600'; // 0-4NB, 6NB, 8+NB - amber
+    }
+    
+    // Priority 7: 6+ runs (7, 8, 9, etc. - violet)
+    if (ballStr.match(/^[7-9]$/) || parseInt(ballStr) > 6) {
+      return 'bg-violet-800 border-violet-700';
+    }
+    
+    // Priority 8: 6 (always green)
     if (ballStr.includes('6')) return 'bg-green-800 border-green-700';
     
-    // Priority 3: 4 (always blue)
+    // Priority 9: 4 (always blue)
     if (ballStr.includes('4')) return 'bg-blue-800 border-blue-700';
-    
-    // Priority 4: Extras (amber - but only if no 4, 6, or W)
-    if (ballStr.includes('WD') || ballStr.includes('B') || ballStr.includes('LB') || ballStr.includes('NB')) {
-      return 'bg-amber-700 border-amber-600';
-    }
     
     // Default: 0, 1, 2, 3 and other numbers - all gray
     return 'bg-gray-700 border-gray-600';
@@ -251,15 +438,35 @@ export function LiveScorer(props: LiveScorerProps) {
 
   return (
     <div className="h-screen bg-gray-900 text-white overflow-hidden flex flex-col">
-      {/* Top Header - Minimal with Menu and Back */}
-      <div className="bg-gray-800 px-4 py-2 flex-shrink-0 flex items-center justify-between border-b border-gray-700">
-        <ScorerMenu currentView={view} onViewChange={handleViewChange} />
-        <button 
-          onClick={() => dispatch(clearMatch())}
-          className="text-white hover:bg-gray-700 px-3 py-1 rounded text-sm font-semibold transition-colors"
-        >
-          ← Back
-        </button>
+      {/* Top Header - Menu left, title center, back right */}
+      <div className="bg-gray-800 px-4 py-2 flex-shrink-0 border-b border-gray-700">
+        <div className="relative flex items-center justify-between">
+          <div className="w-20 flex justify-start">
+            <ScorerMenu currentView={view} onViewChange={handleViewChange} />
+          </div>
+
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <h1 className="text-base font-bold text-white">{viewTitles[view]}</h1>
+          </div>
+
+          <div className="w-20 flex justify-end">
+            {view !== 'scorer' ? (
+              <button
+                onClick={() => handleViewChange('scorer')}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-white transition-colors hover:bg-slate-600"
+                title="Back"
+                aria-label="Back"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h11a7 7 0 017 7" />
+                </svg>
+              </button>
+            ) : (
+              <div className="h-9 w-9" />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Content Area */}
@@ -280,7 +487,7 @@ export function LiveScorer(props: LiveScorerProps) {
           </div>
           {/* OPPONENT Row */}
           <div className="flex items-center justify-between text-xs">
-            <p className="text-xs font-semibold">OPPONENT</p>
+            <p className="text-xs font-semibold">{liveMatch.opponent}</p>
             <div className="flex items-center gap-2">
               <p className="font-bold text-base">0/0</p>
               <p className="text-teal-100">[0.0 / {liveMatch.totalOvers}]</p>
@@ -336,9 +543,9 @@ export function LiveScorer(props: LiveScorerProps) {
             <div className="w-14 text-center">SR</div>
           </div>
           
-          {/* Row 1 - Position 1 Batsman */}
+          {/* Row 1 - Batsman 1 */}
           <div className={`flex items-center p-2 rounded mb-2 font-bold border-l-4 transition-colors ${
-            innings.striker?.id === positionedBatsman1?.id 
+            innings.striker?.id === positionedBatsman1Id 
               ? 'bg-gray-700 border-yellow-400' 
               : 'bg-gray-800 border-gray-600'
           }`}>
@@ -347,24 +554,24 @@ export function LiveScorer(props: LiveScorerProps) {
               className="w-6 flex justify-center hover:scale-110 transition-transform cursor-pointer"
             >
               <div className={`w-4 h-4 rounded-full border-2 ${
-                innings.striker?.id === positionedBatsman1?.id
+                innings.striker?.id === positionedBatsman1Id
                   ? 'border-yellow-400 bg-yellow-400'
                   : 'border-gray-500 bg-gray-600'
               }`}></div>
             </button>
-            <div className="w-36 text-white truncate ml-2">{positionedBatsman1?.name || 'Batsman 1'}</div>
+            <div className="w-36 text-white truncate ml-2">{displayBatsman1?.name || 'Batsman 1'}</div>
             <div className="flex-1"></div>
-            <div className="w-12 text-center">{positionedBatsman1?.runs || 0}</div>
-            <div className="w-12 text-center">{positionedBatsman1?.balls || 0}</div>
-            <div className="w-10 text-center">{positionedBatsman1 ? calculateZeros(positionedBatsman1.id) : 0}</div>
-            <div className="w-10 text-center">{positionedBatsman1?.fours || 0}</div>
-            <div className="w-10 text-center">{positionedBatsman1?.sixes || 0}</div>
-            <div className="w-14 text-center text-green-400">{positionedBatsman1?.strikeRate.toFixed(2) || 0}</div>
+            <div className="w-12 text-center">{displayBatsman1?.runs || 0}</div>
+            <div className="w-12 text-center">{displayBatsman1?.balls || 0}</div>
+            <div className="w-10 text-center">{displayBatsman1 ? calculateZeros(displayBatsman1.id) : 0}</div>
+            <div className="w-10 text-center">{displayBatsman1?.fours || 0}</div>
+            <div className="w-10 text-center">{displayBatsman1?.sixes || 0}</div>
+            <div className="w-14 text-center">{displayBatsman1?.strikeRate.toFixed(2) || 0}</div>
           </div>
           
-          {/* Row 2 - Position 2 Batsman */}
+          {/* Row 2 - Batsman 2 */}
           <div className={`flex items-center p-2 rounded font-bold border-l-4 transition-colors ${
-            innings.striker?.id === positionedBatsman2?.id 
+            innings.striker?.id === positionedBatsman2Id 
               ? 'bg-gray-700 border-yellow-400' 
               : 'bg-gray-800 border-gray-600'
           }`}>
@@ -373,19 +580,19 @@ export function LiveScorer(props: LiveScorerProps) {
               className="w-6 flex justify-center hover:scale-110 transition-transform cursor-pointer"
             >
               <div className={`w-4 h-4 rounded-full border-2 ${
-                innings.striker?.id === positionedBatsman2?.id
+                innings.striker?.id === positionedBatsman2Id
                   ? 'border-yellow-400 bg-yellow-400'
                   : 'border-gray-500 bg-gray-600'
               }`}></div>
             </button>
-            <div className="w-36 text-white truncate ml-2">{positionedBatsman2?.name || 'Batsman 2'}</div>
+            <div className="w-36 text-white truncate ml-2">{displayBatsman2?.name || 'Batsman 2'}</div>
             <div className="flex-1"></div>
-            <div className="w-12 text-center">{positionedBatsman2?.runs || 0}</div>
-            <div className="w-12 text-center">{positionedBatsman2?.balls || 0}</div>
-            <div className="w-10 text-center">{positionedBatsman2 ? calculateZeros(positionedBatsman2.id) : 0}</div>
-            <div className="w-10 text-center">{positionedBatsman2?.fours || 0}</div>
-            <div className="w-10 text-center">{positionedBatsman2?.sixes || 0}</div>
-            <div className="w-14 text-center text-green-400">{positionedBatsman2?.strikeRate.toFixed(2) || 0}</div>
+            <div className="w-12 text-center">{displayBatsman2?.runs || 0}</div>
+            <div className="w-12 text-center">{displayBatsman2?.balls || 0}</div>
+            <div className="w-10 text-center">{displayBatsman2 ? calculateZeros(displayBatsman2.id) : 0}</div>
+            <div className="w-10 text-center">{displayBatsman2?.fours || 0}</div>
+            <div className="w-10 text-center">{displayBatsman2?.sixes || 0}</div>
+            <div className="w-14 text-center">{displayBatsman2?.strikeRate.toFixed(2) || 0}</div>
           </div>
 
           {/* Partnership Row */}
@@ -393,7 +600,7 @@ export function LiveScorer(props: LiveScorerProps) {
             <div className="w-36 text-gray-300">Current Partnership</div>
             <div className="flex-1"></div>
             <div className="text-gray-300 w-24 text-right">
-              {(positionedBatsman1?.runs || 0) + (positionedBatsman2?.runs || 0)} ({(positionedBatsman1?.balls || 0) + (positionedBatsman2?.balls || 0)})
+              {partnershipRuns} ({partnershipBalls})
             </div>
           </div>
         </div>
@@ -418,12 +625,12 @@ export function LiveScorer(props: LiveScorerProps) {
             <div className="w-6 flex justify-center">
               <div className="w-4 h-4 rounded-full border-2 border-yellow-400 bg-yellow-400"></div>
             </div>
-            <div className="w-36 text-white truncate ml-2">{innings.currentBowler?.name || 'Bowler 1'}</div>
+            <div className="w-36 text-white truncate ml-2">{currentBowlerStats?.name || innings.currentBowler?.name || 'Bowler 1'}</div>
             <div className="flex-1"></div>
-            <div className="w-10 text-center">{Math.floor((innings.currentBowler?.balls || 0) / 6)}.{(innings.currentBowler?.balls || 0) % 6}</div>
-            <div className="w-10 text-center">{innings.currentBowler?.runs || 0}</div>
-            <div className="w-10 text-center">{innings.currentBowler?.wickets || 0}</div>
-            <div className="w-14 text-center text-green-400">{innings.currentBowler?.economy.toFixed(2) || '0.00'}</div>
+            <div className="w-10 text-center">{currentBowlerStats?.overs ?? innings.currentBowler?.overs ?? 0}.{currentBowlerStats ? currentBowlerStats.balls % 6 : innings.currentBowler?.balls || 0}</div>
+            <div className="w-10 text-center">{currentBowlerStats?.runs ?? innings.currentBowler?.runs ?? 0}</div>
+            <div className="w-10 text-center">{currentBowlerStats?.wickets ?? innings.currentBowler?.wickets ?? 0}</div>
+            <div className="w-14 text-center">{(currentBowlerStats?.economy ?? innings.currentBowler?.economy ?? 0).toFixed(2)}</div>
           </div>
         </div>
       </div>
@@ -435,49 +642,70 @@ export function LiveScorer(props: LiveScorerProps) {
           <div className="font-bold text-gray-400 whitespace-nowrap flex-shrink-0">This Over</div>
 
           {/* Ball Results Container */}
-          <div className="flex gap-2 pl-4 overflow-x-auto overflow-y-hidden flex-1 scrollbar-hide items-center">
-            {ballsToDisplay.map((ball, index) => {
-              let ballLabel = '';
-                
-                // Handle dummy string data
-                if (typeof ball === 'string') {
-                  ballLabel = ball;
-                } else {
-                  // Handle real Ball object data
-                if (ball.runs.batter === 0 && ball.runs.extras === 0) {
+          <div
+            ref={ballsContainerRef}
+            className="flex gap-2 pl-4 overflow-x-auto overflow-y-hidden flex-1 scrollbar-hide items-center scroll-smooth snap-x snap-mandatory"
+          >
+            {thisOverSlots.map((slot, index) => {
+              const isCurrentBall = index === currentBallIndex;
+
+              if (slot.type === 'ball') {
+                const ball = slot.ball;
+                let ballLabel = '';
+                const isWicket = ball.isWicket || ball.dismissal;
+
+                if (ball.extra?.type) {
+                  if (ball.extra.type === 'wide') {
+                    const wideRuns = Math.max(0, (ball.runs.extras || 0) - 1);
+                    ballLabel = wideRuns > 0 ? `${wideRuns}WD` : 'WD';
+                  } else if (ball.extra.type === 'no-ball') {
+                    const nbRuns = Math.max(0, (ball.runs.extras || 0) - 1);
+                    ballLabel = nbRuns > 0 ? `${nbRuns}NB` : 'NB';
+                  } else if (ball.extra.type === 'bye' || ball.extra.type === 'leg-bye') {
+                    const extraTypeMap: Record<string, string> = {
+                      bye: 'B',
+                      'leg-bye': 'LB',
+                    };
+                    const extraLabel = extraTypeMap[ball.extra.type] || '';
+                    ballLabel = `${ball.runs.extras}${extraLabel}`;
+                  }
+
+                  if (isWicket) {
+                    ballLabel += '+W';
+                  }
+                } else if (isWicket) {
+                  ballLabel = ball.runs.batter > 0 ? `${ball.runs.batter}+W` : 'W';
+                } else if (ball.runs.batter === 0 && ball.runs.extras === 0) {
                   ballLabel = '0';
-                } else if (ball.runs.extras > 0) {
-                  const extraType = ball.extra?.type ? ball.extra.type.slice(0, 2).toUpperCase() : '';
-                  ballLabel = `${ball.runs.total}${extraType}`;
-                } else if (ball.isWicket || ball.dismissal) {
-                  ballLabel = 'W';
                 } else {
                   ballLabel = ball.runs.total.toString();
                 }
+
+                return (
+                  <div
+                    key={slot.key}
+                    ref={isCurrentBall ? currentBallRef : null}
+                    className={`${getBallColor(ball)} w-fit h-8 border rounded px-2 py-1 flex items-center justify-center text-xs font-semibold text-white whitespace-nowrap snap-center`}
+                  >
+                    {ballLabel === '0' ? (
+                      <span className="inline-block h-2 w-2 rounded-full bg-white" aria-label="dot ball" />
+                    ) : (
+                      ballLabel
+                    )}
+                  </div>
+                );
               }
-              
+
               return (
                 <div
-                  key={index}
-                  className={`${getBallColor(ball)} border rounded px-3 py-1 flex items-center justify-center text-xs font-semibold text-white whitespace-nowrap`}
-                  title={`Ball ${index + 1}`}
-                >
-                  {ballLabel}
-                </div>
-              );
-            })}
-            
-            {/* Empty slots for remaining balls in over - only show if no dummy data */}
-            {typeof ballsToDisplay[0] !== 'string' && ballsToDisplay.length < 6 && (
-              [...Array(Math.max(0, 6 - ballsToDisplay.length))].map((_, i) => (
-                <div
-                  key={`empty-${i}`}
-                  className="bg-gray-800 border border-gray-700 rounded px-3 py-1 flex items-center justify-center text-xs"
+                  key={slot.key}
+                  ref={isCurrentBall ? currentBallRef : null}
+                  className="w-fit min-w-8 h-8 border rounded px-2 py-1 flex items-center justify-center text-xs snap-center bg-gray-800 border-gray-700 text-gray-400"
                 >
                   -
                 </div>
-              ))
-            )}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -491,25 +719,26 @@ export function LiveScorer(props: LiveScorerProps) {
           ))}
         </div>
 
-        {/* Row 2: 4 6 W */}
-        <div className="grid grid-cols-3 gap-1">
+        {/* Row 2: 5 4 6 W */}
+        <div className="grid grid-cols-4 gap-1">
+          <ScorerButton label="5" onClick={() => handleNumberClick(5)} />
           <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-blue-800 hover:bg-blue-800/80" />
-          <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-800 hover:bg-green-800/80" />
+          <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-700 hover:bg-green-700/80" />
           <ScorerButton label="W" onClick={() => handleWicketClick()} className="bg-red-800 hover:bg-red-800/80" />
         </div>
 
         {/* Row 3: B LB WD NB */}
         <div className="grid grid-cols-4 gap-1">
-          <ScorerButton label="B" onClick={() => handleExtraClick('bye')} className="bg-amber-700 hover:bg-amber-700/80" />
-          <ScorerButton label="LB" onClick={() => handleExtraClick('leg-bye')} className="bg-amber-700 hover:bg-amber-700/80" />
-          <ScorerButton label="WD" onClick={() => handleExtraClick('wide')} className="bg-amber-700 hover:bg-amber-700/80" />
+          <ScorerButton label="B" onClick={() => handleExtraClick('bye')} className="bg-yellow-600 hover:bg-yellow-600/80" />
+          <ScorerButton label="LB" onClick={() => handleExtraClick('leg-bye')} className="bg-yellow-600 hover:bg-yellow-600/80" />
+          <ScorerButton label="WD" onClick={() => handleExtraClick('wide')} className="bg-yellow-600 hover:bg-yellow-600/80" />
           <ScorerButton label="NB" onClick={() => handleExtraClick('no-ball')} className="bg-amber-700 hover:bg-amber-700/80" />
         </div>
 
-        {/* Row 4: 5 7 ... UNDO */}
+        {/* Row 4: 5P 6+ ... UNDO */}
         <div className="grid grid-cols-4 gap-1">
-          <ScorerButton label="5" onClick={() => handleNumberClick(5)} />
-          <ScorerButton label="7" onClick={() => handleNumberClick(7)} />
+          <ScorerButton label="5P" onClick={() => handlePenaltyRuns(5)} className="bg-violet-800 hover:bg-violet-800/80" />
+          <ScorerButton label="6+" onClick={() => handleSixPlusClick()} className="bg-violet-800 hover:bg-violet-800/80" />
           <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-gray-700 hover:bg-gray-700/80" />
           <ScorerButton label="UNDO" onClick={() => handleUndo()} className="bg-purple-800 hover:bg-purple-800/80" />
         </div>
@@ -539,6 +768,8 @@ export function LiveScorer(props: LiveScorerProps) {
       {dialogState.activeDialog === 'matchDetails' && <MatchDetailsDialog />}
       {dialogState.activeDialog === 'initialBatters' && <InitialBattersDialog />}
       {dialogState.activeDialog === 'startNewMatchConfirm' && <StartNewMatchConfirmDialog />}
+      {dialogState.activeDialog === 'overEnd' && <OverEndPopup />}
+      {dialogState.activeDialog === 'sixPlus' && <SixPlusDialog />}
     </div>
   );
 
@@ -554,6 +785,15 @@ export function LiveScorer(props: LiveScorerProps) {
 
   function handleWicketClick() {
     dispatch(openDialog({ dialog: 'wicket' }));
+  }
+
+  function handlePenaltyRuns(runs: number) {
+    dispatch(createUndoSnapshot());
+    dispatch(recordPenaltyRuns({ runs }));
+  }
+
+  function handleSixPlusClick() {
+    dispatch(openDialog({ dialog: 'sixPlus' }));
   }
 
   function handleUndo() {

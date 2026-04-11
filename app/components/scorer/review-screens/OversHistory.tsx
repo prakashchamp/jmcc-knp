@@ -1,30 +1,40 @@
 'use client';
 
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { formatBallDisplay } from '@/app/lib/ball-display-utils';
+import type { Ball } from '@/app/lib/cricket-scorer-types';
+import { getBattingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
 
 /**
  * Overs History Review Component
- * Shows ball-by-ball breakdown organized by overs
- * Displays runs, extras, wickets, batsman details
+ * Shows over-by-over summary with table format
+ * Columns: Over, Runs, Details (ball sequence)
+ * Theme: Consistent with batting/bowling scorecards (Teal-700 headers, Gray-800 body)
  */
 export function OversHistory() {
-  const { currentInnings } = useSelector((state: RootState) => state.scorer);
+  const { currentInnings, liveMatch } = useSelector((state: RootState) => state.scorer);
+  const [selectedTeam, setSelectedTeam] = useState<ReviewTeam>(currentInnings?.battingTeam ?? 'Us');
+  const selectedInnings = getBattingTeamInnings(liveMatch, currentInnings, selectedTeam);
 
-  if (!currentInnings || currentInnings.ballHistory.length === 0) {
-    return <div className="text-gray-600">No balls recorded yet</div>;
+  if (!currentInnings && !liveMatch) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">No balls recorded yet</p>
+      </div>
+    );
   }
 
   // Group balls by over
   const overGroups: {
     over: number;
-    balls: any[];
+    balls: Ball[];
     overRuns: number;
   }[] = [];
 
-  for (const ball of currentInnings.ballHistory) {
+  for (const ball of selectedInnings?.ballHistory || []) {
     const overNum = Math.floor(ball.over);
-    const ballInOver = ball.ball;
 
     if (!overGroups[overNum]) {
       overGroups[overNum] = { over: overNum, balls: [], overRuns: 0 };
@@ -35,88 +45,59 @@ export function OversHistory() {
   }
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold text-gray-800">OVERS HISTORY</h3>
+    <div className="px-2 py-2">
+      <ReviewTeamToggle
+        selectedTeam={selectedTeam}
+        opponentName={liveMatch?.opponent}
+        onSelect={setSelectedTeam}
+      />
+      {!selectedInnings || selectedInnings.ballHistory.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-400">No balls recorded yet</p>
+        </div>
+      ) : (
+      <div className="overflow-hidden rounded-lg border border-gray-600">
+        <table className="w-full table-fixed text-xs">
+          <thead className="bg-teal-800 text-white border-b border-gray-600">
+            <tr>
+              <th className="w-16 px-2 py-2 text-center font-bold">Over</th>
+              <th className="w-16 px-2 py-2 text-center font-bold">Runs</th>
+              <th className="px-2 py-2 text-left font-bold">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {overGroups.map((overGroup, idx) => {
+              const isCurrentOver = overGroup.over === Math.floor((selectedInnings?.totalBalls || 0) / 6);
 
-      <div className="space-y-3">
-        {overGroups.map((overGroup) => (
-          <div
-            key={overGroup.over}
-            className="border border-gray-300 rounded-lg p-3 bg-gray-50"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-gray-800">Over {overGroup.over}</h4>
-              <span className="text-sm font-bold text-teal-600">
-                {overGroup.overRuns} runs
-              </span>
-            </div>
-
-            <div className="grid grid-cols-6 gap-2">
-              {overGroup.balls.map((ball, idx) => {
-                let ballDisplay = '';
-                let bgColor = 'bg-gray-200';
-
-                if (ball.isWicket) {
-                  ballDisplay = 'W';
-                  bgColor = 'bg-red-500 text-white';
-                } else if (ball.extra?.type === 'wide') {
-                  ballDisplay = `${ball.runs.batter}w`;
-                  bgColor = 'bg-yellow-400';
-                } else if (ball.extra?.type === 'no-ball') {
-                  ballDisplay = `${ball.runs.batter}nb`;
-                  bgColor = 'bg-yellow-400';
-                } else if (ball.extra?.type === 'bye') {
-                  ballDisplay = `${ball.runs.batter}b`;
-                  bgColor = 'bg-blue-300';
-                } else if (ball.extra?.type === 'leg-bye') {
-                  ballDisplay = `${ball.runs.batter}lb`;
-                  bgColor = 'bg-blue-300';
-                } else {
-                  const runs = ball.runs.total;
-                  if (runs === 0) {
-                    ballDisplay = '0';
-                    bgColor = 'bg-gray-300';
-                  } else if (runs === 4) {
-                    ballDisplay = '4';
-                    bgColor = 'bg-green-400';
-                  } else if (runs === 6) {
-                    ballDisplay = '6';
-                    bgColor = 'bg-green-600 text-white';
-                  } else {
-                    ballDisplay = runs.toString();
-                    bgColor = 'bg-gray-200';
-                  }
-                }
-
-                return (
-                  <div
-                    key={idx}
-                    className={`flex items-center justify-center rounded font-bold text-sm h-8 ${bgColor}`}
-                  >
-                    {ballDisplay}
+              return (
+              <tr
+                key={overGroup.over}
+                className={isCurrentOver ? 'bg-teal-900/40 ring-1 ring-inset ring-teal-600 border-b border-teal-700' : idx % 2 === 0 ? 'bg-gray-800 border-b border-gray-700' : 'bg-gray-700 border-b border-gray-600'}
+              >
+                <td className="px-2 py-2 text-center font-semibold text-white">
+                  {overGroup.over + 1}.0
+                </td>
+                <td className="px-2 py-2 text-center font-bold text-white">
+                  {overGroup.overRuns}
+                </td>
+                <td className="px-2 py-2 text-left text-xs text-white align-top">
+                  <div className="flex flex-wrap gap-1">
+                    {overGroup.balls.map((ball, ballIdx) => (
+                      <span
+                        key={ballIdx}
+                        className="inline-flex w-fit px-2 py-0.5 rounded border border-gray-600 bg-gray-800 text-center text-xs font-semibold text-white whitespace-nowrap"
+                      >
+                        {formatBallDisplay(ball)}
+                      </span>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Ball details */}
-            <div className="text-xs text-gray-600 mt-2 space-y-1">
-              {overGroup.balls.map((ball, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <span>
-                    Ball {idx + 1}: {ball.batter.name} ({ball.runs.total} runs)
-                  </span>
-                  {ball.isWicket && (
-                    <span className="text-red-600 font-semibold">
-                      {ball.dismissal?.mode || 'Wicket'}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+                </td>
+              </tr>
+            );})}
+          </tbody>
+        </table>
       </div>
+      )}
     </div>
   );
 }

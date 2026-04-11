@@ -12,8 +12,16 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
+        // Disable serializable state check in development for performance
+        // It's always disabled in production builds
+        warnAfter: process.env.NODE_ENV === 'production' ? 128 : Infinity,
         ignoredActions: ['scorer/createUndoSnapshot', 'scorer/undoLastDelivery'],
         ignoredActionPaths: ['payload.dialogData', 'payload.undoStack'],
+        ignoredPaths: [
+          // Ignore large state paths that accumulate over time
+          'scorer.currentInnings.ballHistory',
+          'scorer.undoStack',
+        ],
       },
     }).concat([
       // localStorage persistence middleware
@@ -74,7 +82,49 @@ export const loadStateFromLocalStorage = (): Pick<RootState, 'scorer' | 'match'>
 export const clearMatchDataFromStorage = () => {
   try {
     localStorage.removeItem(STORAGE_KEY);
+    console.log('✓ Match data cleared from localStorage');
   } catch (err) {
     console.warn('Failed to clear match data from localStorage:', err);
+  }
+};
+
+/**
+ * Validate and optionally clear corrupted state from localStorage
+ * Use this if you see duplicate batters or other state corruption issues
+ */
+export const validateAndClearCorruptedState = () => {
+  try {
+    const serialized = localStorage.getItem(STORAGE_KEY);
+    if (!serialized) {
+      console.log('ℹ No match data in localStorage');
+      return;
+    }
+
+    const state = JSON.parse(serialized) as any;
+    const currentInnings = state.scorer?.currentInnings;
+
+    // Check for corrupted state
+    if (currentInnings?.striker && currentInnings?.nonStriker) {
+      const strikerIsSame = currentInnings.striker.id === currentInnings.nonStriker.id;
+      if (strikerIsSame) {
+        console.warn('⚠ Corrupted state detected: Striker and non-striker are the same player.');
+        clearMatchDataFromStorage();
+        return 'cleared';
+      }
+    }
+
+    if (currentInnings?.striker && currentInnings?.striker.name === 'JMCC 10' &&
+        currentInnings?.nonStriker && currentInnings?.nonStriker.name === 'JMCC 10') {
+      console.warn('⚠ Corrupted state detected: Both batters are JMCC 10.');
+      clearMatchDataFromStorage();
+      return 'cleared';
+    }
+
+    console.log('✓ State validation passed');
+    return 'valid';
+  } catch (err) {
+    console.warn('Failed to validate localStorage state:', err);
+    clearMatchDataFromStorage();
+    return 'error';
   }
 };

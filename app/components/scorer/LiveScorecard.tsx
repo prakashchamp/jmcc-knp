@@ -1,6 +1,7 @@
 'use client';
 
 import { LiveMatch, InningsState, CurrentBatsman, CurrentBowler } from '@/app/lib/cricket-scorer-types';
+import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
 
 interface LiveScorecardProps {
   liveMatch: LiveMatch;
@@ -82,20 +83,16 @@ export function LiveScorecard({ liveMatch, isChasing }: LiveScorecardProps) {
             const ball = currentInnings.ballHistory.find(
               (b) => b.over === Math.floor(totalBalls / 6) && b.ball === i
             );
-            const runs = ball?.runs.total || 0;
-            const isWicket = ball?.isWicket;
             return (
               <div
                 key={i}
                 className={`flex-1 aspect-square rounded flex items-center justify-center font-bold text-sm ${
                   i < ballsInCurrentOver
-                    ? isWicket
-                      ? 'bg-red-700 text-white'
-                      : 'bg-yellow-600 text-white'
+                    ? getBallColor(ball as any)
                     : 'bg-slate-600 text-slate-500'
                 }`}
               >
-                {i < ballsInCurrentOver ? (isWicket ? 'W' : runs) : '-'}
+                {i < ballsInCurrentOver && ball ? formatBallDisplay(ball as any) : '-'}
               </div>
             );
           })}

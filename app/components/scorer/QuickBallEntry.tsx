@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Ball, TeamPlayer, ExtraType, DismissalMode, CurrentBatsman } from '@/app/lib/cricket-scorer-types';
+import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
 
 interface QuickBallEntryProps {
   onBallAdd: (ball: Ball) => void;
@@ -158,20 +159,16 @@ export function QuickBallEntry({
             const ball = ballHistory.find(
               (b) => b.over === overNumber && b.ball === i
             );
-            const runs = ball?.runs.total || 0;
-            const isWicket = ball?.isWicket;
             return (
               <div
                 key={i}
                 className={`flex-1 aspect-square rounded flex items-center justify-center font-bold text-sm ${
                   i < ballNumber
-                    ? isWicket
-                      ? 'bg-red-700 text-white'
-                      : 'bg-slate-600 text-yellow-300'
+                    ? getBallColor(ball as any)
                     : 'bg-slate-700 text-slate-500'
                 }`}
               >
-                {i < ballNumber ? (isWicket ? 'W' : runs) : '-'}
+                {i < ballNumber && ball ? formatBallDisplay(ball as any) : '-'}
               </div>
             );
           })}

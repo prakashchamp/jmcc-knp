@@ -2,11 +2,18 @@
 
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
 
 /**
  * Ball Grid Component
  * Shows the current over's deliveries (6 balls)
- * Color coding is UX only (visual feedback)
+ * Displays wickets with proper notation:
+ * - W: just a wicket with 0 runs
+ * - 1W: 1 run and wicket (run-out)
+ * - 2LB+W: 2 leg-bytes and wicket
+ * - 1B+W: 1 bye and wicket
+ * - 1WD+W: 1 wide and wicket
+ * - 2NB+W: 2 no-balls and wicket
  */
 export function BallGrid() {
   const { currentInnings } = useSelector((state: RootState) => state.scorer);
@@ -31,7 +38,7 @@ export function BallGrid() {
         position: i + 1,
         filled: true,
         ball: ball,
-        color: ball.isWicket ? 'bg-red-500' : ball.runs.total === 4 ? 'bg-green-500' : ball.runs.total === 6 ? 'bg-yellow-500' : 'bg-gray-400',
+        color: getBallColor(ball),
       };
     }
     return {
@@ -53,16 +60,14 @@ export function BallGrid() {
           <div
             key={idx}
             className={`
-              aspect-square rounded-lg flex items-center justify-center font-bold text-white text-sm
+              aspect-square rounded-lg flex items-center justify-center font-bold text-white text-xs
               transition-all transform
               ${ball.color}
               ${ball.filled ? 'scale-100' : 'scale-95 opacity-50'}
             `}
           >
             {ball.filled && ball.ball ? (
-              <span>
-                {ball.ball.isWicket ? 'W' : ball.ball.runs.total}
-              </span>
+              <span>{formatBallDisplay(ball.ball as any)}</span>
             ) : (
               <span className="text-gray-500">-</span>
             )}

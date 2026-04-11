@@ -3,7 +3,7 @@
 import { Provider } from 'react-redux';
 import { store } from '@/app/lib/redux/store';
 import { LiveScorer } from '@/app/components/scorer/LiveScorer';
-import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { JMCC_TEAM_PLAYERS } from '@/app/lib/team-constants';
 
 /**
  * PHASE 9: Scorer Main Page - Final Integration
@@ -21,20 +21,12 @@ import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
  * All data persists in localStorage automatically via Redux middleware
  */
 function ScorecardPageContent() {
-  // Demo team (can be replaced with actual team from API/props)
-  const demoTeamPlayers: TeamPlayer[] = [
-    { id: 'p1', name: 'Rohit Sharma', role: 'batsman', jerseyNumber: 1 },
-    { id: 'p2', name: 'Virat Kohli', role: 'batsman', jerseyNumber: 18 },
-    { id: 'p3', name: 'Suryakumar Yadav', role: 'batsman', jerseyNumber: 63 },
-    { id: 'p4', name: 'Hardik Pandya', role: 'allrounder', jerseyNumber: 31 },
-    { id: 'p5', name: 'Rishabh Pant', role: 'batsman', jerseyNumber: 17 },
-    { id: 'p6', name: 'Jasprit Bumrah', role: 'bowler', jerseyNumber: 93 },
-    { id: 'p7', name: 'Mohammed Siraj', role: 'bowler', jerseyNumber: 25 },
-  ];
+  // Use JMCC team for scoring
+  const teamPlayers = JMCC_TEAM_PLAYERS;
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <LiveScorer teamPlayers={demoTeamPlayers} />
+      <LiveScorer teamPlayers={teamPlayers} />
     </div>
   );
 }

@@ -5,6 +5,18 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import { openDialog, closeDialog } from '@/app/lib/redux/slices/scorerSlice';
 import type { DismissalMode } from '@/app/lib/cricket-scorer-types';
+import {
+  formLabelClass,
+  inputClass,
+  modalEyebrowClass,
+  modalHeaderClass,
+  modalOverlayClass,
+  modalPanelClass,
+  modalTitleClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  sectionLabelClass,
+} from './dialogTheme';
 
 interface RunOutDialogState {
   dismissalMode: DismissalMode;
@@ -17,42 +29,32 @@ interface RunOutDialogState {
  * Run Out Dialog Component
  * Handles special dismissal flow for Run Out, Obstructing, Handling
  * 
- * Single modal with:
- * - Which batsman out? (Striker / Non-striker) - radio selection
- * - Runs scored (number input without spinners)
- * - Extras type (Wide / Leg Bye / Bye / No Ball / None) - radio
- * NEXT button: Record and transition to batsman selection
+ * Collects:
+ * - Which batsman out? (Striker / Non-striker)
+ * - Runs scored (0-99, up to 2 decimals)
+ * - Delivery type (Wide / Leg Bye / Bye / No Ball / Regular)
+ * 
+ * RECORD button: Records the ball with the dismissal (no wicket to bowler)
  * BACK button: Go back to wicket dialog
- * CANCEL button: Close without recording
  */
 export function RunOutDialog() {
   const dispatch = useDispatch<AppDispatch>();
   const { dialogState, currentInnings } = useSelector((state: RootState) => state.scorer);
+  const [batsmanOut, setBatsmanOut] = useState<'striker' | 'non-striker'>('striker');
+  const [runs, setRuns] = useState('0');
+  const [ballType, setBallType] = useState<'wide' | 'leg-bye' | 'bye' | 'no-ball' | 'regular'>('regular');
 
   if (dialogState.activeDialog !== 'runOut') {
     return null;
   }
 
   const dialogData = dialogState.dialogData as RunOutDialogState;
-  const [batsmanOut, setBatsmanOut] = useState<'striker' | 'non-striker'>('striker');
-  const [runs, setRuns] = useState<number | ''>('');
-  const [extrasType, setExtrasType] = useState<'wide' | 'leg-bye' | 'bye' | 'no-ball' | 'none'>('none');
 
-  // Get batsman names
+  // Get batsman names and IDs
   const strikerName = currentInnings?.striker?.name || 'Striker';
+  const strikerID = currentInnings?.striker?.id || '';
   const nonStrikerName = currentInnings?.nonStriker?.name || 'Non-striker';
-
-  // Add styles for number input spinner removal globally
-  const inputStyles = `
-    input[type="text"]::-webkit-outer-spin-button,
-    input[type="text"]::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="text"][inputmode="numeric"] {
-      -moz-appearance: textfield;
-    }
-  `;
+  const nonStrikerID = currentInnings?.nonStriker?.id || '';
 
   const dismissalModeLabel =
     dialogData.dismissalMode === 'run-out'
@@ -61,25 +63,40 @@ export function RunOutDialog() {
         ? 'Obstructing the field'
         : 'Handling the ball';
 
-  const handleNext = () => {
+  const handleRecord = () => {
     if (!batsmanOut) {
       alert('Please select which batsman is out');
       return;
     }
-    if (runs === '') {
-      alert('Please enter runs');
+
+    const parsedRuns = Number.parseFloat(runs);
+    if (Number.isNaN(parsedRuns) || parsedRuns < 0 || parsedRuns > 99) {
+      alert('Please enter runs between 0 and 99');
       return;
     }
-    // Record dismissal with runs and extras info, then move to batsman selection
+
+    // Get ID of batsman to mark out
+    const batsmanIdToMarkOut = batsmanOut === 'striker' ? strikerID : nonStrikerID;
+
+    if (!batsmanIdToMarkOut) {
+      alert('Batsman ID not found');
+      return;
+    }
+
     dispatch(closeDialog());
-    dispatch(openDialog({
-      dialog: 'batsmanSelect',
-      data: {
-        dismissalMode: dialogData.dismissalMode,
-        selectedBatsman: batsmanOut,
-        runs: typeof runs === 'number' ? runs : parseInt(String(runs), 10),
-      },
-    }));
+    dispatch(
+      openDialog({
+        dialog: 'batsmanSelect',
+        data: {
+          dismissalMode: dialogData.dismissalMode,
+          outBatsmanId: batsmanIdToMarkOut,
+          selectedBatsman: batsmanOut,
+          runs: parsedRuns,
+          ballType,
+          recordOnSelect: true,
+        },
+      })
+    );
   };
 
   const handleBack = () => {
@@ -88,189 +105,140 @@ export function RunOutDialog() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-lg p-6 max-w-sm w-full mx-4 max-h-full overflow-y-auto border border-gray-700">
-        <h3 className="text-lg font-bold text-center mb-4 text-red-800">{dismissalModeLabel}</h3>
-
-        {/* Batsman selection */}
-        <div className="mb-6">
-          <p className="text-sm font-medium mb-3 text-gray-300">Which batsman is out?</p>
-          <div className="space-y-2">
-            <label className={`flex items-center p-3 rounded cursor-pointer transition-colors border-l-4 ${
-              batsmanOut === 'striker'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="batsman"
-                value="striker"
-                checked={batsmanOut === 'striker'}
-                onChange={() => setBatsmanOut('striker')}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 font-medium ${
-                batsmanOut === 'striker' ? 'text-white' : 'text-gray-200'
-              }`}>{strikerName}</span>
-            </label>
-
-            <label className={`flex items-center p-3 rounded cursor-pointer transition-colors border-l-4 ${
-              batsmanOut === 'non-striker'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="batsman"
-                value="non-striker"
-                checked={batsmanOut === 'non-striker'}
-                onChange={() => setBatsmanOut('non-striker')}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 font-medium ${
-                batsmanOut === 'non-striker' ? 'text-white' : 'text-gray-200'
-              }`}>{nonStrikerName}</span>
-            </label>
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden`}>
+        <div className="border-b border-slate-700 px-5 py-4 sm:px-6">
+          <div className={modalHeaderClass}>
+            <p className={modalEyebrowClass}>Live Scorer</p>
+            <h3 className={modalTitleClass}>{dismissalModeLabel}</h3>
           </div>
         </div>
 
-        {/* Runs scored */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 text-gray-300">Runs Scored</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={runs}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === '' || /^[0-7]?$/.test(val)) {
-                setRuns(val === '' ? '' : parseInt(val, 10));
-              }
-            }}
-            placeholder="0"
-            maxLength={1}
-            className="w-full px-3 py-2 border border-gray-600 bg-gray-800 text-white rounded focus:outline-none focus:ring-2 focus:ring-red-800 placeholder-gray-500"
-          />
-        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+          <div className="mb-6">
+            <p className={formLabelClass}>Which batsman is out?</p>
+            <div className="space-y-2">
+              <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
+                batsmanOut === 'striker'
+                  ? 'border-teal-500 bg-teal-900/40 text-white'
+                  : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+              }`}>
+                <input
+                  type="radio"
+                  name="batsman"
+                  value="striker"
+                  checked={batsmanOut === 'striker'}
+                  onChange={() => setBatsmanOut('striker')}
+                  className="h-4 w-4 accent-teal-500"
+                />
+                <span className="ml-3 font-medium">{strikerName}</span>
+              </label>
 
-        {/* Extras type */}
-        <div className="mb-6">
-          <p className="text-sm font-medium mb-3 text-gray-300">Extras Type</p>
-          <div className="space-y-2">
-            <label className={`flex items-center p-2 rounded cursor-pointer transition-colors border-l-4 ${
-              extrasType === 'wide'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="extras"
-                value="wide"
-                checked={extrasType === 'wide'}
-                onChange={() => setExtrasType('wide' as const)}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 text-sm ${
-                extrasType === 'wide' ? 'text-white' : 'text-gray-200'
-              }`}>Wide</span>
-            </label>
+              <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
+                batsmanOut === 'non-striker'
+                  ? 'border-teal-500 bg-teal-900/40 text-white'
+                  : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+              }`}>
+                <input
+                  type="radio"
+                  name="batsman"
+                  value="non-striker"
+                  checked={batsmanOut === 'non-striker'}
+                  onChange={() => setBatsmanOut('non-striker')}
+                  className="h-4 w-4 accent-teal-500"
+                />
+                <span className="ml-3 font-medium">{nonStrikerName}</span>
+              </label>
+            </div>
+          </div>
 
-            <label className={`flex items-center p-2 rounded cursor-pointer transition-colors border-l-4 ${
-              extrasType === 'leg-bye'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="extras"
-                value="leg-bye"
-                checked={extrasType === 'leg-bye'}
-                onChange={() => setExtrasType('leg-bye' as const)}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 text-sm ${
-                extrasType === 'leg-bye' ? 'text-white' : 'text-gray-200'
-              }`}>Leg Bye</span>
-            </label>
+          <div className="mb-6">
+            <label className={formLabelClass}>Runs Scored</label>
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              max="99"
+              step="0.01"
+              value={runs}
+              onFocus={(e) => e.target.select()}
+              onClick={(e) => e.currentTarget.select()}
+              onChange={(e) => {
+                const value = e.target.value;
 
-            <label className={`flex items-center p-2 rounded cursor-pointer transition-colors border-l-4 ${
-              extrasType === 'bye'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="extras"
-                value="bye"
-                checked={extrasType === 'bye'}
-                onChange={() => setExtrasType('bye' as const)}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 text-sm ${
-                extrasType === 'bye' ? 'text-white' : 'text-gray-200'
-              }`}>Bye</span>
-            </label>
+                if (value === '') {
+                  setRuns('');
+                  return;
+                }
 
-            <label className={`flex items-center p-2 rounded cursor-pointer transition-colors border-l-4 ${
-              extrasType === 'no-ball'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="extras"
-                value="no-ball"
-                checked={extrasType === 'no-ball'}
-                onChange={() => setExtrasType('no-ball' as const)}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 text-sm ${
-                extrasType === 'no-ball' ? 'text-white' : 'text-gray-200'
-              }`}>No Ball</span>
-            </label>
+                if (/^\d{0,2}(\.\d{0,2})?$/.test(value)) {
+                  const parsedValue = Number.parseFloat(value);
+                  if (!Number.isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 99) {
+                    setRuns(value);
+                  }
+                }
+              }}
+              onBlur={() => {
+                if (runs === '' || Number.isNaN(Number.parseFloat(runs))) {
+                  setRuns('0');
+                  return;
+                }
 
-            <label className={`flex items-center p-2 rounded cursor-pointer transition-colors border-l-4 ${
-              extrasType === 'none'
-                ? 'bg-gray-700 border-yellow-400 hover:bg-gray-600'
-                : 'bg-gray-800 border-gray-600 hover:bg-gray-700'
-            }`}>
-              <input
-                type="radio"
-                name="extras"
-                value="none"
-                checked={extrasType === 'none'}
-                onChange={() => setExtrasType('none' as const)}
-                className="w-4 h-4 accent-yellow-400"
-              />
-              <span className={`ml-3 text-sm ${
-                extrasType === 'none' ? 'text-white' : 'text-gray-200'
-              }`}>None</span>
-            </label>
+                const normalizedValue = Math.min(99, Math.max(0, Number.parseFloat(runs)));
+                setRuns(normalizedValue.toString());
+              }}
+              className={`${inputClass} selection:bg-transparent selection:text-white`}
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <p className={sectionLabelClass}>Delivery Type</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'wide', label: 'Wide' },
+                { value: 'no-ball', label: 'No Ball' },
+                { value: 'bye', label: 'Bye' },
+                { value: 'leg-bye', label: 'Leg Bye' },
+                { value: 'regular', label: 'None' },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex cursor-pointer items-center rounded-xl border px-3 py-2.5 transition-all ${
+                    ballType === option.value
+                      ? 'border-teal-500 bg-teal-900/40 text-white'
+                      : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+                  } ${option.value === 'regular' ? 'col-span-2' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="ballType"
+                    value={option.value}
+                    checked={ballType === option.value}
+                    onChange={() => setBallType(option.value as 'wide' | 'leg-bye' | 'bye' | 'no-ball' | 'regular')}
+                    className="h-4 w-4 accent-teal-500"
+                  />
+                  <span className="ml-3 text-sm font-medium">{option.label}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-2 mb-2">
+        <div className="flex gap-3 border-t border-slate-700 px-5 py-4 sm:px-6">
+          <button
+            onClick={handleRecord}
+            className={`flex-1 py-3 ${primaryButtonClass}`}
+          >
+            Record
+          </button>
           <button
             onClick={handleBack}
-            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition-colors"
+            className={`flex-1 py-3 ${secondaryButtonClass}`}
           >
             Back
           </button>
-          <button
-            onClick={handleNext}
-            className="flex-1 bg-red-800 hover:bg-red-700 text-white font-bold py-2 rounded transition-colors"
-          >
-            Next
-          </button>
         </div>
-
-        <button
-          onClick={() => dispatch(closeDialog())}
-          className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition-colors"
-        >
-          Cancel
-        </button>
       </div>
     </div>
   );

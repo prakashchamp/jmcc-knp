@@ -1,0 +1,166 @@
+'use client';
+
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/app/lib/redux/store';
+import { closeDialog, completeOver, addNewTeamPlayer, undoLastDelivery } from '@/app/lib/redux/slices/scorerSlice';
+import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
+import { BowlerDropdownSelect } from './BowlerDropdownSelect';
+import {
+  infoCardClass,
+  modalEyebrowClass,
+  modalHeaderClass,
+  modalOverlayClass,
+  modalPanelClass,
+  modalTitleClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from './dialogTheme';
+
+export function OverEndPopup() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
+  
+  const [selectedBowler, setSelectedBowler] = useState<TeamPlayer | null>(null);
+  const [newBowlerName, setNewBowlerName] = useState('');
+
+  if (!currentInnings || !liveMatch) return null;
+
+  const completedOverNumber = Math.ceil(currentInnings.totalBalls / 6);
+  const completedOverIndex = Math.max(0, completedOverNumber - 1);
+  const runsRequired = Math.max(0, (currentInnings.target || 150) - currentInnings.totalRuns);
+  const ballsRemaining = Math.max(0, (liveMatch.totalOvers * 6) - currentInnings.totalBalls);
+
+  const completedOverBalls = currentInnings.ballHistory.filter(
+    (b) => b.over === completedOverIndex
+  );
+  const totalRunsInPreviousOver = completedOverBalls.reduce(
+    (sum, ball) => sum + (ball.runs.total || 0),
+    0
+  );
+
+  let previousBowler: TeamPlayer | null = null;
+  if (completedOverBalls.length > 0) {
+    const lastBowlerData = completedOverBalls[0]?.bowler;
+    if (lastBowlerData) {
+      previousBowler = {
+        id: lastBowlerData.id,
+        name: lastBowlerData.name,
+        role: 'bowler',
+      };
+    }
+  }
+
+  const bowlingTeamPlayers = currentInnings.battingTeam === 'Us'
+    ? OPPONENT_TEAM_PLAYERS
+    : liveMatch.teamPlayers;
+  const excludedBowlerIds = previousBowler
+    ? bowlingTeamPlayers
+        .filter((player) => player.id === previousBowler?.id || player.name === previousBowler?.name)
+        .map((player) => player.id)
+    : [];
+
+  const handleContinue = () => {
+    if (!selectedBowler) {
+      alert('Please select a bowler');
+      return;
+    }
+
+    dispatch(completeOver({
+      bowlerId: selectedBowler.id,
+      bowlerName: selectedBowler.name,
+      isBatsmanSwapped: true,
+    }));
+    dispatch(closeDialog());
+  };
+
+  const handleUndo = () => {
+    dispatch(undoLastDelivery());
+    dispatch(closeDialog());
+  };
+
+  const handleCreateNewBowler = (name: string) => {
+    // Add the new player to the team
+    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
+    
+    // Create the new player object
+    const newBowler: TeamPlayer = {
+      id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+      role: 'bowler',
+    };
+    setSelectedBowler(newBowler);
+    setNewBowlerName('');
+
+  };
+
+  return (
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6 text-white`}>
+        <div className={modalHeaderClass}>
+          <p className={modalEyebrowClass}>Live Scorer</p>
+          <h2 className={modalTitleClass}>Next Over</h2>
+        </div>
+        
+        <div className="mb-4 space-y-2">
+          <div className="flex items-center justify-between rounded-xl border border-teal-500/40 bg-teal-500/10 p-3">
+            <span className="font-semibold text-white">{currentInnings.battingTeam === 'Us' ? 'JMCC' : liveMatch.opponent}</span>
+            <div className="text-center leading-tight text-white">
+              <div className="text-xl font-bold">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
+              <div className="text-sm">({Math.floor(currentInnings.totalBalls / 6)}.{currentInnings.totalBalls % 6}/{liveMatch.totalOvers}.0)</div>
+            </div>
+          </div>
+          <div className={`${infoCardClass} flex items-center justify-between`}>
+            <span>Last Over Runs:</span>
+            <span className="font-bold">{totalRunsInPreviousOver}</span>
+          </div>
+          {currentInnings.inningsNumber === 2 && (
+            <div className={`${infoCardClass} space-y-2`}>
+              <div className="flex justify-between">
+                <span>Runs Required:</span>
+                <span className="font-bold">{runsRequired}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Balls Remaining:</span>
+                <span className="font-bold">{ballsRemaining}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <BowlerDropdownSelect
+            label="Next Bowler"
+            placeholder="Select bowler"
+            selectedBowler={selectedBowler}
+            bowlers={bowlingTeamPlayers}
+            excludeIds={excludedBowlerIds}
+            onSelect={setSelectedBowler}
+            previousBowlerId={previousBowler?.id}
+            allowNew={true}
+            newPlayerName={newBowlerName}
+            onNewPlayerNameChange={setNewBowlerName}
+            onCreateNew={handleCreateNewBowler}
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleUndo}
+            className={`flex-1 px-4 py-2.5 ${secondaryButtonClass}`}
+          >
+            Undo Last Ball
+          </button>
+          <button
+            onClick={handleContinue}
+            className={`flex-1 px-4 py-2.5 ${primaryButtonClass} disabled:cursor-not-allowed disabled:bg-slate-700`}
+            disabled={!selectedBowler}
+          >
+            Next Over
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Ball, TeamPlayer, InningsState } from '@/app/lib/cricket-scorer-types';
+import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
 import { OverEndPopup } from './OverEndPopup';
 
 interface LiveScorerUIProps {
@@ -382,14 +383,12 @@ export function LiveScorerUI({
                 <div
                   key={i}
                   className={`flex-1 h-6 rounded flex items-center justify-center font-bold text-xs transition-colors ${
-                    isShown
-                      ? ball?.isWicket
-                        ? 'bg-red-600 text-white'
-                        : 'bg-gray-300 text-gray-800'
+                    isShown && ball
+                      ? getBallColor(ball as any)
                       : 'bg-gray-100 text-gray-400 border border-gray-300'
                   }`}
                 >
-                  {isShown ? (ball?.isWicket ? 'W' : ball?.runs.total) : '-'}
+                  {isShown && ball ? formatBallDisplay(ball as any) : '-'}
                 </div>
               );
             })}

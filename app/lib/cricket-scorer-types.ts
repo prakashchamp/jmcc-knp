@@ -10,7 +10,7 @@
 export interface TeamPlayer {
   id: string;
   name: string;
-  role: 'batsman' | 'bowler' | 'allrounder';
+  role?: 'batsman' | 'bowler' | 'allrounder';
   jerseyNumber?: number;
 }
 
@@ -103,12 +103,14 @@ export interface CurrentBatsman {
   balls: number;
   fours: number;
   sixes: number;
+  zeros: number; // Count of dot balls (0-run balls)
   status: 'batting' | 'out';
   dismissal?: {
     mode: DismissalMode;
     description?: string;
   };
   strikeRate: number;
+  batsmanOrder?: number; // 1-11: Position in batting order
 }
 
 export interface CurrentBowler {
@@ -131,13 +133,21 @@ export interface InningsState {
   totalWickets: number;
   totalBalls: number;
   ballHistory: Ball[];
+  penaltyExtras: number; // Track penalty runs separately for extras count
   striker?: CurrentBatsman;
   nonStriker?: CurrentBatsman;
   currentBowler?: CurrentBowler;
   dismissedBatsmen: CurrentBatsman[];
+  batsmanStats: CurrentBatsman[]; // All batsmen in order (1-11 based on batsmanOrder)
   target?: number;
   requiredRunRate?: number;
   requiredBalls?: number;
+  currentPartnership?: {
+    batsman1: { name: string; id: string; runs: number; balls: number };
+    batsman2: { name: string; id: string; runs: number; balls: number };
+    partnershipRuns: number;
+    partnershipBalls: number;
+  };
 }
 
 export interface LiveMatch {
@@ -146,7 +156,7 @@ export interface LiveMatch {
   
   // Match metadata
   opponent: string;
-  venue: 'Home' | 'Away' | 'Neutral';
+  venue: string;
   tossWonBy: 'Us' | 'Them';
   tossDecision: 'bat' | 'field';
   format: 'T20' | 'ODI' | 'Custom';
@@ -176,7 +186,7 @@ export interface LiveMatch {
 export interface MatchSummary {
   matchId: string;
   opponent: string;
-  venue: 'Home' | 'Away' | 'Neutral';
+  venue: string;
   tossWonBy: 'Us' | 'Them';
   tossDecision: 'bat' | 'field';
   format: 'T20' | 'ODI' | 'Custom';

@@ -12,6 +12,9 @@ import {
   recordLegBye,
   recordWide,
   recordNoBall,
+  recordQuickWicket,
+  recordStumpedWide,
+  recordRunOutBall,
   recordWicket,
   replaceBatsman,
   createUndoSnapshot,
@@ -125,6 +128,75 @@ export class CricketScoringEngine {
     }
 
     return recordWicket({ dismissalMode, batsmanId });
+  }
+
+  /**
+   * Record quick wicket (bowled, caught, LBW, hit wicket)
+   * Single button press - records 0-run ball + wicket + bowler stats
+   * No dialog required for these immediate dismissals
+   */
+  static recordQuickDismissal(dismissalMode: 'bowled' | 'caught' | 'lbw' | 'hit-wicket') {
+    const validModes: Array<'bowled' | 'caught' | 'lbw' | 'hit-wicket'> = ['bowled', 'caught', 'lbw', 'hit-wicket'];
+
+    if (!validModes.includes(dismissalMode)) {
+      throw new Error(`Invalid quick dismissal mode: ${dismissalMode}`);
+    }
+
+    return recordQuickWicket({ dismissalMode });
+  }
+
+  /**
+   * Record stumped wicket off a wide ball
+   * Records as wide delivery (runs + 1 penalty) with stumped dismissal
+   * Runs parameter is the wide runs (0+), adds 1 penalty automatically
+   */
+  static recordStumpedOffWide(runs: number) {
+    if (runs < 0 || runs > 7) {
+      throw new Error('Invalid stumped wide runs: must be between 0-7');
+    }
+    return recordStumpedWide({ runs });
+  }
+
+  /**
+   * Record run-out, handling the ball, or obstructing the field
+   * Combines ball recording (WD/B/LB/NB/regular) + run-out dismissal
+   * 
+   * Key difference: NO wicket is added to bowler
+   * Marks the specified batsman (striker or non-striker) as out
+   */
+  static recordRunOut(
+    dismissalMode: 'run-out' | 'handled-ball' | 'obstructing-field',
+    ballType: 'wide' | 'bye' | 'leg-bye' | 'no-ball' | 'regular',
+    runs: number,
+    batsmanIdToMarkOut: string
+  ) {
+    const validModes: Array<'run-out' | 'handled-ball' | 'obstructing-field'> = [
+      'run-out',
+      'handled-ball',
+      'obstructing-field',
+    ];
+    const validBallTypes: Array<'wide' | 'bye' | 'leg-bye' | 'no-ball' | 'regular'> = [
+      'wide',
+      'bye',
+      'leg-bye',
+      'no-ball',
+      'regular',
+    ];
+
+    if (!validModes.includes(dismissalMode)) {
+      throw new Error(`Invalid run-out dismissal mode: ${dismissalMode}`);
+    }
+    if (!validBallTypes.includes(ballType)) {
+      throw new Error(`Invalid ball type: ${ballType}`);
+    }
+    if (runs < 0 || runs > 7) {
+      throw new Error('Invalid runs: must be between 0-7');
+    }
+    if (!batsmanIdToMarkOut) {
+      throw new Error('Must specify which batsman to mark out');
+    }
+
+    return recordRunOutBall({ dismissalMode, ballType, runs, batsmanIdToMarkOut });
   }
 
   /**

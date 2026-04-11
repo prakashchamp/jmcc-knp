@@ -15,7 +15,8 @@ import {
   undoLastDelivery,
   createUndoSnapshot,
 } from '@/app/lib/redux/slices/scorerSlice';
-import type { LiveMatch, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import type { LiveMatch } from '@/app/lib/cricket-scorer-types';
+import { JMCC_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { CricketScoringEngine } from '@/app/lib/scoring-engine';
 
 /**
@@ -45,22 +46,15 @@ export default function ScorerTestingPage() {
   };
 
   const initializeTestMatch = () => {
-    const teamPlayers: TeamPlayer[] = [
-      { id: 'p1', name: 'Batter 1', role: 'batsman' },
-      { id: 'p2', name: 'Batter 2', role: 'batsman' },
-      { id: 'p3', name: 'Batter 3', role: 'batsman' },
-      { id: 'p4', name: 'Bowler 1', role: 'bowler' },
-    ];
-
     const match: LiveMatch = {
       id: `test_${Date.now()}`,
-      opponent: 'Test Team',
+      opponent: 'Test Opponent',
       venue: 'Home',
       tossWonBy: 'Us',
       tossDecision: 'bat',
       format: 'T20',
       totalOvers: 20,
-      teamPlayers,
+      teamPlayers: JMCC_TEAM_PLAYERS,
       currentInnings: 1,
       innings: [],
       status: 'in-progress',

@@ -1,20 +1,41 @@
 'use client';
 
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
-import { closeDialog } from '@/app/lib/redux/slices/scorerSlice';
+import { closeDialog, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { BatterDropdownSelect } from './BatterDropdownSelect';
+import {
+  modalOverlayClass,
+  modalPanelClass,
+  modalHeaderClass,
+  modalEyebrowClass,
+  modalTitleClass,
+  secondaryButtonClass,
+} from './dialogTheme';
 
 export function BatsmanRetiredDialog() {
   const dispatch = useDispatch<AppDispatch>();
   const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
+  const [selectedBatter, setSelectedBatter] = useState<TeamPlayer | null>(null);
+  const [newPlayerName, setNewPlayerName] = useState('');
 
   if (!liveMatch || !currentInnings) return null;
 
-  // Get available batsmen (not current batsmen)
+  // Get available players (not currently batting - striker and non-striker, and not dismissed)
+  // Show all players regardless of role
   const availableBatsmen = liveMatch.teamPlayers.filter(
-    (player) => player.id !== currentInnings.striker?.id && player.id !== currentInnings.nonStriker?.id
+    (player) => 
+      player.id !== currentInnings.striker?.id && 
+      player.id !== currentInnings.nonStriker?.id &&
+      !currentInnings.dismissedBatsmen.some(d => d.id === player.id)
   );
+
+  const excludeIds: string[] = [];
+  if (currentInnings.striker) excludeIds.push(currentInnings.striker.id);
+  if (currentInnings.nonStriker) excludeIds.push(currentInnings.nonStriker.id);
+  currentInnings.dismissedBatsmen.forEach((d) => excludeIds.push(d.id));
 
   const handleSelectBatsman = (batsman: TeamPlayer) => {
     // TODO: Dispatch action to mark batsman as retired hurt and update batsman
@@ -22,32 +43,51 @@ export function BatsmanRetiredDialog() {
     dispatch(closeDialog());
   };
 
+  const handleCreateNewBatsman = (name: string) => {
+    // Add the new player to the team
+    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
+    
+    // Create the new player object
+    const newPlayer: TeamPlayer = {
+      id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+      role: 'batsman',
+    };
+    
+    setSelectedBatter(newPlayer);
+    setNewPlayerName('');
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 w-96 shadow-lg max-h-96 overflow-y-auto">
-        <h2 className="text-lg font-bold text-white mb-2">{currentInnings.striker?.name} - Retired Hurt</h2>
-        <p className="text-gray-400 text-sm mb-4">Select replacement batsman:</p>
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6`}>
+        <div className={modalHeaderClass}>
+          <p className={modalEyebrowClass}>Live Scorer</p>
+          <h2 className={modalTitleClass}>Batter Retired Hurt</h2>
+        </div>
 
         {availableBatsmen.length === 0 ? (
-          <p className="text-gray-400 text-center py-4">No batsmen available</p>
+          <p className="py-4 text-center text-slate-400">No batsmen available</p>
         ) : (
-          <div className="space-y-2">
-            {availableBatsmen.map((batsman) => (
-              <button
-                key={batsman.id}
-                onClick={() => handleSelectBatsman(batsman)}
-                className="w-full px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white text-sm font-semibold rounded transition-colors text-left flex justify-between items-center"
-              >
-                <span>{batsman.name}</span>
-                <span className="text-xs text-gray-400">#{batsman.jerseyNumber}</span>
-              </button>
-            ))}
+          <div className="mb-4">
+            <BatterDropdownSelect
+              label="Select Replacement Batsman:"
+              placeholder="Choose batsman"
+              selectedBatter={selectedBatter}
+              batters={availableBatsmen}
+              excludeIds={excludeIds}
+              onSelect={handleSelectBatsman}
+              allowNew={true}
+              newPlayerName={newPlayerName}
+              onNewPlayerNameChange={setNewPlayerName}
+              onCreateNew={handleCreateNewBatsman}
+            />
           </div>
         )}
 
         <button
           onClick={() => dispatch(closeDialog())}
-          className="w-full mt-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold rounded transition-colors border border-gray-600"
+          className={`mt-4 w-full px-4 py-2.5 text-sm ${secondaryButtonClass}`}
         >
           Cancel
         </button>
@@ -55,3 +95,4 @@ export function BatsmanRetiredDialog() {
     </div>
   );
 }
+

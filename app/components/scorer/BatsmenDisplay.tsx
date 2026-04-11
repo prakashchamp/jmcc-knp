@@ -7,20 +7,11 @@ import { RootState } from '@/app/lib/redux/store';
  * Batsmen Display Component
  * Shows striker and non-striker with their stats
  * Striker marked with asterisk (*)
- * Displays zeros, fours, sixes, and strike rate under each batsman name
+ * Stats are pulled from CurrentBatsman objects which are synced to batsmanStats array
+ * Single source of truth: All stats (R, B, 0s, 4s, 6s, SR) come from batsmanStats updates
  */
 export function BatsmenDisplay() {
   const { currentInnings } = useSelector((state: RootState) => state.scorer);
-
-  /**
-   * Calculate number of zero-run balls (dots) faced by a batsman
-   */
-  const calculateZeros = (batterId: string): number => {
-    if (!currentInnings?.ballHistory) return 0;
-    return currentInnings.ballHistory.filter(
-      (ball) => ball.batter.id === batterId && ball.runs.batter === 0
-    ).length;
-  };
 
   if (!currentInnings) {
     return (
@@ -49,7 +40,7 @@ export function BatsmenDisplay() {
             </div>
             <div>
               <div className="text-gray-600 text-xs">0s</div>
-              <div className="font-bold text-lg">{calculateZeros(currentInnings.striker.id)}</div>
+              <div className="font-bold text-lg">{currentInnings.striker.zeros}</div>
             </div>
             <div>
               <div className="text-gray-600 text-xs">4s</div>
@@ -84,7 +75,7 @@ export function BatsmenDisplay() {
             </div>
             <div>
               <div className="text-gray-600 text-xs">0s</div>
-              <div className="font-bold text-lg">{calculateZeros(currentInnings.nonStriker.id)}</div>
+              <div className="font-bold text-lg">{currentInnings.nonStriker.zeros}</div>
             </div>
             <div>
               <div className="text-gray-600 text-xs">4s</div>

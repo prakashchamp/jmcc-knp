@@ -1,72 +1,111 @@
 'use client';
 
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { getBattingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
 
 /**
  * Fall of Wickets Review Component
- * Shows all dismissals with batsman, mode, runs, and ball number
+ * Shows wicket-by-wicket breakdown with over, runs at dismissal, and batsman name
+ * Theme: Consistent with batting/bowling scorecards (Teal-700 headers, Gray-800 body)
  */
 export function FallOfWickets() {
-  const { currentInnings } = useSelector((state: RootState) => state.scorer);
+  const { currentInnings, liveMatch } = useSelector((state: RootState) => state.scorer);
+  const [selectedTeam, setSelectedTeam] = useState<ReviewTeam>(currentInnings?.battingTeam ?? 'Us');
+  const selectedInnings = getBattingTeamInnings(liveMatch, currentInnings, selectedTeam);
 
-  if (!currentInnings || currentInnings.dismissedBatsmen.length === 0) {
-    return <div className="text-gray-600">No wickets fallen yet</div>;
+  if (!currentInnings && !liveMatch) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-400">No wickets fallen yet</p>
+      </div>
+    );
   }
 
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-bold text-gray-800">FALL OF WICKETS</h3>
+  /**
+   * Find the over when a specific batsman got out
+   * Returns format like "4.3" (over 4, ball 3)
+   */
+  const findWicketOver = (batsmanId: string): string => {
+    // Find the wicket ball for this batsman
+    const wicketBall = selectedInnings?.ballHistory.find(
+      (ball) =>
+        ball.isWicket &&
+        ball.dismissal?.playerOut.id === batsmanId
+    );
 
-      <div className="border border-gray-300 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-teal-600 text-white">
+    if (wicketBall) {
+      return `${Math.floor(wicketBall.over)}.${wicketBall.ball}`;
+    }
+    return '-';
+  };
+
+  /**
+   * Calculate cumulative runs at the point of each wicket
+   */
+  const getRunsAtWicket = (batsmanId: string): number => {
+    // Find the wicket ball for this batsman
+    const wicketBallIndex = selectedInnings?.ballHistory.findIndex(
+      (ball) =>
+        ball.isWicket &&
+        ball.dismissal?.playerOut.id === batsmanId
+    );
+
+    if (wicketBallIndex !== -1) {
+      // Sum all runs up to and including this ball
+      return (selectedInnings?.ballHistory || [])
+        .slice(0, wicketBallIndex + 1)
+        .reduce((sum, ball) => sum + ball.runs.total, 0);
+    }
+
+    return 0;
+  };
+
+  return (
+    <div className="px-2 py-2">
+      <ReviewTeamToggle
+        selectedTeam={selectedTeam}
+        opponentName={liveMatch?.opponent}
+        onSelect={setSelectedTeam}
+      />
+      {!selectedInnings || selectedInnings.dismissedBatsmen.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-400">No wickets fallen yet</p>
+        </div>
+      ) : (
+      <div className="overflow-hidden rounded-lg border border-gray-600">
+        <table className="w-full text-xs">
+          <thead className="bg-teal-800 text-white border-b border-gray-600">
             <tr>
-              <th className="px-4 py-2 text-left">Wicket #</th>
-              <th className="px-4 py-2 text-left">Batsman</th>
-              <th className="px-4 py-2 text-center">Runs</th>
-              <th className="px-4 py-2 text-center">Balls</th>
-              <th className="px-4 py-2 text-left">Dismissal</th>
-              <th className="px-4 py-2 text-center">At Score</th>
+              <th className="px-2 py-2 text-center font-bold">Wicket</th>
+              <th className="px-2 py-2 text-center font-bold">Over</th>
+              <th className="px-2 py-2 text-center font-bold">Runs</th>
+              <th className="px-2 py-2 text-left font-bold">Batsman Name</th>
             </tr>
           </thead>
           <tbody>
-            {currentInnings.dismissedBatsmen.map((batsman, idx) => {
-              // Find score when this batsman was out (approximate based on runs at wicket)
-              const scoreAtWicket = currentInnings.totalRuns - batsman.runs;
-
-              return (
-                <tr
-                  key={idx}
-                  className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}
-                >
-                  <td className="px-4 py-2 font-bold text-red-600">{idx + 1}</td>
-                  <td className="px-4 py-2 font-semibold">{batsman.name}</td>
-                  <td className="px-4 py-2 text-center">{batsman.runs}</td>
-                  <td className="px-4 py-2 text-center">{batsman.balls}</td>
-                  <td className="px-4 py-2">
-                    <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold">
-                      {batsman.dismissal?.mode || 'Out'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-center text-sm text-gray-600">
-                    {scoreAtWicket}-{idx + 1}
-                  </td>
-                </tr>
-              );
-            })}
+            {selectedInnings.dismissedBatsmen.map((batsman, idx) => (
+              <tr
+                key={idx}
+                className={idx % 2 === 0 ? 'bg-gray-800 border-b border-gray-700' : 'bg-gray-700 border-b border-gray-600'}
+              >
+                <td className="px-2 py-2 text-center font-bold text-white text-xs">
+                  {idx + 1}
+                </td>
+                <td className="px-2 py-2 text-center font-semibold text-white text-xs">
+                  {findWicketOver(batsman.id)}
+                </td>
+                <td className="px-2 py-2 text-center font-bold text-white text-xs">
+                  {getRunsAtWicket(batsman.id)}
+                </td>
+                <td className="px-2 py-2 font-semibold text-white text-xs">{batsman.name}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-
-      <div className="text-sm text-gray-600 pt-2">
-        <p>
-          <strong>Total Wickets:</strong> {currentInnings.totalWickets}
-        </p>
-        <p>
-          <strong>Total Runs at Last Wicket:</strong> {currentInnings.totalRuns}
-        </p>
-      </div>
+      )}
     </div>
   );
 }

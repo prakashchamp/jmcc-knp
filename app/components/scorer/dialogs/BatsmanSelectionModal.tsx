@@ -1,17 +1,39 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { closeDialog, recordWicket, replaceBatsman } from '@/app/lib/redux/slices/scorerSlice';
+import {
+  closeDialog,
+  replaceBatsman,
+  addNewTeamPlayer,
+  createUndoSnapshot,
+  recordQuickWicket,
+  recordStumpedWide,
+  recordStumpedRegular,
+  recordRunOutBall,
+  recordRetiredOut,
+} from '@/app/lib/redux/slices/scorerSlice';
 import { CricketScoringEngine } from '@/app/lib/scoring-engine';
-import type { DismissalMode, CurrentBatsman } from '@/app/lib/cricket-scorer-types';
+import type { DismissalMode, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { BatterDropdownSelect } from './BatterDropdownSelect';
+import {
+  modalOverlayClass,
+  modalPanelClass,
+  modalHeaderClass,
+  modalEyebrowClass,
+  modalTitleClass,
+  secondaryButtonClass,
+} from './dialogTheme';
 
 interface BatsmanSelectDialogData {
   dismissalMode: DismissalMode;
   selectedBatsman?: 'striker' | 'non-striker';
   runs?: number;
   extrasType?: 'wide' | 'no-ball' | 'none';
+  ballType?: 'wide' | 'bye' | 'leg-bye' | 'no-ball' | 'regular';
+  outBatsmanId?: string;
+  recordOnSelect?: boolean;
 }
 
 /**
@@ -24,144 +46,145 @@ interface BatsmanSelectDialogData {
  * - Auto-close after selection
  * - Handles RUN OUT: records dismissal with runs then asks for replacement
  * - Handles REGULAR WICKET: records dismissal then asks for replacement
+ * - Create new player: Add new batsman to team during match
  */
 export function BatsmanSelectionModal() {
   const dispatch = useDispatch<AppDispatch>();
   const { dialogState, liveMatch, currentInnings } = useSelector(
     (state: RootState) => state.scorer
   );
-  const [availablePlayers, setAvailablePlayers] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [newPlayerName, setNewPlayerName] = useState('');
 
   // Type-safe dialog data
   const dialogData = dialogState.dialogData as BatsmanSelectDialogData;
 
-  useEffect(() => {
-    if (dialogState.activeDialog !== 'batsmanSelect' || !liveMatch || !currentInnings) {
-      return;
-    }
+  const availableBatters =
+    liveMatch && currentInnings
+      ? CricketScoringEngine.getAvailableBatsmen(liveMatch.teamPlayers, currentInnings)
+      : [];
 
-    // Get available batsmen using scoring engine
-    const available = CricketScoringEngine.getAvailableBatsmen(
-      liveMatch.teamPlayers,
-      currentInnings
-    );
-
-    // Filter out already playing batsmen (striker and non-striker)
-    const playingPlayerIds = new Set<string>();
-    if (currentInnings.striker) playingPlayerIds.add(currentInnings.striker.id);
-    if (currentInnings.nonStriker) playingPlayerIds.add(currentInnings.nonStriker.id);
-    currentInnings.dismissedBatsmen.forEach((d) => playingPlayerIds.add(d.id));
-
-    const filteredAvailable = available.filter((p) => !playingPlayerIds.has(p.id));
-
-    setAvailablePlayers(filteredAvailable);
-    setIsLoading(false);
-  }, [dialogState.activeDialog, liveMatch, currentInnings]);
+  const excludeIds = currentInnings
+    ? [
+        ...(currentInnings.striker ? [currentInnings.striker.id] : []),
+        ...(currentInnings.nonStriker ? [currentInnings.nonStriker.id] : []),
+        ...currentInnings.dismissedBatsmen.map((dismissedBatter) => dismissedBatter.id),
+      ]
+    : [];
 
   if (dialogState.activeDialog !== 'batsmanSelect') {
     return null;
   }
 
-  const handleSelectBatsman = (playerId: string, playerName: string) => {
+  const handleSelectBatsman = (batter: TeamPlayer) => {
     if (!currentInnings) {
       console.error('No current innings');
       return;
     }
 
-    // Record dismissal for the out batsman
-    const isOutStrikerContext = dialogData.selectedBatsman !== 'non-striker';
-    const outBatsmanId = isOutStrikerContext
-      ? currentInnings.striker?.id
-      : currentInnings.nonStriker?.id;
+    const outBatsmanId = dialogData.outBatsmanId;
 
-    if (outBatsmanId) {
-      // Record the wicket (dismissal)
-      dispatch(
-        recordWicket({
-          dismissalMode: dialogData.dismissalMode,
-          batsmanId: outBatsmanId,
-        })
-      );
+    if (!outBatsmanId) {
+      console.error('No out batsman ID in dialog data');
+      return;
     }
 
-    // Find the new batsman object from team players
-    const newBatsmanObj = liveMatch?.teamPlayers.find((p) => p.id === playerId);
-    if (newBatsmanObj) {
-      // Now replace the batsman
-      const isStriker = isOutStrikerContext;
-      dispatch(
-        replaceBatsman({
-          outBatsmanId: outBatsmanId || '',
-          newBatsman: newBatsmanObj,
-          isStriker,
-        })
-      );
+    const isPendingRecord = Boolean(dialogData.recordOnSelect);
+    const isStriker = dialogData.selectedBatsman
+      ? dialogData.selectedBatsman === 'striker'
+      : currentInnings.striker?.id === outBatsmanId;
+
+    if (isPendingRecord) {
+      dispatch(createUndoSnapshot());
+
+      switch (dialogData.dismissalMode) {
+        case 'bowled':
+        case 'caught':
+        case 'lbw':
+        case 'hit-wicket':
+          dispatch(recordQuickWicket({ dismissalMode: dialogData.dismissalMode }));
+          break;
+        case 'stumped':
+          if (dialogData.ballType === 'wide') {
+            dispatch(recordStumpedWide({ runs: dialogData.runs ?? 0 }));
+          } else {
+            dispatch(recordStumpedRegular());
+          }
+          break;
+        case 'run-out':
+        case 'handled-ball':
+        case 'obstructing-field':
+          dispatch(
+            recordRunOutBall({
+              dismissalMode: dialogData.dismissalMode,
+              ballType: dialogData.ballType ?? 'regular',
+              runs: dialogData.runs ?? 0,
+              batsmanIdToMarkOut: outBatsmanId,
+            })
+          );
+          break;
+        case 'retired-out':
+          dispatch(recordRetiredOut());
+          break;
+        default:
+          break;
+      }
+    } else {
+      const outBatsman = currentInnings.dismissedBatsmen.find((b) => b.id === outBatsmanId);
+      if (!outBatsman) {
+        console.error('Out batsman not found in dismissed list');
+        return;
+      }
     }
 
-    // Close the dialog
+    dispatch(
+      replaceBatsman({
+        outBatsmanId,
+        newBatsman: batter,
+        isStriker,
+      })
+    );
+
     dispatch(closeDialog());
   };
 
-  const isStrikerOut = dialogData.selectedBatsman !== 'non-striker';
-  const dismissalModeLabel =
-    dialogData.dismissalMode === 'run-out'
-      ? 'Run Out'
-      : dialogData.dismissalMode === 'obstructing-field'
-        ? 'Obstructing the field'
-        : dialogData.dismissalMode === 'handled-ball'
-          ? 'Handling the ball'
-          : dialogData.dismissalMode === 'bowled'
-            ? 'Bowled'
-            : dialogData.dismissalMode === 'caught'
-              ? 'Caught'
-              : dialogData.dismissalMode === 'lbw'
-                ? 'LBW'
-                : dialogData.dismissalMode === 'stumped'
-                  ? 'Stumped'
-                  : dialogData.dismissalMode === 'hit-wicket'
-                    ? 'Hit Wicket'
-                    : dialogData.dismissalMode === 'retired-hurt'
-                      ? 'Retired Hurt'
-                      : dialogData.dismissalMode === 'retired-out'
-                        ? 'Retired Out'
-                        : 'Out';
+  const handleCreateNewBatsman = (name: string) => {
+    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
+    setNewPlayerName('');
+  };
+
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 rounded-lg p-6 max-w-sm w-full mx-4 max-h-96 overflow-y-auto border border-gray-700">
-        <h3 className="text-lg font-bold text-center mb-2 text-white">Select Replacement Batsman</h3>
-        <p className="text-gray-300 text-center text-sm mb-4">
-          {dismissalModeLabel} • {isStrikerOut ? 'Striker' : 'Non-striker'} out
-        </p>
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6`}>
+        <div className={modalHeaderClass}>
+          <p className={modalEyebrowClass}>Live Scorer</p>
+          <h3 className={modalTitleClass}>Select New Batsman</h3>
+        </div>
 
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-400">Loading available players...</p>
-          </div>
-        ) : availablePlayers.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-red-400 font-medium">No available batsmen</p>
+        {availableBatters.length === 0 ? (
+          <div className="py-8 text-center">
+            <p className="font-medium text-red-400">No available batsmen</p>
           </div>
         ) : (
-          <div className="space-y-2 mb-4">
-            {availablePlayers.map((player) => (
-              <button
-                key={player.id}
-                onClick={() => handleSelectBatsman(player.id, player.name)}
-                className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white rounded font-medium transition-colors text-left"
-              >
-                {player.name}
-              </button>
-            ))}
+          <div className="mb-4">
+            <BatterDropdownSelect
+              label="Select New Batsman:"
+              placeholder="Choose batsman"
+              selectedBatter={null}
+              batters={availableBatters}
+              excludeIds={excludeIds}
+              onSelect={handleSelectBatsman}
+              allowNew={true}
+              newPlayerName={newPlayerName}
+              onNewPlayerNameChange={setNewPlayerName}
+              onCreateNew={handleCreateNewBatsman}
+            />
           </div>
         )}
 
         <button
           onClick={() => dispatch(closeDialog())}
-          className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded transition-colors"
+          className={`w-full py-2.5 ${secondaryButtonClass}`}
         >
           Cancel
         </button>

@@ -11,7 +11,7 @@ interface ScorerMenuProps {
 
 export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
+  const { liveMatch } = useSelector((state: RootState) => state.scorer);
 
   const menuItems = [
     { id: 'details', label: 'Match Info', icon: 'ℹ️' },
@@ -50,7 +50,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
             <button
               key={item.id}
               onClick={() => {
-                onViewChange(item.id as any);
+                onViewChange(item.id);
                 setIsOpen(false);
               }}
               className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold flex items-center gap-3 ${
@@ -79,8 +79,9 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="text-white hover:bg-gray-700 p-2 rounded transition-colors"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-white transition-colors hover:bg-slate-600"
         title="Menu"
+        aria-label="Menu"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

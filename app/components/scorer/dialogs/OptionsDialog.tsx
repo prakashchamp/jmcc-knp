@@ -3,31 +3,40 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, openDialog } from '@/app/lib/redux/slices/scorerSlice';
-import { useState } from 'react';
+import {
+  modalOverlayClass,
+  modalPanelClass,
+  modalHeaderClass,
+  modalEyebrowClass,
+  modalTitleClass,
+  secondaryButtonClass,
+} from './dialogTheme';
 
 export function OptionsDialog() {
   const dispatch = useDispatch<AppDispatch>();
-  const { dialogState, liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
 
   if (!liveMatch || !currentInnings) return null;
 
   // Helper functions to determine if options are allowed
   const canChangeBatsman = () => {
     // Allowed at beginning of innings or after wicket on last ball
-    if (currentInnings.totalBalls === 0) return true; // Beginning of innings
-    
+    if (currentInnings.totalBalls === 0) return true;
+
     // Check if last ball was a wicket
     if (currentInnings.ballHistory && currentInnings.ballHistory.length > 0) {
       const lastBall = currentInnings.ballHistory[currentInnings.ballHistory.length - 1];
-      return lastBall.isWicket || lastBall.dismissal;
+      return Boolean(lastBall.isWicket || lastBall.dismissal);
     }
     return false;
   };
 
   const canChangeBowler = () => {
-    // Only at start of new over (totalBalls divisible by 6)
-    return currentInnings.totalBalls % 6 === 0 && currentInnings.totalBalls > 0;
+    // Enable at start of every new over (overs 0.0, 1.0, 2.0, etc.)
+    // Disable as soon as a ball is bowled in the current over
+    // ballsInCurrentOver will be 0 at start of over, 1-5 during the over
+    const ballsInCurrentOver = currentInnings.totalBalls % 6;
+    return ballsInCurrentOver === 0;
   };
 
   const canBowlerRetiredHurt = () => {
@@ -39,13 +48,13 @@ export function OptionsDialog() {
   const canBatsmanRetiredHurt = () => {
     // Played 1+ balls and not gotten out
     if (!currentInnings.ballHistory || currentInnings.ballHistory.length === 0) return false;
-    
+
     // Check if last ball was wicket
     const lastBall = currentInnings.ballHistory[currentInnings.ballHistory.length - 1];
-    if (lastBall.isWicket || lastBall.dismissal) return false;
-    
+    if (Boolean(lastBall.isWicket || lastBall.dismissal)) return false;
+
     // Check if current batsman has played at least 1 ball
-    return true; // If they're still at crease and innings has balls
+    return true;
   };
 
   const options = [
@@ -59,7 +68,7 @@ export function OptionsDialog() {
       label: 'Change Bowler',
       action: 'changeBowler',
       enabled: canChangeBowler(),
-      tooltip: 'Only allowed at start of new over'
+      tooltip: 'Only allowed at start of new over before any ball is bowled'
     },
     {
       label: 'Bowler Retired Hurt',
@@ -113,9 +122,12 @@ export function OptionsDialog() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-900 border border-gray-700 rounded-lg p-4 w-80 shadow-lg">
-        <h2 className="text-lg font-bold text-white mb-4">Options</h2>
+    <div className={modalOverlayClass}>
+      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6`}>
+        <div className={modalHeaderClass}>
+          <p className={modalEyebrowClass}>Live Scorer</p>
+          <h2 className={modalTitleClass}>Options</h2>
+        </div>
 
         <div className="space-y-2">
           {options.map((option) => (
@@ -123,21 +135,20 @@ export function OptionsDialog() {
               key={option.action}
               onClick={() => handleOptionClick(option.action, option.enabled)}
               disabled={!option.enabled}
-              title={option.tooltip}
-              className={`w-full px-4 py-2 text-sm font-semibold rounded transition-colors text-left ${
+              className={`w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
                 option.enabled
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white cursor-pointer'
-                  : 'bg-gray-800 text-gray-500 cursor-not-allowed opacity-50'
+                  ? 'border-slate-700 bg-slate-800 text-white hover:border-slate-500 hover:bg-slate-700'
+                  : 'cursor-not-allowed border-slate-800 bg-slate-900 text-slate-500 opacity-60'
               }`}
             >
-              {option.label}
+              <div>{option.label}</div>
             </button>
           ))}
         </div>
 
         <button
           onClick={() => dispatch(closeDialog())}
-          className="w-full mt-4 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-semibold rounded transition-colors border border-gray-600"
+          className={`mt-4 w-full px-4 py-2.5 text-sm ${secondaryButtonClass}`}
         >
           Close
         </button>
