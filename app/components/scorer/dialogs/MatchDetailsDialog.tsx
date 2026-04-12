@@ -51,19 +51,19 @@ function DropdownInputField({
   disabled = false,
 }: DropdownInputFieldProps) {
   const normalizedValue = value.trim().toLowerCase();
-  const filteredOptions = readOnly
-    ? options
-    : options.filter((option) => {
-        const optionText = `${option.label} ${option.value}`.toLowerCase();
-        return !normalizedValue || optionText.includes(normalizedValue);
-      });
-
   const exactMatch = options.some((option) => {
     return (
       option.label.trim().toLowerCase() === normalizedValue ||
       option.value.trim().toLowerCase() === normalizedValue
     );
   });
+
+  const filteredOptions = readOnly || !normalizedValue || exactMatch
+    ? options
+    : options.filter((option) => {
+        const optionText = `${option.label} ${option.value}`.toLowerCase();
+        return optionText.includes(normalizedValue);
+      });
 
   const showCreate = allowCreate && normalizedValue.length > 0 && !exactMatch;
 
@@ -76,8 +76,19 @@ function DropdownInputField({
           value={value}
           readOnly={readOnly || disabled}
           disabled={disabled}
-          onClick={() => !disabled && onOpenChange(!isOpen)}
-          onFocus={() => !disabled && !isOpen && onOpenChange(true)}
+          onMouseDown={(e) => {
+            if (disabled || !readOnly) return;
+            e.preventDefault();
+            onOpenChange(!isOpen);
+          }}
+          onClick={() => {
+            if (disabled || readOnly) return;
+            onOpenChange(true);
+          }}
+          onFocus={() => {
+            if (disabled || readOnly) return;
+            if (!isOpen) onOpenChange(true);
+          }}
           onChange={(e) => {
             if (disabled) return;
             onChange?.(e.target.value);

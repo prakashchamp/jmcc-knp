@@ -43,10 +43,13 @@ function getTotalExtras(innings: InningsState | null | undefined) {
 function getExtrasBreakdown(innings: InningsState | null | undefined) {
   return (innings?.ballHistory || []).reduce(
     (acc, ball) => {
+      const isNoBall = Boolean(ball.extra?.isNoBall || ball.extra?.type === 'no-ball');
+      const byeOrLegByeRuns = isNoBall ? Math.max((ball.runs.total || 0) - 1, 0) : ball.runs.extras || 0;
+
       if (ball.extra?.type === 'wide') acc.wide += ball.runs.total || 0;
-      if (ball.extra?.type === 'bye') acc.bye += ball.runs.extras || 0;
-      if (ball.extra?.type === 'leg-bye') acc.legBye += ball.runs.extras || 0;
-      if (ball.extra?.type === 'no-ball') acc.noBall += ball.runs.total || 0;
+      if (ball.extra?.type === 'bye') acc.bye += byeOrLegByeRuns;
+      if (ball.extra?.type === 'leg-bye') acc.legBye += byeOrLegByeRuns;
+      if (isNoBall) acc.noBall += 1;
       return acc;
     },
     {

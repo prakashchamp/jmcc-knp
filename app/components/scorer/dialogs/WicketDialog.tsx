@@ -111,14 +111,14 @@ export function WicketDialog() {
   return (
     <div className={modalOverlayClass}>
       <div className={`${modalPanelClass} flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden`}>
-        <div className="border-b border-slate-700 px-5 py-4 sm:px-6">
-          <div className={modalHeaderClass}>
+        <div className="border-b border-slate-700 px-5 py-3 sm:px-6">
+          <div className="mb-2">
             <p className={modalEyebrowClass}>Live Scorer</p>
             <h3 className={modalTitleClass}>Wicket</h3>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 sm:px-6">
+        <div className="flex-1 overflow-y-auto px-5 py-3 sm:px-6">
           <div className="mb-5">
             <p className={sectionLabelClass}>Quick Entry</p>
             <div className="grid grid-cols-2 gap-2">

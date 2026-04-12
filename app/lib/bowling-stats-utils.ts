@@ -34,10 +34,15 @@ export function getBowlerStats(innings: InningsState | null | undefined): Bowler
 
     const bowlerKey = getBowlerKey(ball.bowler);
     const isWide = ball.extra?.type === 'wide';
-    const isNoBall = ball.extra?.type === 'no-ball';
+    const isNoBall = Boolean(ball.extra?.isNoBall || ball.extra?.type === 'no-ball');
     const isByeOrLegBye = ball.extra?.type === 'bye' || ball.extra?.type === 'leg-bye';
+    const isNoBallByeOrLegBye = isNoBall && isByeOrLegBye;
     const isLegalDelivery = !isWide && !isNoBall;
-    const bowlerRunsConceded = isByeOrLegBye ? 0 : (ball.runs.total || 0);
+    const bowlerRunsConceded = isNoBallByeOrLegBye
+      ? 1
+      : isByeOrLegBye
+        ? 0
+        : (ball.runs.total || 0);
     const overKey = `${bowlerKey}:${ball.over}`;
 
     if (!bowlerMap.has(bowlerKey)) {
@@ -83,7 +88,7 @@ export function getBowlerStats(innings: InningsState | null | undefined): Bowler
       bowler.wideRuns += ball.runs.total || 0;
       overSummary.hasWideOrNoBall = true;
     } else if (isNoBall) {
-      bowler.noBallRuns += ball.runs.total || 0;
+      bowler.noBallRuns += 1;
       overSummary.hasWideOrNoBall = true;
     }
 

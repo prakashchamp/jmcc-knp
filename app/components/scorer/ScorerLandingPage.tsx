@@ -92,8 +92,19 @@ function DropdownInputField({
           value={value}
           readOnly={readOnly || disabled}
           disabled={disabled}
-          onClick={() => !disabled && onOpenChange(!isOpen)}
-          onFocus={() => !disabled && !isOpen && onOpenChange(true)}
+          onMouseDown={(e) => {
+            if (disabled || !readOnly) return;
+            e.preventDefault();
+            onOpenChange(!isOpen);
+          }}
+          onClick={() => {
+            if (disabled || readOnly) return;
+            onOpenChange(true);
+          }}
+          onFocus={() => {
+            if (disabled || readOnly) return;
+            if (!isOpen) onOpenChange(true);
+          }}
           onChange={(e) => {
             if (disabled) return;
             onChange?.(e.target.value);

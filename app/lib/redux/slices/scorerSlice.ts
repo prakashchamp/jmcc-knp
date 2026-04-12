@@ -577,11 +577,16 @@ const scorerSlice = createSlice({
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
 
-      // Find current over number (NB doesn't increment totalBalls for team, so it would be same as current)
       const currentOver = Math.floor(innings.totalBalls / 6);
       const ballInOver = innings.totalBalls % 6;
+      const isBye = runType === 'bye';
+      const isLegBye = runType === 'leg-bye';
+      const batterRuns = runType === 'none' ? runs : 0;
+      const extraRuns = runType === 'none' ? 1 : runs + 1;
+      const totalRuns = batterRuns + extraRuns;
+      const bowlerRunsConceded = runType === 'none' ? totalRuns : 1;
+      const extraType: ExtraType = isBye ? 'bye' : isLegBye ? 'leg-bye' : 'no-ball';
 
-      // Create ball record for NB
       const newBall: Ball = {
         id: `ball_${Date.now()}_${Math.random()}`,
         over: currentOver,
@@ -600,49 +605,40 @@ const scorerSlice = createSlice({
           name: innings.nonStriker?.name || '',
         },
         runs: {
-          batter: runs, // Only actual runs to batter, not penalty
-          extras: runs + 1, // Runs + 1 penalty counted as extras in total
-          total: runs + 1,
+          batter: batterRuns,
+          extras: extraRuns,
+          total: totalRuns,
         },
         isWicket: false,
         extra: {
-          type: 'no-ball',
+          type: extraType,
           isNoBall: true,
+          runType,
         },
       };
 
-      // Add to ball history
       innings.ballHistory.push(newBall);
-
-      // Update partnership stats (no-balls count as both runs and balls)
       updateCurrentPartnership(innings, newBall, true);
 
-      // No-balls DON'T count toward over completion (not part of 6-ball count for team)
-      // NOT counted for bowler's deliveries
-      // But DO count as a ball ONLY for the striker's record
-      innings.totalRuns += runs + 1; // +1 for penalty
+      innings.totalRuns += totalRuns;
 
       if (innings.currentBowler) {
-        innings.currentBowler.runs += runs + 1;
+        innings.currentBowler.runs += bowlerRunsConceded;
         innings.currentBowler.extras += 1;
-        // NOTE: currentBowler.balls NOT incremented (NB doesn't count to bowler's deliveries)
       }
 
-      // No-balls count as 1 ball ONLY for the striker (not for team's over count)
       if (innings.striker) {
         innings.striker.balls += 1;
-        // Only actual runs count to striker (not the penalty)
-        if (runs > 0) {
-          innings.striker.runs += runs;
-          if (runs === 4) innings.striker.fours += 1;
-          if (runs === 6) innings.striker.sixes += 1;
-        } else if (runs === 0) {
+        if (batterRuns > 0) {
+          innings.striker.runs += batterRuns;
+          if (batterRuns === 4) innings.striker.fours += 1;
+          if (batterRuns === 6) innings.striker.sixes += 1;
+        } else if (runType === 'none' && runs === 0) {
           innings.striker.zeros += 1;
         }
         innings.striker.strikeRate = parseFloat(((innings.striker.runs / innings.striker.balls) * 100).toFixed(2));
       }
 
-      // Check strike rotation for odd runs (even runs from no-ball doesn't rotate)
       const totalNoballRuns = runs;
       if (totalNoballRuns % 2 === 1 && !hasWicket) {
         const temp = innings.striker;
@@ -650,7 +646,6 @@ const scorerSlice = createSlice({
         innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
-      // Sync batsman stats to batsmanStats array
       updateBatsmanStats(innings);
     },
 

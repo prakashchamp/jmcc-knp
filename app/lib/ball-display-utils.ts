@@ -14,6 +14,7 @@ export interface Ball {
     type?: 'wide' | 'no-ball' | 'bye' | 'leg-bye';
     isNoBall?: boolean;
     isWide?: boolean;
+    runType?: 'leg-bye' | 'bye' | 'none';
   };
 }
 
@@ -32,9 +33,15 @@ export function formatBallDisplay(ball: Ball): string {
   if (!ball.isWicket) {
     // Regular delivery without wicket
     if (ball.extra?.type === 'wide') {
-      return `${ball.runs.extras}WD`;
-    } else if (ball.extra?.type === 'no-ball') {
-      return `${ball.runs.extras}NB`;
+      const wideRuns = Math.max((ball.runs.total || ball.runs.extras || 0) - 1, 0);
+      return wideRuns > 0 ? `${wideRuns}WD` : 'WD';
+    } else if (ball.extra?.isNoBall && ball.extra?.type === 'bye') {
+      return `${Math.max((ball.runs.total || 0) - 1, 0)}B+NB`;
+    } else if (ball.extra?.isNoBall && ball.extra?.type === 'leg-bye') {
+      return `${Math.max((ball.runs.total || 0) - 1, 0)}LB+NB`;
+    } else if (ball.extra?.type === 'no-ball' || ball.extra?.isNoBall) {
+      const nbRuns = Math.max((ball.runs.total || 0) - 1, 0);
+      return nbRuns > 0 ? `${nbRuns}NB` : 'NB';
     } else if (ball.extra?.type === 'bye') {
       return `${ball.runs.extras}B`;
     } else if (ball.extra?.type === 'leg-bye') {
@@ -46,9 +53,15 @@ export function formatBallDisplay(ball: Ball): string {
 
   // Wicket delivery
   if (ball.extra?.type === 'wide') {
-    return `${ball.runs.extras}WD+W`;
-  } else if (ball.extra?.type === 'no-ball') {
-    return `${ball.runs.extras}NB+W`;
+    const wideRuns = Math.max((ball.runs.total || ball.runs.extras || 0) - 1, 0);
+    return wideRuns > 0 ? `${wideRuns}WD+W` : 'WD+W';
+  } else if (ball.extra?.isNoBall && ball.extra?.type === 'bye') {
+    return `${Math.max((ball.runs.total || 0) - 1, 0)}B+NB+W`;
+  } else if (ball.extra?.isNoBall && ball.extra?.type === 'leg-bye') {
+    return `${Math.max((ball.runs.total || 0) - 1, 0)}LB+NB+W`;
+  } else if (ball.extra?.type === 'no-ball' || ball.extra?.isNoBall) {
+    const nbRuns = Math.max((ball.runs.total || 0) - 1, 0);
+    return nbRuns > 0 ? `${nbRuns}NB+W` : 'NB+W';
   } else if (ball.extra?.type === 'bye') {
     return `${ball.runs.extras}B+W`;
   } else if (ball.extra?.type === 'leg-bye') {
@@ -79,23 +92,20 @@ export function getBallColor(ball: Ball): string {
     return 'bg-red-800 border border-red-700';
   }
 
-  // Priority 2: Byes, Leg-byes, and Wides (always yellow)
-  if (ball.extra?.type === 'bye' || ball.extra?.type === 'leg-bye' || ball.extra?.type === 'wide') {
-    return 'bg-yellow-600 border border-yellow-500';
-  }
-
-  // Priority 3: No-balls with special run colors
-  if (ball.extra?.type === 'no-ball') {
-    // Exactly 7 runs on NB - green
+  // No-balls (including NB + bye / leg-bye)
+  if (ball.extra?.type === 'no-ball' || ball.extra?.isNoBall) {
     if (ball.runs.total === 7) {
       return 'bg-green-800 border border-green-700';
     }
-    // Exactly 5 runs on NB - blue
     if (ball.runs.total === 5) {
       return 'bg-blue-800 border border-blue-700';
     }
-    // All other runs on NB - amber
     return 'bg-amber-700 border border-amber-600';
+  }
+
+  // Byes, Leg-byes, and Wides
+  if (ball.extra?.type === 'bye' || ball.extra?.type === 'leg-bye' || ball.extra?.type === 'wide') {
+    return 'bg-yellow-600 border border-yellow-500';
   }
 
   // Regular runs (no extras)

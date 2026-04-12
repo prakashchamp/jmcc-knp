@@ -87,6 +87,7 @@ export interface Ball {
     type: ExtraType;
     isNoBall?: boolean;
     isWide?: boolean;
+    runType?: 'leg-bye' | 'bye' | 'none';
   };
 }
 

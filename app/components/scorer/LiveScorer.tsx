@@ -18,6 +18,7 @@ import {
 } from '@/app/lib/redux/slices/scorerSlice';
 import type { Ball, LiveMatch, TeamPlayer, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getCurrentBowlerStats } from '@/app/lib/bowling-stats-utils';
+import { formatBallDisplay, getBallColor as getDisplayBallColor } from '@/app/lib/ball-display-utils';
 
 // Landing Page Component
 import { ScorerLandingPage } from './ScorerLandingPage';
@@ -329,7 +330,7 @@ export function LiveScorer(props: LiveScorerProps) {
 
   const ballsToDisplay = currentOverBalls;
   const legalBallsThisOver = ballsToDisplay.filter((ball) => {
-    return !(ball.extra?.type === 'wide' || ball.extra?.type === 'no-ball');
+    return !(ball.extra?.type === 'wide' || ball.extra?.type === 'no-ball' || ball.extra?.isNoBall);
   });
   const remainingBallSlots = Math.max(0, 6 - legalBallsThisOver.length);
   const thisOverSlots = [
@@ -353,42 +354,7 @@ export function LiveScorer(props: LiveScorerProps) {
     
     // Handle Ball object
     if (typeof ball !== 'string') {
-      // Priority 1: Wickets (highest priority)
-      if (ball.isWicket || ball.dismissal) {
-        return 'bg-red-800 border-red-700'; // Wicket - red
-      }
-      
-      // Priority 2: Byes, Leg-byes, and Wides (ALWAYS yellow, no override)
-      if (ball.extra?.type === 'bye' || ball.extra?.type === 'leg-bye' || ball.extra?.type === 'wide') {
-        return 'bg-yellow-600 border-yellow-500'; // B, LB, or WD - always yellow
-      }
-      
-      // Priority 3: No-balls with special run colors
-      if (ball.extra?.type === 'no-ball') {
-        // Exactly 7 runs on NB - green
-        if (ball.runs.total === 7) {
-          return 'bg-green-800 border-green-700'; // 7NB - green
-        }
-        // Exactly 5 runs on NB - blue
-        if (ball.runs.total === 5) {
-          return 'bg-blue-800 border-blue-700'; // 5NB - blue
-        }
-        // All other runs on NB - amber
-        return 'bg-amber-700 border-amber-600'; // 0-4NB, 6NB, 8+NB - amber
-      }
-      
-      // For regular runs (no extras)
-      if (ball.runs.total > 6) {
-        return 'bg-violet-800 border-violet-700'; // 6+ runs - violet
-      }
-      if (ball.runs.total === 6) {
-        return 'bg-green-800 border-green-700'; // 6 - green
-      }
-      if (ball.runs.total === 4) {
-        return 'bg-blue-800 border-blue-700'; // 4 - blue
-      }
-      
-      return 'bg-gray-700 border-gray-600'; // 0-3 - gray
+      return getDisplayBallColor(ball as any).replace('border ', '');
     }
     
     // Handle string data
@@ -651,35 +617,7 @@ export function LiveScorer(props: LiveScorerProps) {
 
               if (slot.type === 'ball') {
                 const ball = slot.ball;
-                let ballLabel = '';
-                const isWicket = ball.isWicket || ball.dismissal;
-
-                if (ball.extra?.type) {
-                  if (ball.extra.type === 'wide') {
-                    const wideRuns = Math.max(0, (ball.runs.extras || 0) - 1);
-                    ballLabel = wideRuns > 0 ? `${wideRuns}WD` : 'WD';
-                  } else if (ball.extra.type === 'no-ball') {
-                    const nbRuns = Math.max(0, (ball.runs.extras || 0) - 1);
-                    ballLabel = nbRuns > 0 ? `${nbRuns}NB` : 'NB';
-                  } else if (ball.extra.type === 'bye' || ball.extra.type === 'leg-bye') {
-                    const extraTypeMap: Record<string, string> = {
-                      bye: 'B',
-                      'leg-bye': 'LB',
-                    };
-                    const extraLabel = extraTypeMap[ball.extra.type] || '';
-                    ballLabel = `${ball.runs.extras}${extraLabel}`;
-                  }
-
-                  if (isWicket) {
-                    ballLabel += '+W';
-                  }
-                } else if (isWicket) {
-                  ballLabel = ball.runs.batter > 0 ? `${ball.runs.batter}+W` : 'W';
-                } else if (ball.runs.batter === 0 && ball.runs.extras === 0) {
-                  ballLabel = '0';
-                } else {
-                  ballLabel = ball.runs.total.toString();
-                }
+                const ballLabel = formatBallDisplay(ball as any);
 
                 return (
                   <div
