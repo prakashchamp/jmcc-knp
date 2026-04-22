@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 import type { CurrentBatsman, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getBowlerStats } from '@/app/lib/bowling-stats-utils';
+import { getNormalizedBatsmen } from './review-batting-utils';
 
 const getTeamName = (team: 'Us' | 'Them', opponent: string) =>
   team === 'Us' ? 'JMCC' : opponent;
@@ -77,10 +78,11 @@ function formatDismissal(batsman: CurrentBatsman): string {
   return 'Out';
 }
 
-function renderBattingStatsTable(innings: InningsState | null | undefined) {
-  const allBatsmen = innings?.batsmanStats?.length
-    ? [...innings.batsmanStats].sort((a, b) => (a.batsmanOrder || 0) - (b.batsmanOrder || 0))
-    : [];
+function renderBattingStatsTable(
+  innings: InningsState | null | undefined,
+  liveMatch: RootState['scorer']['liveMatch']
+) {
+  const allBatsmen = getNormalizedBatsmen(innings, liveMatch);
 
   if (allBatsmen.length === 0) {
     return <p className="px-3 pb-3 text-xs text-gray-400">No batting stats available yet.</p>;
@@ -89,7 +91,7 @@ function renderBattingStatsTable(innings: InningsState | null | undefined) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
-        <thead className="bg-teal-800 text-white">
+        <thead className="bg-blue-800 text-white">
           <tr>
             <th className="px-2 py-2 text-left font-semibold">Batsman</th>
             <th className="px-2 py-2 text-center font-semibold">R</th>
@@ -133,7 +135,7 @@ function renderBowlingStatsTable(innings: InningsState | null | undefined) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
-        <thead className="bg-teal-800 text-white">
+        <thead className="bg-blue-800 text-white">
           <tr>
             <th className="px-2 py-2 text-left font-semibold">Bowler</th>
             <th className="px-2 py-2 text-center font-semibold">O</th>
@@ -168,10 +170,12 @@ function renderInningsBreakdown({
   innings,
   battingTeamName,
   bowlingTeamName,
+  liveMatch,
 }: {
   innings: InningsState | null | undefined;
   battingTeamName: string;
   bowlingTeamName: string;
+  liveMatch: RootState['scorer']['liveMatch'];
 }) {
   if (!innings) {
     return <div className="text-xs text-gray-400">This innings has not started yet.</div>;
@@ -199,7 +203,7 @@ function renderInningsBreakdown({
             </div>
           </div>
         </div>
-        {renderBattingStatsTable(innings)}
+        {renderBattingStatsTable(innings, liveMatch)}
       </div>
 
       <div className="overflow-hidden rounded-lg border border-gray-600 bg-gray-800/60">
@@ -256,8 +260,8 @@ function CollapsibleSection({
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex w-full items-center justify-between px-3 py-3 text-left"
       >
-        <h3 className="text-sm font-bold text-teal-300">{title}</h3>
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-700 text-white text-[11px]">
+        <h3 className="text-sm font-bold text-blue-300">{title}</h3>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 text-white text-[11px]">
           {isOpen ? '▲' : '▼'}
         </span>
       </button>
@@ -322,6 +326,7 @@ export function MatchDetails() {
           innings: firstInnings,
           battingTeamName: firstBattingTeam,
           bowlingTeamName: firstBowlingTeam,
+          liveMatch,
         })}
       </CollapsibleSection>
 
@@ -330,6 +335,7 @@ export function MatchDetails() {
           innings: secondInnings,
           battingTeamName: secondBattingTeam,
           bowlingTeamName: secondBowlingTeam,
+          liveMatch,
         })}
       </CollapsibleSection>
     </div>

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 import type { CurrentBatsman, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getBattingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
+import { getNormalizedBatsmen } from './review-batting-utils';
 
 /**
  * Batting Scorecard Review Component
@@ -29,6 +30,10 @@ export function BattingScorecard() {
   // Format dismissal mode for display
   const formatDismissal = (batsman: CurrentBatsman): string => {
     if (batsman.status === 'batting') {
+      // If batting but has retired-hurt dismissal, show it
+      if (batsman.dismissal?.mode === 'retired-hurt') {
+        return 'Retired Hurt';
+      }
       return 'not out';
     }
     if (batsman.dismissal?.mode) {
@@ -45,12 +50,7 @@ export function BattingScorecard() {
    * Render batting scorecard table
    */
   const renderBattingTable = (innings: InningsState | null | undefined) => {
-    // Use batsmanStats which tracks all batsmen in order
-    let allBatsmen: CurrentBatsman[] = [];
-    if (innings.batsmanStats && innings.batsmanStats.length > 0) {
-      // Sort by batsmanOrder to ensure correct sequence (1-11)
-      allBatsmen = [...innings.batsmanStats].sort((a, b) => (a.batsmanOrder || 0) - (b.batsmanOrder || 0));
-    }
+    const allBatsmen: CurrentBatsman[] = getNormalizedBatsmen(innings, liveMatch);
 
     // If no batsmen yet, show empty state
     if (allBatsmen.length === 0) {
@@ -65,7 +65,7 @@ export function BattingScorecard() {
       <div>
         <div className="overflow-hidden border border-gray-600 rounded-lg">
           <table className="w-full text-xs">
-            <thead className="bg-teal-800 text-white">
+            <thead className="bg-blue-800 text-white">
               <tr>
                 <th className="px-2 py-2 text-left font-semibold">Batsman</th>
                 <th className="px-2 py-2 text-center font-semibold">R</th>
@@ -80,7 +80,7 @@ export function BattingScorecard() {
               {allBatsmen.map((batsman) => (
                 <tr
                   key={batsman.id}
-                  className={`${batsman.status === 'batting' ? 'bg-teal-900/40 ring-1 ring-inset ring-teal-600' : 'bg-gray-900'}`}
+                  className={`${batsman.status === 'batting' ? 'bg-blue-900/40 ring-1 ring-inset ring-blue-600' : 'bg-gray-900'}`}
                 >
                   <td className="px-2 py-2">
                     <div className="font-semibold text-white text-xs">{batsman.name}</div>

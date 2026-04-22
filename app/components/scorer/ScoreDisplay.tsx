@@ -12,7 +12,7 @@ export function ScoreDisplay() {
 
   if (!liveMatch || !currentInnings) {
     return (
-      <div className="bg-teal-600 text-white p-4 space-y-2">
+      <div className="bg-blue-600 text-white p-4 space-y-2">
         <p className="text-sm">No match in progress</p>
       </div>
     );
@@ -23,7 +23,7 @@ export function ScoreDisplay() {
 
   if (!firstInnings) {
     return (
-      <div className="bg-teal-600 text-white p-4 space-y-2">
+      <div className="bg-blue-600 text-white p-4 space-y-2">
         <p className="text-sm">Innings not initialized</p>
       </div>
     );
@@ -50,7 +50,7 @@ export function ScoreDisplay() {
   const extras = currentInnings.totalRuns - (currentInnings.striker?.runs || 0) - (currentInnings.nonStriker?.runs || 0);
 
   return (
-    <div className="bg-teal-600 text-white p-6 space-y-4">
+    <div className="bg-blue-600 text-white p-6 space-y-4">
       {/* First Inning Score */}
       <div className="flex justify-between items-center text-sm">
         <div className="flex-1">

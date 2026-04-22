@@ -78,6 +78,55 @@ function createEmptyInnings(inningsNumber: 1 | 2, teamPlayers: TeamPlayer[]): In
   };
 }
 
+function getOtherTeam(team: 'Us' | 'Them'): 'Us' | 'Them' {
+  return team === 'Us' ? 'Them' : 'Us';
+}
+
+function getFirstInningsBattingTeam(
+  tossWonBy: 'Us' | 'Them',
+  tossDecision: 'bat' | 'field'
+): 'Us' | 'Them' {
+  if (tossDecision === 'bat') return tossWonBy;
+  return getOtherTeam(tossWonBy);
+}
+
+function getSecondInningsBattingTeam(
+  tossWonBy: 'Us' | 'Them',
+  tossDecision: 'bat' | 'field'
+): 'Us' | 'Them' {
+  return getOtherTeam(getFirstInningsBattingTeam(tossWonBy, tossDecision));
+}
+
+function getMaxLegalBalls(totalOvers: number): number {
+  return Math.max(0, totalOvers * 6);
+}
+
+function isInningsLimitReached(innings: InningsState, totalOvers: number): boolean {
+  return innings.totalWickets >= 10 || innings.totalBalls >= getMaxLegalBalls(totalOvers);
+}
+
+function shouldPromptForReplacement(innings: InningsState): boolean {
+  return innings.totalWickets < 10;
+}
+
+function canRecordScoringEvent(state: ScorerState): boolean {
+  if (!state.liveMatch || !state.currentInnings) return false;
+  if (state.liveMatch.status !== 'in-progress') return false;
+
+  const innings = state.currentInnings;
+  if (isInningsLimitReached(innings, state.liveMatch.totalOvers)) return false;
+
+  if (state.liveMatch.currentInnings === 2) {
+    const firstInningsRuns = state.liveMatch.innings?.[0]?.totalRuns;
+    const target = innings.target ?? (typeof firstInningsRuns === 'number' ? firstInningsRuns + 1 : undefined);
+    if (typeof target === 'number' && innings.totalRuns >= target) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /**
  * Helper: Update the current partnership when a ball is recorded
  * Rules:
@@ -172,16 +221,25 @@ const scorerSlice = createSlice({
      */
     initializeLiveMatch: (state, action: PayloadAction<LiveMatch>) => {
       const match = action.payload;
+      const firstInningsBattingTeam = getFirstInningsBattingTeam(match.tossWonBy, match.tossDecision);
       
       // Create first innings if not provided
       const firstInnings = match.innings && match.innings.length > 0 
-        ? match.innings[0]
+        ? { ...match.innings[0], battingTeam: match.innings[0].battingTeam || firstInningsBattingTeam }
         : createEmptyInnings(1, match.teamPlayers);
+
+      firstInnings.battingTeam = firstInningsBattingTeam;
       
       // Ensure the innings is in the match
       if (!match.innings || match.innings.length === 0) {
         match.innings = [firstInnings];
+      } else {
+        match.innings[0] = firstInnings;
       }
+
+      match.currentInnings = 1;
+      match.status = 'in-progress';
+      match.updatedAt = new Date().toISOString();
       
       state.liveMatch = match;
       state.currentInnings = firstInnings;
@@ -194,7 +252,7 @@ const scorerSlice = createSlice({
      * Create snapshot for undo before recording a ball
      */
     createUndoSnapshot: (state) => {
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const snapshot: InningsSnapshot = {
         inningsState: JSON.parse(JSON.stringify(state.currentInnings)),
@@ -230,7 +288,7 @@ const scorerSlice = createSlice({
      */
     recordBattingBall: (state, action: PayloadAction<{ runs: number }>) => {
       const { runs } = action.payload;
-      if (!state.currentInnings || runs < 0) return;
+      if (!state.currentInnings || runs < 0 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -321,7 +379,7 @@ const scorerSlice = createSlice({
      */
     recordBye: (state, action: PayloadAction<{ runs: number; hasWicket?: boolean }>) => {
       const { runs, hasWicket = false } = action.payload;
-      if (!state.currentInnings || runs < 1) return;
+      if (!state.currentInnings || runs < 1 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -412,7 +470,7 @@ const scorerSlice = createSlice({
      */
     recordLegBye: (state, action: PayloadAction<{ runs: number; hasWicket?: boolean }>) => {
       const { runs, hasWicket = false } = action.payload;
-      if (!state.currentInnings || runs < 1) return;
+      if (!state.currentInnings || runs < 1 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -504,7 +562,7 @@ const scorerSlice = createSlice({
      */
     recordWide: (state, action: PayloadAction<{ runs: number; hasWicket?: boolean }>) => {
       const { runs, hasWicket = false } = action.payload;
-      if (!state.currentInnings || runs < 0) return;
+      if (!state.currentInnings || runs < 0 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -572,7 +630,7 @@ const scorerSlice = createSlice({
      */
     recordNoBall: (state, action: PayloadAction<{ runs: number; hasWicket?: boolean; runType: 'leg-bye' | 'bye' | 'none' }>) => {
       const { runs, hasWicket = false, runType } = action.payload;
-      if (!state.currentInnings || runs < 0) return;
+      if (!state.currentInnings || runs < 0 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -655,7 +713,7 @@ const scorerSlice = createSlice({
      */
     recordPenaltyRuns: (state, action: PayloadAction<{ runs: number }>) => {
       const { runs } = action.payload;
-      if (!state.currentInnings || runs < 1) return;
+      if (!state.currentInnings || runs < 1 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
 
@@ -682,7 +740,7 @@ const scorerSlice = createSlice({
      */
     recordQuickWicket: (state, action: PayloadAction<{ dismissalMode: 'bowled' | 'caught' | 'lbw' | 'hit-wicket' }>) => {
       const { dismissalMode } = action.payload;
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -792,13 +850,16 @@ const scorerSlice = createSlice({
       // Sync batsman stats to batsmanStats array (single source of truth)
       updateBatsmanStats(innings);
 
-      // Auto-open batsman selection dialog for replacement
-      // Use saved strikerId, not current innings.striker.id (which may have rotated)
-      state.dialogState.activeDialog = 'batsmanSelect';
-      state.dialogState.dialogData = {
-        dismissalMode,
-        outBatsmanId: strikerId, // Use original striker ID before any rotation
-      };
+      // Auto-open batsman selection dialog for replacement, unless innings is all-out.
+      if (shouldPromptForReplacement(innings)) {
+        state.dialogState.activeDialog = 'batsmanSelect';
+        state.dialogState.dialogData = {
+          dismissalMode,
+          outBatsmanId: strikerId, // Use original striker ID before any rotation
+        };
+      } else {
+        state.dialogState = { activeDialog: null, dialogData: {} };
+      }
     },
 
     /**
@@ -813,7 +874,7 @@ const scorerSlice = createSlice({
      */
     recordStumpedWide: (state, action: PayloadAction<{ runs: number }>) => {
       const { runs } = action.payload;
-      if (!state.currentInnings || runs < 0) return;
+      if (!state.currentInnings || runs < 0 || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -909,12 +970,16 @@ const scorerSlice = createSlice({
 
       // Wides don't cause strike rotation or count to batter's balls or overs
 
-      // Auto-open batsman selection dialog for replacement
-      state.dialogState.activeDialog = 'batsmanSelect';
-      state.dialogState.dialogData = {
-        dismissalMode: 'stumped',
-        outBatsmanId: strikerIdWide, // Striker is out - needs replacement
-      };
+      // Auto-open batsman selection dialog for replacement, unless innings is all-out.
+      if (shouldPromptForReplacement(innings)) {
+        state.dialogState.activeDialog = 'batsmanSelect';
+        state.dialogState.dialogData = {
+          dismissalMode: 'stumped',
+          outBatsmanId: strikerIdWide, // Striker is out - needs replacement
+        };
+      } else {
+        state.dialogState = { activeDialog: null, dialogData: {} };
+      }
     },
 
     /**
@@ -928,7 +993,7 @@ const scorerSlice = createSlice({
      * - Reset partnership (next batsman will start at 0/0)
      */
     recordStumpedRegular: (state) => {
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -1035,13 +1100,16 @@ const scorerSlice = createSlice({
         }
       }
 
-      // Auto-open batsman selection dialog for replacement
-      // Use saved strikerId, not current innings.striker.id (which may have rotated)
-      state.dialogState.activeDialog = 'batsmanSelect';
-      state.dialogState.dialogData = {
-        dismissalMode: 'stumped',
-        outBatsmanId: strikerId, // Use original striker ID before any rotation
-      };
+      // Auto-open batsman selection dialog for replacement, unless innings is all-out.
+      if (shouldPromptForReplacement(innings)) {
+        state.dialogState.activeDialog = 'batsmanSelect';
+        state.dialogState.dialogData = {
+          dismissalMode: 'stumped',
+          outBatsmanId: strikerId, // Use original striker ID before any rotation
+        };
+      } else {
+        state.dialogState = { activeDialog: null, dialogData: {} };
+      }
     },
 
     /**
@@ -1064,7 +1132,7 @@ const scorerSlice = createSlice({
      */
     recordRunOutBall: (state, action: PayloadAction<{ dismissalMode: 'run-out' | 'handled-ball' | 'obstructing-field'; ballType: 'wide' | 'bye' | 'leg-bye' | 'no-ball' | 'regular'; runs: number; batsmanIdToMarkOut: string }>) => {
       const { dismissalMode, ballType, runs, batsmanIdToMarkOut } = action.payload;
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker || !innings.currentBowler) return;
@@ -1435,12 +1503,16 @@ const scorerSlice = createSlice({
 
       // Partnership resets when new batsman comes in (they will have 0 runs/0 balls)
 
-      // Auto-open batsman selection dialog for replacement
-      state.dialogState.activeDialog = 'batsmanSelect';
-      state.dialogState.dialogData = {
-        dismissalMode,
-        outBatsmanId: batsmanIdToMarkOut, // The selected batsman who was marked out
-      };
+      // Auto-open batsman selection dialog for replacement, unless innings is all-out.
+      if (shouldPromptForReplacement(innings)) {
+        state.dialogState.activeDialog = 'batsmanSelect';
+        state.dialogState.dialogData = {
+          dismissalMode,
+          outBatsmanId: batsmanIdToMarkOut, // The selected batsman who was marked out
+        };
+      } else {
+        state.dialogState = { activeDialog: null, dialogData: {} };
+      }
     },
 
     /**
@@ -1457,7 +1529,7 @@ const scorerSlice = createSlice({
      * - Reset partnership
      */
     recordRetiredOut: (state) => {
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker) return;
@@ -1506,12 +1578,16 @@ const scorerSlice = createSlice({
         }
       }
 
-      // Auto-open batsman selection dialog for replacement
-      state.dialogState.activeDialog = 'batsmanSelect';
-      state.dialogState.dialogData = {
-        dismissalMode: 'retired-out',
-        outBatsmanId: strikerId, // Striker is out - needs replacement
-      };
+      // Auto-open batsman selection dialog for replacement, unless innings is all-out.
+      if (shouldPromptForReplacement(innings)) {
+        state.dialogState.activeDialog = 'batsmanSelect';
+        state.dialogState.dialogData = {
+          dismissalMode: 'retired-out',
+          outBatsmanId: strikerId, // Striker is out - needs replacement
+        };
+      } else {
+        state.dialogState = { activeDialog: null, dialogData: {} };
+      }
     },
 
     /**
@@ -1524,7 +1600,7 @@ const scorerSlice = createSlice({
      * This is technically not a wicket, just a batsman substitution
      */
     recordRetiredHurt: (state) => {
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
       if (!innings.striker) return;
@@ -1560,7 +1636,7 @@ const scorerSlice = createSlice({
      */
     recordWicket: (state, action: PayloadAction<{ dismissalMode: DismissalMode; batsmanId: string }>) => {
       const { dismissalMode, batsmanId } = action.payload;
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !canRecordScoringEvent(state)) return;
 
       const innings = state.currentInnings;
 
@@ -1625,6 +1701,83 @@ const scorerSlice = createSlice({
 
       const innings = state.currentInnings;
 
+      // Check if newBatsman is already in batsmanStats (e.g., was retired hurt and returning)
+      const existingBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === newBatsman.id);
+      const isRetiredHurtReturning = existingBatsmanIndex >= 0 && 
+        innings.batsmanStats[existingBatsmanIndex].dismissal?.mode === 'retired-hurt';
+
+      let newBatsmanObj: CurrentBatsman;
+
+      if (isRetiredHurtReturning) {
+        // Restore retired hurt batsman - clear dismissal, keep their stats
+        const existingBatsman = innings.batsmanStats[existingBatsmanIndex];
+        newBatsmanObj = {
+          ...existingBatsman,
+          role: isStriker ? 'striker' : 'non-striker',
+          status: 'batting',
+          dismissal: undefined, // Clear retired hurt status
+        };
+        // Update in place
+        innings.batsmanStats[existingBatsmanIndex] = newBatsmanObj;
+      } else {
+        // New batsman - calculate batsman order
+        const maxOrder = Math.max(...innings.batsmanStats.map(b => b.batsmanOrder || 0), 0);
+        const nextBatsmanOrder = Math.min(maxOrder + 1, 11);
+
+        newBatsmanObj = {
+          id: newBatsman.id,
+          name: newBatsman.name,
+          jerseyNumber: newBatsman.jerseyNumber,
+          role: isStriker ? 'striker' : 'non-striker',
+          runs: 0,
+          balls: 0,
+          fours: 0,
+          sixes: 0,
+          zeros: 0,
+          status: 'batting',
+          strikeRate: 0,
+          batsmanOrder: nextBatsmanOrder,
+        };
+
+        // Update the out batsman's status in batsmanStats
+        const outBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === outBatsmanId);
+        if (outBatsmanIndex >= 0) {
+          innings.batsmanStats[outBatsmanIndex].status = 'out';
+        }
+
+        // Add new batsman to batsmanStats
+        innings.batsmanStats.push(newBatsmanObj);
+      }
+
+      if (isStriker) {
+        innings.striker = newBatsmanObj;
+      } else {
+        innings.nonStriker = newBatsmanObj;
+      }
+    },
+
+    /**
+     * Replace striker for retired hurt (special case - NOT a wicket)
+     * Marks the retired hurt batsman with dismissal mode but NOT as "out"
+     * Allows them to bat again later if needed
+     */
+    replaceStrikerForRetiredHurt: (state, action: PayloadAction<{ retiredHurtBatsmanId: string; newBatsman: TeamPlayer }>) => {
+      const { retiredHurtBatsmanId, newBatsman } = action.payload;
+      if (!state.currentInnings) return;
+
+      const innings = state.currentInnings;
+
+      // Mark retired hurt batsman with dismissal status but NOT "out"
+      const retiredIndex = innings.batsmanStats.findIndex(b => b.id === retiredHurtBatsmanId);
+      if (retiredIndex >= 0) {
+        innings.batsmanStats[retiredIndex].dismissal = {
+          mode: 'retired-hurt',
+          description: 'retired hurt',
+        };
+        // Keep status as 'batting' - NOT marked as 'out'
+        // This allows them to bat again later if another wicket occurs
+      }
+
       // Calculate next batsman order (find max order + 1, cap at 11)
       const maxOrder = Math.max(...innings.batsmanStats.map(b => b.batsmanOrder || 0), 0);
       const nextBatsmanOrder = Math.min(maxOrder + 1, 11);
@@ -1633,7 +1786,7 @@ const scorerSlice = createSlice({
         id: newBatsman.id,
         name: newBatsman.name,
         jerseyNumber: newBatsman.jerseyNumber,
-        role: isStriker ? 'striker' : 'non-striker',
+        role: 'striker',
         runs: 0,
         balls: 0,
         fours: 0,
@@ -1644,20 +1797,11 @@ const scorerSlice = createSlice({
         batsmanOrder: nextBatsmanOrder,
       };
 
-      // Update the out batsman's status in batsmanStats
-      const outBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === outBatsmanId);
-      if (outBatsmanIndex >= 0) {
-        innings.batsmanStats[outBatsmanIndex].status = 'out';
-      }
-
       // Add new batsman to batsmanStats
       innings.batsmanStats.push(newBatsmanObj);
 
-      if (isStriker) {
-        innings.striker = newBatsmanObj;
-      } else {
-        innings.nonStriker = newBatsmanObj;
-      }
+      // Replace striker
+      innings.striker = newBatsmanObj;
     },
 
     /**
@@ -1803,7 +1947,7 @@ const scorerSlice = createSlice({
      * Complete an over: swap batsmen and prepare for next over
      */
     completeOver: (state, action: PayloadAction<{ bowlerId: string; bowlerName: string; isBatsmanSwapped: boolean }>) => {
-      if (!state.currentInnings) return;
+      if (!state.currentInnings || !state.liveMatch || state.liveMatch.status !== 'in-progress') return;
       
       const { bowlerId, bowlerName } = action.payload;
       
@@ -1831,6 +1975,125 @@ const scorerSlice = createSlice({
 
       // Reset undo stack at the end of over - UNDO only works within an over
       state.undoStack = [];
+
+      state.liveMatch.updatedAt = new Date().toISOString();
+    },
+
+    /**
+     * Start second innings from saved first-innings state.
+     */
+    startSecondInnings: (state) => {
+      if (!state.liveMatch || !state.currentInnings || state.liveMatch.status !== 'in-progress') return;
+
+      const match = state.liveMatch;
+      const firstInnings = state.currentInnings;
+      if (match.currentInnings !== 1) return;
+      if (!isInningsLimitReached(firstInnings, match.totalOvers)) return;
+
+      // Keep liveMatch innings array synchronized with currentInnings before switching.
+      match.innings[0] = firstInnings;
+
+      const secondInningsBattingTeam = getSecondInningsBattingTeam(match.tossWonBy, match.tossDecision);
+      const secondInnings = createEmptyInnings(2, match.teamPlayers);
+      secondInnings.battingTeam = secondInningsBattingTeam;
+      secondInnings.target = firstInnings.totalRuns + 1;
+
+      if (match.innings.length > 1) {
+        match.innings[1] = secondInnings;
+      } else {
+        match.innings.push(secondInnings);
+      }
+
+      match.currentInnings = 2;
+      match.updatedAt = new Date().toISOString();
+      state.currentInnings = secondInnings;
+      state.undoStack = [];
+      state.dialogState = { activeDialog: 'initialBatters', dialogData: {} };
+    },
+
+    /**
+     * Mark match as complete after first innings (manual completion).
+     */
+    completeMatchAfterFirstInnings: (state) => {
+      if (!state.liveMatch || !state.currentInnings || state.liveMatch.status !== 'in-progress') return;
+
+      const match = state.liveMatch;
+      const firstInnings = state.currentInnings;
+      if (match.currentInnings !== 1) return;
+      if (!isInningsLimitReached(firstInnings, match.totalOvers)) return;
+
+      match.innings[0] = firstInnings;
+      match.result = 'no_result';
+      match.winMargin = 'Match completed after 1st innings';
+      match.status = 'complete';
+      match.updatedAt = new Date().toISOString();
+
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
+    },
+
+    /**
+     * End second innings and mark the result when innings limit is reached.
+     */
+    finishCurrentInnings: (state) => {
+      if (!state.liveMatch || !state.currentInnings || state.liveMatch.status !== 'in-progress') return;
+
+      const match = state.liveMatch;
+      const innings = state.currentInnings;
+      if (match.currentInnings !== 2) return;
+      if (!isInningsLimitReached(innings, match.totalOvers)) return;
+
+      const firstInnings = match.innings[0];
+      if (!firstInnings) return;
+
+      const chaseTarget = firstInnings.totalRuns + 1;
+      const secondInningsRuns = innings.totalRuns;
+
+      if (secondInningsRuns >= chaseTarget) {
+        const winner = innings.battingTeam;
+        const wicketsRemaining = Math.max(0, 10 - innings.totalWickets);
+        match.result = winner === 'Us' ? 'won' : 'lost';
+        match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
+      } else if (secondInningsRuns === firstInnings.totalRuns) {
+        match.result = 'tie';
+        match.winMargin = 'Match tied';
+      } else {
+        const winner = firstInnings.battingTeam;
+        const runMargin = firstInnings.totalRuns - secondInningsRuns;
+        match.result = winner === 'Us' ? 'won' : 'lost';
+        match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${runMargin} run${runMargin === 1 ? '' : 's'}`;
+      }
+
+      match.status = 'complete';
+      match.updatedAt = new Date().toISOString();
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
+    },
+
+    /**
+     * Complete match immediately when chase target is reached.
+     */
+    completeMatchOnTargetReached: (state) => {
+      if (!state.liveMatch || !state.currentInnings || state.liveMatch.status !== 'in-progress') return;
+      if (state.liveMatch.currentInnings !== 2) return;
+
+      const match = state.liveMatch;
+      const secondInnings = state.currentInnings;
+      const firstInnings = match.innings[0];
+      if (!firstInnings) return;
+
+      const chaseTarget = firstInnings.totalRuns + 1;
+      if (secondInnings.totalRuns < chaseTarget) return;
+
+      const wicketsRemaining = Math.max(0, 10 - secondInnings.totalWickets);
+      const winner = secondInnings.battingTeam;
+
+      match.result = winner === 'Us' ? 'won' : 'lost';
+      match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
+      match.status = 'complete';
+      match.updatedAt = new Date().toISOString();
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
     },
 
     /**
@@ -1924,6 +2187,7 @@ export const {
   recordRetiredHurt,
   recordWicket,
   replaceBatsman,
+  replaceStrikerForRetiredHurt,
   swapBatsmen,
   setInitialBattersAndBowler,
   openDialog,
@@ -1933,6 +2197,10 @@ export const {
   setLoading,
   clearMatch,
   completeOver,
+  startSecondInnings,
+  completeMatchAfterFirstInnings,
+  finishCurrentInnings,
+  completeMatchOnTargetReached,
   changeBowler,
   updateMatchDetails,
   addNewTeamPlayer,

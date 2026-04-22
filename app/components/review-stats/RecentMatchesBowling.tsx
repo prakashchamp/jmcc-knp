@@ -204,9 +204,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
             {sortedStats.map((stats, idx) => (
               <tr
                 key={stats.playerName}
-                className={
-                  idx % 2 === 0 ? 'bg-gray-800 text-gray-100' : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                }
+                className='bg-gray-800 text-gray-100'
               >
                 <td 
                   className="px-4 py-3 font-semibold text-yellow-400 cursor-pointer hover:text-yellow-300 transition-colors"

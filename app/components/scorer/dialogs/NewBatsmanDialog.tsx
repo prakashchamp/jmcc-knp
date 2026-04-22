@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, replaceBatsman, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { useState } from 'react';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
 import {
@@ -32,7 +33,8 @@ export function NewBatsmanDialog() {
 
   // Get available players (not current batsmen and not dismissed)
   // Show all players regardless of role
-  const availableBatsmen = liveMatch.teamPlayers.filter(
+  const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
+  const availableBatsmen = battingTeamPlayers.filter(
     (player) => !excludeIds.includes(player.id)
   );
 
@@ -59,16 +61,18 @@ export function NewBatsmanDialog() {
   };
 
   const handleCreateNewBatsman = (name: string) => {
-    // Add the new player to the team
+    if (currentInnings.battingTeam !== 'Us') {
+      return;
+    }
+
     dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
-    
-    // Create the new player object (with generated ID similar to what the reducer creates)
+
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       role: 'batsman',
     };
-    
+
     setSelectedBatter(newPlayer);
     setNewPlayerName('');
   };
@@ -89,7 +93,7 @@ export function NewBatsmanDialog() {
             }}
             className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
               dismissedBatsmanRole === 'striker'
-                ? 'border-teal-500 bg-teal-900/40 text-white'
+                ? 'border-blue-500 bg-blue-900/40 text-white'
                 : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
             }`}
           >
@@ -103,7 +107,7 @@ export function NewBatsmanDialog() {
             }}
             className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
               dismissedBatsmanRole === 'non-striker'
-                ? 'border-teal-500 bg-teal-900/40 text-white'
+                ? 'border-blue-500 bg-blue-900/40 text-white'
                 : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
             }`}
           >
@@ -123,7 +127,7 @@ export function NewBatsmanDialog() {
               batters={availableBatsmen}
               excludeIds={excludeIds}
               onSelect={handleSelectBatsman}
-              allowNew={true}
+              allowNew={currentInnings.battingTeam === 'Us'}
               newPlayerName={newPlayerName}
               onNewPlayerNameChange={setNewPlayerName}
               onCreateNew={handleCreateNewBatsman}

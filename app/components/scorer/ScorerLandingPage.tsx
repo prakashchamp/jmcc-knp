@@ -155,7 +155,7 @@ function DropdownInputField({
                     }}
                     className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isSelected
-                        ? 'border-teal-500 bg-teal-900/50 text-white shadow-sm'
+                        ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
                         : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                     }`}
                   >
@@ -370,7 +370,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
             {/* Start New Match Button */}
             <button
               onClick={handleStartNewMatch}
-              className="w-full px-6 py-4 bg-teal-700 hover:bg-teal-600 text-white text-lg font-bold rounded-lg transition-colors"
+              className="w-full px-6 py-4 bg-blue-700 hover:bg-blue-600 text-white text-lg font-bold rounded-lg transition-colors"
             >
               Start New Match
             </button>
@@ -405,7 +405,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-xl my-8 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60 backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-300/80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">Live Scorer</p>
             <div className="mt-2">
               <h1 className="text-2xl font-bold text-white">Match Details</h1>
             </div>
@@ -506,15 +506,15 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-xl my-8 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60 backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-300/80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">Live Scorer</p>
             <div className="mt-2">
               <h1 className="text-2xl font-bold text-white">Player Selection</h1>
             </div>
           </div>
 
           <form onSubmit={handlePlayerSelection} className="space-y-5">
-            <div className="rounded-xl border border-teal-500/30 bg-teal-500/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-teal-100/80">Batting Team</p>
+            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">Batting Team</p>
               <p className="mt-1 text-lg font-semibold text-white">🏏 JMCC</p>
             </div>
 
@@ -541,7 +541,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           striker?.id === player.id
-                            ? 'border-teal-500 bg-teal-900/50 text-white shadow-sm'
+                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
                             : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                         }`}
                       >
@@ -595,7 +595,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           nonStriker?.id === player.id
-                            ? 'border-teal-500 bg-teal-900/50 text-white shadow-sm'
+                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
                             : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                         }`}
                       >
@@ -654,7 +654,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           bowler?.id === player.id
-                            ? 'border-teal-500 bg-teal-900/50 text-white shadow-sm'
+                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
                             : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                         }`}
                       >

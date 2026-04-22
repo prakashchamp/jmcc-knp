@@ -46,7 +46,7 @@ export function BowlingScorecard() {
       <div>
         <div className="overflow-hidden border border-gray-600 rounded-lg">
           <table className="w-full text-xs">
-            <thead className="bg-teal-800 text-white">
+            <thead className="bg-blue-800 text-white">
               <tr>
                 <th className="px-2 py-2 text-left font-semibold">Bowler</th>
                 <th className="px-2 py-2 text-center font-semibold">O</th>
@@ -67,7 +67,7 @@ export function BowlingScorecard() {
                 return (
                   <tr
                     key={bowler.id}
-                    className={isCurrentBowler ? 'bg-teal-900/40 ring-1 ring-inset ring-teal-600' : idx % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700'}
+                    className='bg-gray-800'
                   >
                     <td className="px-2 py-2 font-semibold text-white text-xs">{bowler.name}</td>
                     <td className="px-2 py-2 text-center text-white text-xs">

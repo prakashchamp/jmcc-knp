@@ -115,7 +115,7 @@ export function ExtraDialog() {
                 key={type}
                 className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
                   selectedRunType === type
-                    ? 'border-teal-500 bg-teal-900/40 text-white'
+                    ? 'border-blue-500 bg-blue-900/40 text-white'
                     : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                 }`}
                 onClick={() => setSelectedRunType(type as 'leg-bye' | 'bye' | 'none')}
@@ -126,7 +126,7 @@ export function ExtraDialog() {
                   value={type}
                   checked={selectedRunType === type}
                   onChange={() => setSelectedRunType(type as 'leg-bye' | 'bye' | 'none')}
-                  className="mr-3 h-4 w-4 accent-teal-500"
+                  className="mr-3 h-4 w-4 accent-blue-500"
                 />
                 <span className="font-medium">
                   {type === 'leg-bye' ? 'Leg Bye' : type === 'bye' ? 'Bye' : 'None'}

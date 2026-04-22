@@ -38,41 +38,36 @@ export function Partnerships() {
   /**
    * Calculate partnership by wicket number
    * Each partnership is broken down when a wicket falls
+   * Supports multiple batsmen per partnership (e.g., when batsman is retired hurt, they remain in partnership)
    */
+  interface Batsman {
+    name: string;
+    id: string;
+    runs: number;
+    balls: number;
+  }
+
   interface Partnership {
     wicketNumber: number;
-    batsman1: { name: string; id: string; runs: number; balls: number };
-    batsman2: { name: string; id: string; runs: number; balls: number };
+    batsmen: Batsman[];
     partnershipRuns: number;
     partnershipBalls: number;
   }
 
   const partnerships: Partnership[] = [];
 
-  // Build wicket timeline
-  const wicketBallIndices: { [wicketNum: number]: number } = {};
-  selectedInnings.ballHistory.forEach((ball, idx) => {
-    if (ball.isWicket && ball.dismissal?.playerOut) {
-      // Find which wicket number this is
-      const batsmanOutIndex = selectedInnings.dismissedBatsmen.findIndex(
-        (b) => b.id === ball.dismissal?.playerOut.id
-      );
-      if (batsmanOutIndex !== -1) {
-        wicketBallIndices[batsmanOutIndex + 1] = idx;
-      }
-    }
-  });
+  // Build wicket timeline directly from ball sequence (ignore retired-hurt, only count actual wickets)
+  const wicketBallIndices = selectedInnings.ballHistory
+    .map((ball, idx) => (ball.isWicket ? idx : -1))
+    .filter((idx) => idx >= 0);
 
   // Calculate partnerships
   let prevWicketIndex = -1;
 
-  for (let wicketNum = 1; wicketNum <= selectedInnings.totalWickets; wicketNum++) {
-    const nextWicketIndex =
-      wicketBallIndices[wicketNum] !== undefined
-        ? wicketBallIndices[wicketNum]
-        : selectedInnings.ballHistory.length - 1;
+  for (let wicketNum = 1; wicketNum <= wicketBallIndices.length; wicketNum++) {
+    const nextWicketIndex = wicketBallIndices[wicketNum - 1];
 
-    // Get balls for this partnership
+    // Get balls for this partnership (from after previous wicket to next wicket)
     const partnershipBalls = selectedInnings.ballHistory.slice(
       prevWicketIndex + 1,
       nextWicketIndex + 1
@@ -80,40 +75,35 @@ export function Partnerships() {
 
     if (partnershipBalls.length === 0) continue;
 
-    // Identify the two batsmen in this partnership
-    const firstBall = partnershipBalls[0];
-    const batsman1Id = firstBall.batter.id;
-    const batsman1Name = firstBall.batter.name;
-    const batsman2Id = firstBall.nonStriker.id;
-    const batsman2Name = firstBall.nonStriker.name;
-
-    // Calculate individual contributions
-    // Ball counting rules: Wides don't count as balls (but their runs do count)
-    // Individual batter runs: Only count runs that go to the batter (ball.runs.batter), not extras
-    let batsman1Runs = 0;
-    let batsman1Balls = 0;
-    let batsman2Runs = 0;
-    let batsman2Balls = 0;
+    // Track all batsmen in this partnership (handles retired hurt - same partnership continues)
+    // Map of batsman ID to their stats
+    const batsmenMap: Map<string, Batsman> = new Map();
+    const batsmenOrder: string[] = []; // Track order of entry
 
     for (const ball of partnershipBalls) {
       const isWide = ball.extra?.type === 'wide';
-      
-      if (ball.batter.id === batsman1Id) {
-        // Only add runs that count for the batter (not extras like wides, byes, leg-byes)
-        batsman1Runs += ball.runs.batter;
-        // Only count as ball if NOT a wide
-        if (!isWide) {
-          batsman1Balls++;
-        }
-      } else if (ball.batter.id === batsman2Id) {
-        // Only add runs that count for the batter (not extras like wides, byes, leg-byes)
-        batsman2Runs += ball.runs.batter;
-        // Only count as ball if NOT a wide
-        if (!isWide) {
-          batsman2Balls++;
-        }
+      const batterId = ball.batter.id;
+      const batterName = ball.batter.name;
+
+      if (!batsmenMap.has(batterId)) {
+        batsmenMap.set(batterId, {
+          name: batterName,
+          id: batterId,
+          runs: 0,
+          balls: 0,
+        });
+        batsmenOrder.push(batterId);
+      }
+
+      const batsman = batsmenMap.get(batterId)!;
+      batsman.runs += ball.runs.batter;
+      if (!isWide) {
+        batsman.balls++;
       }
     }
+
+    // Convert map to ordered array
+    const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
 
     // Calculate total partnership runs (include all) and balls (exclude wides)
     const totalRuns = partnershipBalls.reduce((sum, ball) => sum + ball.runs.total, 0);
@@ -123,18 +113,7 @@ export function Partnerships() {
 
     partnerships.push({
       wicketNumber: wicketNum,
-      batsman1: {
-        name: batsman1Name,
-        id: batsman1Id,
-        runs: batsman1Runs,
-        balls: batsman1Balls,
-      },
-      batsman2: {
-        name: batsman2Name,
-        id: batsman2Id,
-        runs: batsman2Runs,
-        balls: batsman2Balls,
-      },
+      batsmen,
       partnershipRuns: totalRuns,
       partnershipBalls: totalBalls,
     });
@@ -143,14 +122,51 @@ export function Partnerships() {
   }
 
   // Add current partnership from Redux state (tracked incrementally as balls are recorded)
-  if (selectedInnings.currentPartnership) {
-    partnerships.push({
-      wicketNumber: 0,
-      batsman1: selectedInnings.currentPartnership.batsman1,
-      batsman2: selectedInnings.currentPartnership.batsman2,
-      partnershipRuns: selectedInnings.currentPartnership.partnershipRuns,
-      partnershipBalls: selectedInnings.currentPartnership.partnershipBalls,
-    });
+  // Accumulate all batsmen from balls after last wicket (handles retired hurt case)
+  if (selectedInnings.ballHistory.length > 0) {
+    const ballsAfterLastWicket = selectedInnings.ballHistory.slice(
+      prevWicketIndex + 1
+    );
+
+    if (ballsAfterLastWicket.length > 0) {
+      const batsmenMap: Map<string, Batsman> = new Map();
+      const batsmenOrder: string[] = [];
+
+      for (const ball of ballsAfterLastWicket) {
+        const isWide = ball.extra?.type === 'wide';
+        const batterId = ball.batter.id;
+        const batterName = ball.batter.name;
+
+        if (!batsmenMap.has(batterId)) {
+          batsmenMap.set(batterId, {
+            name: batterName,
+            id: batterId,
+            runs: 0,
+            balls: 0,
+          });
+          batsmenOrder.push(batterId);
+        }
+
+        const batsman = batsmenMap.get(batterId)!;
+        batsman.runs += ball.runs.batter;
+        if (!isWide) {
+          batsman.balls++;
+        }
+      }
+
+      const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+      const totalRuns = ballsAfterLastWicket.reduce((sum, ball) => sum + ball.runs.total, 0);
+      const totalBalls = ballsAfterLastWicket.filter(
+        (ball) => ball.extra?.type !== 'wide'
+      ).length;
+
+      partnerships.push({
+        wicketNumber: 0,
+        batsmen,
+        partnershipRuns: totalRuns,
+        partnershipBalls: totalBalls,
+      });
+    }
   }
 
   /**
@@ -181,42 +197,39 @@ export function Partnerships() {
               ? `${partnership.wicketNumber}${getOrdinal(partnership.wicketNumber)} WKT`
               : 'Current';
 
+          // Determine grid columns based on number of batsmen
+          const numBatsmen = partnership.batsmen.length;
+          const gridColsClass =
+            numBatsmen === 2 ? 'grid-cols-2' :
+            numBatsmen === 3 ? 'grid-cols-3' :
+            'grid-cols-2'; // fallback
+
           return (
             <div
               key={idx}
-              className={`${partnership.wicketNumber === 0 ? 'bg-teal-900/40 border-teal-600 ring-1 ring-inset ring-teal-600' : 'bg-gray-800 border-gray-600'} border rounded-lg p-2 space-y-2`}
+              className={`${partnership.wicketNumber === 0 ? 'bg-blue-900/40 border-blue-600 ring-1 ring-inset ring-blue-600' : 'bg-gray-800 border-gray-600'} border rounded-lg p-2 space-y-2`}
             >
               <div className="flex justify-between items-center">
-                <h4 className="font-bold text-teal-300 text-xs">{partnershipLabel}</h4>
+                <h4 className="font-bold text-blue-300 text-xs">{partnershipLabel}</h4>
                 <span className="text-xs font-bold text-white">
                   {partnership.partnershipRuns}({partnership.partnershipBalls})
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-700 border border-gray-600 p-2 rounded">
-                  <p className="font-semibold text-white text-xs">
-                    {partnership.batsman1.name}
-                  </p>
-                  <p className="text-xs text-white mt-0.5">
-                    <span className="font-bold text-white">
-                      {partnership.batsman1.runs}
-                    </span>
-                    <span className="text-gray-300">({partnership.batsman1.balls})</span>
-                  </p>
-                </div>
-
-                <div className="bg-gray-700 border border-gray-600 p-2 rounded">
-                  <p className="font-semibold text-white text-xs">
-                    {partnership.batsman2.name}
-                  </p>
-                  <p className="text-xs text-white mt-0.5">
-                    <span className="font-bold text-white">
-                      {partnership.batsman2.runs}
-                    </span>
-                    <span className="text-gray-300">({partnership.batsman2.balls})</span>
-                  </p>
-                </div>
+              <div className={`grid ${gridColsClass} gap-2`}>
+                {partnership.batsmen.map((batsman) => (
+                  <div key={batsman.id} className="bg-gray-700 border border-gray-600 p-2 rounded">
+                    <p className="font-semibold text-white text-xs">
+                      {batsman.name}
+                    </p>
+                    <p className="text-xs text-white mt-0.5">
+                      <span className="font-bold text-white">
+                        {batsman.runs}
+                      </span>
+                      <span className="text-gray-300">({batsman.balls})</span>
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           );

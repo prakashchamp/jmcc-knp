@@ -6,7 +6,6 @@ import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import {
   initializeLiveMatch,
   openDialog,
-  closeDialog,
   recordBattingBall,
   createUndoSnapshot,
   undoLastDelivery,
@@ -15,6 +14,8 @@ import {
   clearMatch,
   recordPenaltyRuns,
   recordQuickWicket,
+  finishCurrentInnings,
+  completeMatchOnTargetReached,
 } from '@/app/lib/redux/slices/scorerSlice';
 import type { Ball, LiveMatch, TeamPlayer, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getCurrentBowlerStats } from '@/app/lib/bowling-stats-utils';
@@ -39,6 +40,7 @@ import { InitialBattersDialog } from './dialogs/InitialBattersDialog';
 import { StartNewMatchConfirmDialog } from './dialogs/StartNewMatchConfirmDialog';
 import { OverEndPopup } from './dialogs/OverEndPopup';
 import { SixPlusDialog } from './dialogs/SixPlusDialog';
+import { FinishInningsDialog } from './dialogs/FinishInningsDialog';
 import { ScorerMenu } from './ScorerMenu';
 import { BattingScorecard } from './review-screens/BattingScorecard';
 import { BowlingScorecard } from './review-screens/BowlingScorecard';
@@ -46,6 +48,7 @@ import { OversHistory } from './review-screens/OversHistory';
 import { FallOfWickets } from './review-screens/FallOfWickets';
 import { Partnerships } from './review-screens/Partnerships';
 import { MatchDetails } from './review-screens/MatchDetails';
+import { MatchResultPanel } from './review-screens/MatchResultPanel';
 
 interface LiveScorerProps {
   teamPlayers: TeamPlayer[];
@@ -78,9 +81,11 @@ export function LiveScorer(props: LiveScorerProps) {
   const handleViewChange = onViewChange || setInternalView;
 
   const dispatch = useDispatch<AppDispatch>();
-  const { liveMatch, currentInnings, dialogState, loading, error } = useSelector(
-    (state: RootState) => state.scorer
-  );
+  const liveMatch = useSelector((state: RootState) => state.scorer.liveMatch);
+  const currentInnings = useSelector((state: RootState) => state.scorer.currentInnings);
+  const dialogState = useSelector((state: RootState) => state.scorer.dialogState);
+  const loading = useSelector((state: RootState) => state.scorer.loading);
+  const error = useSelector((state: RootState) => state.scorer.error);
   const [positionedBatsman1Id, setPositionedBatsman1Id] = useState<string | null>(null);
   const [positionedBatsman2Id, setPositionedBatsman2Id] = useState<string | null>(null);
   const [previousOverNumber, setPreviousOverNumber] = useState(0);
@@ -94,6 +99,8 @@ export function LiveScorer(props: LiveScorerProps) {
     partnerships: 'Partnerships',
     details: 'Match Info',
   };
+  const showResultScreen = Boolean(liveMatch?.status === 'complete' && view === 'scorer');
+  const headerTitle = showResultScreen ? 'Match Result' : viewTitles[view];
 
   // Keep batter rows stable across strike rotation.
   // Row 1 starts with the first-ball striker, and after a wicket the surviving batter stays/moves to row 1.
@@ -154,18 +161,66 @@ export function LiveScorer(props: LiveScorerProps) {
 
   // Show initial batters selection dialog when match starts
   useEffect(() => {
-    if (currentInnings && currentInnings.totalBalls === 0 && !currentInnings.striker && !currentInnings.nonStriker && !currentInnings.currentBowler) {
+    if (
+      liveMatch?.status === 'in-progress' &&
+      currentInnings &&
+      currentInnings.totalBalls === 0 &&
+      !currentInnings.striker &&
+      !currentInnings.nonStriker &&
+      !currentInnings.currentBowler
+    ) {
       if (dialogState.activeDialog !== 'initialBatters') {
         dispatch(openDialog({ dialog: 'initialBatters' }));
       }
     }
-  }, [currentInnings, dialogState.activeDialog, dispatch]);
+  }, [currentInnings, dialogState.activeDialog, dispatch, liveMatch?.status]);
+
+  // Match lifecycle: innings transition and result completion
+  useEffect(() => {
+    if (!liveMatch || !currentInnings || liveMatch.status !== 'in-progress') return;
+
+    const maxBalls = liveMatch.totalOvers * 6;
+    const inningsLimitReached = currentInnings.totalWickets >= 10 || currentInnings.totalBalls >= maxBalls;
+    const firstInnings = liveMatch.innings[0];
+    const secondInningsTarget = currentInnings.target ?? (firstInnings ? firstInnings.totalRuns + 1 : undefined);
+
+    if (
+      liveMatch.currentInnings === 2 &&
+      typeof secondInningsTarget === 'number' &&
+      currentInnings.totalRuns >= secondInningsTarget
+    ) {
+      dispatch(completeMatchOnTargetReached());
+      return;
+    }
+
+    if (!inningsLimitReached) return;
+
+    if (liveMatch.currentInnings === 1) {
+      if (dialogState.activeDialog !== 'finishInnings') {
+        dispatch(openDialog({ dialog: 'finishInnings' }));
+      }
+      return;
+    }
+
+    dispatch(finishCurrentInnings());
+  }, [
+    liveMatch,
+    currentInnings?.totalBalls,
+    currentInnings?.totalRuns,
+    currentInnings?.totalWickets,
+    currentInnings?.target,
+    dialogState.activeDialog,
+    dispatch,
+  ]);
 
   // Detect when an over ends (6 legal deliveries)
   useEffect(() => {
-    if (!currentInnings || !liveMatch) return;
+    if (!currentInnings || !liveMatch || liveMatch.status !== 'in-progress') return;
     
     const currentOverNumber = Math.floor(currentInnings.totalBalls / 6);
+    const inningsLimitReached =
+      currentInnings.totalWickets >= 10 ||
+      currentInnings.totalBalls >= liveMatch.totalOvers * 6;
 
     // If the last ball was undone, allow the over-end popup to trigger again.
     if (currentOverNumber < previousOverNumber) {
@@ -174,7 +229,12 @@ export function LiveScorer(props: LiveScorerProps) {
     }
     
     // Check if we've completed a new over (totalBalls is a multiple of 6 and greater than before)
-    if (currentInnings.totalBalls > 0 && currentInnings.totalBalls % 6 === 0 && currentOverNumber > previousOverNumber) {
+    if (
+      !inningsLimitReached &&
+      currentInnings.totalBalls > 0 &&
+      currentInnings.totalBalls % 6 === 0 &&
+      currentOverNumber > previousOverNumber
+    ) {
       setPreviousOverNumber(currentOverNumber);
       
       // Show over end popup - only if not already showing
@@ -309,12 +369,23 @@ export function LiveScorer(props: LiveScorerProps) {
   const crr = totalOversPlayed > 0 ? (innings.totalRuns / totalOversPlayed).toFixed(2) : '0.00';
 
   // Calculate RRR and runs required (treat as second innings for now)
-  const dummyTarget = 150; // TODO: Remove once first innings target is set
-  const target = innings.target || dummyTarget;
-  const runsRequired = Math.max(0, target - innings.totalRuns);
+  const firstInnings = liveMatch.innings?.[0];
+  const target = innings.inningsNumber === 2
+    ? innings.target ?? (firstInnings ? firstInnings.totalRuns + 1 : undefined)
+    : undefined;
+  const runsRequired = innings.inningsNumber === 2 && typeof target === 'number'
+    ? Math.max(0, target - innings.totalRuns)
+    : 0;
   const ballsRemaining = Math.max(0, (liveMatch.totalOvers * 6) - innings.totalBalls);
   const oversRemaining = ballsRemaining / 6;
-  const rrr = oversRemaining > 0 ? (runsRequired / oversRemaining).toFixed(2) : '0.00';
+  const rrr = innings.inningsNumber === 2 && oversRemaining > 0 ? (runsRequired / oversRemaining).toFixed(2) : '0.00';
+  const scoringLocked = liveMatch.status !== 'in-progress';
+  const usInnings = innings.battingTeam === 'Us'
+    ? innings
+    : liveMatch.innings.find((entry) => entry.battingTeam === 'Us');
+  const themInnings = innings.battingTeam === 'Them'
+    ? innings
+    : liveMatch.innings.find((entry) => entry.battingTeam === 'Them');
 
   // Calculate total extras (from balls + penalty runs)
   const ballExtras = innings.ballHistory ? innings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0) : 0;
@@ -412,7 +483,7 @@ export function LiveScorer(props: LiveScorerProps) {
           </div>
 
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <h1 className="text-base font-bold text-white">{viewTitles[view]}</h1>
+            <h1 className="text-base font-bold text-white">{headerTitle}</h1>
           </div>
 
           <div className="w-20 flex justify-end">
@@ -437,32 +508,45 @@ export function LiveScorer(props: LiveScorerProps) {
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto">
-        {view === 'scorer' && (
+        {showResultScreen && (
+          <MatchResultPanel
+            liveMatch={liveMatch}
+            onStartNewMatch={() => dispatch(clearMatch())}
+            onOpenView={(nextView) => handleViewChange(nextView)}
+          />
+        )}
+
+        {!showResultScreen && view === 'scorer' && (
           <div className="h-full flex flex-col">
           {/* Score Section */}
-      <div className="bg-teal-700 px-3 py-2 text-white flex-shrink-0">
+      <div className="bg-gray-700 px-3 py-2 text-white flex-shrink-0">
+        {liveMatch.status === 'complete' && (
+          <div className="mb-2 rounded border border-emerald-400/40 bg-emerald-500/10 px-2 py-1 text-center text-xs font-semibold text-emerald-100">
+            {liveMatch.winMargin || 'Match complete'}
+          </div>
+        )}
         {/* Teams Container */}
-        <div className="bg-teal-800 rounded py-1.5 px-2 mb-1">
-          {/* JMCC Row - Current Batting Team */}
-          <div className="bg-gray-700 border-l-4 border-yellow-400 -mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded">
+        <div className="bg-gray-800 rounded py-1.5 px-2 mb-1 border border-teal-600/30">
+          {/* JMCC Row */}
+          <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-gray-700 border-l-4 border-teal-400' : 'bg-gray-800 border-l-4 border-gray-700'}`}>
             <p className="text-xs font-semibold">JMCC</p>
             <div className="flex items-center gap-2">
-              <p className="font-bold text-base">{innings.totalRuns}/{innings.totalWickets}</p>
-              <p className="text-teal-100">[{Math.floor(innings.totalBalls / 6)}.{innings.totalBalls % 6} / {liveMatch.totalOvers}]</p>
+              <p className="font-bold text-base">{usInnings?.totalRuns ?? 0}/{usInnings?.totalWickets ?? 0}</p>
+              <p className="text-teal-100">[{Math.floor((usInnings?.totalBalls ?? 0) / 6)}.{(usInnings?.totalBalls ?? 0) % 6} / {liveMatch.totalOvers}]</p>
             </div>
           </div>
           {/* OPPONENT Row */}
-          <div className="flex items-center justify-between text-xs">
+          <div className={`flex items-center justify-between text-xs rounded px-0 ${innings.battingTeam === 'Them' ? 'bg-gray-700 border-l-4 border-yellow-400 -mx-2 px-2 py-1' : ''}`}>
             <p className="text-xs font-semibold">{liveMatch.opponent}</p>
             <div className="flex items-center gap-2">
-              <p className="font-bold text-base">0/0</p>
-              <p className="text-teal-100">[0.0 / {liveMatch.totalOvers}]</p>
+              <p className="font-bold text-base">{themInnings?.totalRuns ?? 0}/{themInnings?.totalWickets ?? 0}</p>
+              <p className="text-teal-100">[{Math.floor((themInnings?.totalBalls ?? 0) / 6)}.{(themInnings?.totalBalls ?? 0) % 6} / {liveMatch.totalOvers}]</p>
             </div>
           </div>
         </div>
 
         {/* CRR, RRR, and Extras Row */}
-        <div className="bg-teal-800 flex justify-between items-center mt-1 py-1 px-3 rounded">
+        <div className="bg-gray-800 flex justify-between items-center mt-1 py-1 px-3 rounded border border-teal-600/30">
           <div className="flex items-center gap-1">
             <p className="text-xs font-semibold">CRR:</p>
             <p className="font-bold text-sm">{crr}</p>
@@ -481,11 +565,11 @@ export function LiveScorer(props: LiveScorerProps) {
 
         {/* Runs Required / Balls Remaining Row - Only for 2nd Innings */}
         {innings.inningsNumber === 2 && (
-          <div className="bg-teal-800 flex gap-2 justify-center items-center mt-1 py-1 rounded">
+          <div className="bg-gray-800 flex gap-2 justify-center items-center mt-1 py-1 rounded border border-teal-600/30">
             <div className="flex items-center gap-1">
               <p className="text-xs font-semibold">{runsRequired} runs required</p>
             </div>
-            <div className="w-px h-5 bg-teal-600"></div>
+            <div className="w-px h-5 bg-teal-600/50"></div>
             <div className="flex items-center gap-1">
               <p className="text-xs font-semibold">{ballsRemaining} balls remaining</p>
             </div>
@@ -653,32 +737,32 @@ export function LiveScorer(props: LiveScorerProps) {
         {/* Row 1: 0 1 2 3 */}
         <div className="grid grid-cols-4 gap-1">
           {[0, 1, 2, 3].map(runs => (
-            <ScorerButton key={runs} label={runs.toString()} onClick={() => handleNumberClick(runs)} />
+            <ScorerButton key={runs} label={runs.toString()} onClick={() => handleNumberClick(runs)} disabled={scoringLocked} />
           ))}
         </div>
 
         {/* Row 2: 5 4 6 W */}
         <div className="grid grid-cols-4 gap-1">
-          <ScorerButton label="5" onClick={() => handleNumberClick(5)} />
-          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-blue-800 hover:bg-blue-800/80" />
-          <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-700 hover:bg-green-700/80" />
-          <ScorerButton label="W" onClick={() => handleWicketClick()} className="bg-red-800 hover:bg-red-800/80" />
+          <ScorerButton label="5" onClick={() => handleNumberClick(5)} disabled={scoringLocked} />
+          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-blue-800 hover:bg-blue-800/80" disabled={scoringLocked} />
+          <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-700 hover:bg-green-700/80" disabled={scoringLocked} />
+          <ScorerButton label="W" onClick={() => handleWicketClick()} className="bg-red-800 hover:bg-red-800/80" disabled={scoringLocked} />
         </div>
 
         {/* Row 3: B LB WD NB */}
         <div className="grid grid-cols-4 gap-1">
-          <ScorerButton label="B" onClick={() => handleExtraClick('bye')} className="bg-yellow-600 hover:bg-yellow-600/80" />
-          <ScorerButton label="LB" onClick={() => handleExtraClick('leg-bye')} className="bg-yellow-600 hover:bg-yellow-600/80" />
-          <ScorerButton label="WD" onClick={() => handleExtraClick('wide')} className="bg-yellow-600 hover:bg-yellow-600/80" />
-          <ScorerButton label="NB" onClick={() => handleExtraClick('no-ball')} className="bg-amber-700 hover:bg-amber-700/80" />
+          <ScorerButton label="B" onClick={() => handleExtraClick('bye')} className="bg-yellow-600 hover:bg-yellow-600/80" disabled={scoringLocked} />
+          <ScorerButton label="LB" onClick={() => handleExtraClick('leg-bye')} className="bg-yellow-600 hover:bg-yellow-600/80" disabled={scoringLocked} />
+          <ScorerButton label="WD" onClick={() => handleExtraClick('wide')} className="bg-yellow-600 hover:bg-yellow-600/80" disabled={scoringLocked} />
+          <ScorerButton label="NB" onClick={() => handleExtraClick('no-ball')} className="bg-amber-700 hover:bg-amber-700/80" disabled={scoringLocked} />
         </div>
 
         {/* Row 4: 5P 6+ ... UNDO */}
         <div className="grid grid-cols-4 gap-1">
-          <ScorerButton label="5P" onClick={() => handlePenaltyRuns(5)} className="bg-violet-800 hover:bg-violet-800/80" />
-          <ScorerButton label="6+" onClick={() => handleSixPlusClick()} className="bg-violet-800 hover:bg-violet-800/80" />
-          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-gray-700 hover:bg-gray-700/80" />
-          <ScorerButton label="UNDO" onClick={() => handleUndo()} className="bg-purple-800 hover:bg-purple-800/80" />
+          <ScorerButton label="5P" onClick={() => handlePenaltyRuns(5)} className="bg-violet-800 hover:bg-violet-800/80" disabled={scoringLocked} />
+          <ScorerButton label="6+" onClick={() => handleSixPlusClick()} className="bg-violet-800 hover:bg-violet-800/80" disabled={scoringLocked} />
+          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-gray-700 hover:bg-gray-700/80" disabled={scoringLocked} />
+          <ScorerButton label="UNDO" onClick={() => handleUndo()} className="bg-purple-800 hover:bg-purple-800/80" disabled={scoringLocked} />
         </div>
       </div>
           </div>
@@ -707,6 +791,7 @@ export function LiveScorer(props: LiveScorerProps) {
       {dialogState.activeDialog === 'initialBatters' && <InitialBattersDialog />}
       {dialogState.activeDialog === 'startNewMatchConfirm' && <StartNewMatchConfirmDialog />}
       {dialogState.activeDialog === 'overEnd' && <OverEndPopup />}
+      {dialogState.activeDialog === 'finishInnings' && <FinishInningsDialog />}
       {dialogState.activeDialog === 'sixPlus' && <SixPlusDialog />}
     </div>
   );
@@ -740,11 +825,12 @@ export function LiveScorer(props: LiveScorerProps) {
 }
 
 // Simple Button Component
-function ScorerButton({ label, onClick, className = '' }: { label: string; onClick: () => void; className?: string }) {
+function ScorerButton({ label, onClick, className = '', disabled = false }: { label: string; onClick: () => void; className?: string; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className={`w-full py-3 rounded font-bold text-white ${className || 'bg-gray-700 hover:bg-gray-800'} active:scale-95 transition-all`}
+      disabled={disabled}
+      className={`w-full py-3 rounded font-bold text-white ${className || 'bg-gray-700 hover:bg-gray-800'} ${disabled ? 'opacity-50 cursor-not-allowed hover:bg-inherit' : 'active:scale-95'} transition-all`}
     >
       {label}
     </button>

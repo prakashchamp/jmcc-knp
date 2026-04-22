@@ -29,7 +29,11 @@ export function OverEndPopup() {
 
   const completedOverNumber = Math.ceil(currentInnings.totalBalls / 6);
   const completedOverIndex = Math.max(0, completedOverNumber - 1);
-  const runsRequired = Math.max(0, (currentInnings.target || 150) - currentInnings.totalRuns);
+  const firstInningsRuns = liveMatch.innings?.[0]?.totalRuns ?? 0;
+  const target = currentInnings.target ?? (currentInnings.inningsNumber === 2 ? firstInningsRuns + 1 : undefined);
+  const runsRequired = currentInnings.inningsNumber === 2 && typeof target === 'number'
+    ? Math.max(0, target - currentInnings.totalRuns)
+    : 0;
   const ballsRemaining = Math.max(0, (liveMatch.totalOvers * 6) - currentInnings.totalBalls);
 
   const completedOverBalls = currentInnings.ballHistory.filter(
@@ -104,7 +108,7 @@ export function OverEndPopup() {
         </div>
         
         <div className="mb-4 space-y-2">
-          <div className="flex items-center justify-between rounded-xl border border-teal-500/40 bg-teal-500/10 p-3">
+          <div className="flex items-center justify-between rounded-xl border border-blue-500/40 bg-blue-500/10 p-3">
             <span className="font-semibold text-white">{currentInnings.battingTeam === 'Us' ? 'JMCC' : liveMatch.opponent}</span>
             <div className="text-center leading-tight text-white">
               <div className="text-xl font-bold">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>

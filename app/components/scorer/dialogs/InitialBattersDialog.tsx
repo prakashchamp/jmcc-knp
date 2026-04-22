@@ -5,6 +5,7 @@ import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, setInitialBattersAndBowler, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
 import { useState } from 'react';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
 import { BowlerDropdownSelect } from './BowlerDropdownSelect';
 import {
@@ -19,7 +20,7 @@ import {
 
 export function InitialBattersDialog() {
   const dispatch = useDispatch<AppDispatch>();
-  const { liveMatch } = useSelector((state: RootState) => state.scorer);
+  const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
   
   const [batter1, setBatter1] = useState<TeamPlayer | null>(null);
   const [batter2, setBatter2] = useState<TeamPlayer | null>(null);
@@ -27,7 +28,10 @@ export function InitialBattersDialog() {
   const [newBatterName, setNewBatterName] = useState('');
   const [newBowlerName, setNewBowlerName] = useState('');
 
-  if (!liveMatch) return null;
+  if (!liveMatch || !currentInnings) return null;
+
+  const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
+  const bowlingTeamPlayers = currentInnings.battingTeam === 'Us' ? OPPONENT_TEAM_PLAYERS : liveMatch.teamPlayers;
 
   // When batter1 changes, ensure it's not the same as batter2
   const handleBatter1Change = (batter: TeamPlayer) => {
@@ -53,13 +57,6 @@ export function InitialBattersDialog() {
   const strikerExcludeIds = batter2?.id ? [batter2.id] : [];
   const nonStrikerExcludeIds = batter1?.id ? [batter1.id] : [];
   
-  // Debug logging
-  console.log('InitialBattersDialog render:', { 
-    batter1: batter1?.name, 
-    batter2: batter2?.name, 
-    strikerExcludeIds, 
-    nonStrikerExcludeIds 
-  });
 
   const handleStart = () => {
     if (!isValid) return;
@@ -77,11 +74,6 @@ export function InitialBattersDialog() {
       return;
     }
     
-    console.log('✓ Starting match with:');
-    console.log('  Striker:', batter1.name, '(ID:', batter1.id, ')');
-    console.log('  Non-Striker:', batter2.name, '(ID:', batter2.id, ')');
-    console.log('  Bowler:', bowler.name, '(ID:', bowler.id, ')');
-    
     // Dispatch action to set initial batters and bowler
     dispatch(setInitialBattersAndBowler({ 
       striker: batter1, 
@@ -92,21 +84,28 @@ export function InitialBattersDialog() {
   };
 
   const handleCreateNewBatter = (name: string) => {
+    if (currentInnings.battingTeam !== 'Us') {
+      return;
+    }
+
     dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
     setNewBatterName('');
   };
 
   const handleCreateNewBowler = (name: string) => {
-    // Add the new player to the team
+    const isUsBowling = currentInnings.battingTeam === 'Them';
+    if (!isUsBowling) {
+      return;
+    }
+
     dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
-    
-    // Create the new player object
+
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       role: 'bowler',
     };
-    
+
     setBowler(newPlayer);
     setNewBowlerName('');
   };
@@ -124,10 +123,10 @@ export function InitialBattersDialog() {
             label="Striker (Batter 1)"
             placeholder="Select striker"
             selectedBatter={batter1}
-            batters={liveMatch.teamPlayers}
+            batters={battingTeamPlayers}
             excludeIds={strikerExcludeIds}
             onSelect={handleBatter1Change}
-            allowNew={true}
+            allowNew={currentInnings.battingTeam === 'Us'}
             newPlayerName={newBatterName}
             onNewPlayerNameChange={setNewBatterName}
             onCreateNew={handleCreateNewBatter}
@@ -139,10 +138,10 @@ export function InitialBattersDialog() {
             label="Non-Striker (Batter 2)"
             placeholder="Select non-striker"
             selectedBatter={batter2}
-            batters={liveMatch.teamPlayers}
+            batters={battingTeamPlayers}
             excludeIds={nonStrikerExcludeIds}
             onSelect={handleBatter2Change}
-            allowNew={true}
+            allowNew={currentInnings.battingTeam === 'Us'}
             newPlayerName={newBatterName}
             onNewPlayerNameChange={setNewBatterName}
             onCreateNew={handleCreateNewBatter}
@@ -151,13 +150,13 @@ export function InitialBattersDialog() {
 
         <div className="mb-4">
           <BowlerDropdownSelect
-            label={`Opening Bowler (${liveMatch.opponent})`}
+            label={`Opening Bowler (${currentInnings.battingTeam === 'Us' ? liveMatch.opponent : 'JMCC'})`}
             placeholder="Select bowler"
             selectedBowler={bowler}
-            bowlers={liveMatch.teamPlayers}
+            bowlers={bowlingTeamPlayers}
             excludeIds={[]}
             onSelect={setBowler}
-            allowNew={true}
+            allowNew={currentInnings.battingTeam === 'Them'}
             newPlayerName={newBowlerName}
             onNewPlayerNameChange={setNewBowlerName}
             onCreateNew={handleCreateNewBowler}

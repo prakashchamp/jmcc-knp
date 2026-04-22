@@ -55,7 +55,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
               }}
               className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold flex items-center gap-3 ${
                 currentView === item.id
-                  ? 'bg-teal-700 text-white'
+                  ? 'bg-blue-700 text-white'
                   : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
               }`}
             >

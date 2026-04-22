@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
-import { closeDialog, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
+import { closeDialog, addNewTeamPlayer, replaceStrikerForRetiredHurt } from '@/app/lib/redux/slices/scorerSlice';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
 import {
   modalOverlayClass,
@@ -25,11 +26,12 @@ export function BatsmanRetiredDialog() {
 
   // Get available players (not currently batting - striker and non-striker, and not dismissed)
   // Show all players regardless of role
-  const availableBatsmen = liveMatch.teamPlayers.filter(
-    (player) => 
-      player.id !== currentInnings.striker?.id && 
+  const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
+  const availableBatsmen = battingTeamPlayers.filter(
+    (player) =>
+      player.id !== currentInnings.striker?.id &&
       player.id !== currentInnings.nonStriker?.id &&
-      !currentInnings.dismissedBatsmen.some(d => d.id === player.id)
+      !currentInnings.dismissedBatsmen.some((d) => d.id === player.id)
   );
 
   const excludeIds: string[] = [];
@@ -38,22 +40,32 @@ export function BatsmanRetiredDialog() {
   currentInnings.dismissedBatsmen.forEach((d) => excludeIds.push(d.id));
 
   const handleSelectBatsman = (batsman: TeamPlayer) => {
-    // TODO: Dispatch action to mark batsman as retired hurt and update batsman
-    console.log('Batsman retired hurt, new batsman:', batsman.name);
+    if (!batsman || !currentInnings.striker) return;
+
+    // Mark the current striker as retired hurt and replace with new batsman
+    dispatch(
+      replaceStrikerForRetiredHurt({
+        retiredHurtBatsmanId: currentInnings.striker.id,
+        newBatsman: batsman,
+      })
+    );
+
     dispatch(closeDialog());
   };
 
   const handleCreateNewBatsman = (name: string) => {
-    // Add the new player to the team
+    if (currentInnings.battingTeam !== 'Us') {
+      return;
+    }
+
     dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
-    
-    // Create the new player object
+
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       role: 'batsman',
     };
-    
+
     setSelectedBatter(newPlayer);
     setNewPlayerName('');
   };
@@ -77,7 +89,7 @@ export function BatsmanRetiredDialog() {
               batters={availableBatsmen}
               excludeIds={excludeIds}
               onSelect={handleSelectBatsman}
-              allowNew={true}
+              allowNew={currentInnings.battingTeam === 'Us'}
               newPlayerName={newPlayerName}
               onNewPlayerNameChange={setNewPlayerName}
               onCreateNew={handleCreateNewBatsman}

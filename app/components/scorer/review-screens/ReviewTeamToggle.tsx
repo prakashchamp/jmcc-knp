@@ -40,7 +40,14 @@ export function getBattingTeamInnings(
   selectedTeam: ReviewTeam
 ) {
   const innings = getAvailableInnings(liveMatch, currentInnings);
-  return innings.find((inningsItem) => inningsItem.battingTeam === selectedTeam) ?? null;
+  const byTeam = innings.find((inningsItem) => inningsItem.battingTeam === selectedTeam);
+  if (byTeam) return byTeam;
+
+  // Defensive fallback for historical/stale states where battingTeam flag may be inconsistent.
+  if (selectedTeam === 'Us') {
+    return innings[0] ?? null;
+  }
+  return innings.length > 1 ? innings[1] : null;
 }
 
 export function getBowlingTeamInnings(
@@ -49,11 +56,16 @@ export function getBowlingTeamInnings(
   selectedTeam: ReviewTeam
 ) {
   const innings = getAvailableInnings(liveMatch, currentInnings);
-  return (
-    innings.find(
-      (inningsItem) => (inningsItem.battingTeam === 'Us' ? 'Them' : 'Us') === selectedTeam
-    ) ?? null
+  const byTeam = innings.find(
+    (inningsItem) => (inningsItem.battingTeam === 'Us' ? 'Them' : 'Us') === selectedTeam
   );
+  if (byTeam) return byTeam;
+
+  // Defensive fallback for historical/stale states where battingTeam flag may be inconsistent.
+  if (selectedTeam === 'Us') {
+    return innings.length > 1 ? innings[1] ?? null : null;
+  }
+  return innings[0] ?? null;
 }
 
 export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: ReviewTeamToggleProps) {
@@ -63,7 +75,7 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
         onClick={() => onSelect('Us')}
         className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
           selectedTeam === 'Us'
-            ? 'border-teal-500 bg-teal-700 text-white'
+            ? 'border-blue-500 bg-blue-700 text-white'
             : 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
         }`}
       >
@@ -73,7 +85,7 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
         onClick={() => onSelect('Them')}
         className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
           selectedTeam === 'Them'
-            ? 'border-teal-500 bg-teal-700 text-white'
+            ? 'border-blue-500 bg-blue-700 text-white'
             : 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
         }`}
       >

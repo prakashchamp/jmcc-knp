@@ -76,7 +76,7 @@ export function FallOfWickets() {
       ) : (
       <div className="overflow-hidden rounded-lg border border-gray-600">
         <table className="w-full text-xs">
-          <thead className="bg-teal-800 text-white border-b border-gray-600">
+          <thead className="bg-blue-800 text-white border-b border-gray-600">
             <tr>
               <th className="px-2 py-2 text-center font-bold">Wicket</th>
               <th className="px-2 py-2 text-center font-bold">Over</th>

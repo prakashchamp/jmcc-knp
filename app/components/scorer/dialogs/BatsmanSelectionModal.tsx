@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/app/lib/redux/slices/scorerSlice';
 import { CricketScoringEngine } from '@/app/lib/scoring-engine';
 import type { DismissalMode, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
 import {
   modalOverlayClass,
@@ -58,9 +59,14 @@ export function BatsmanSelectionModal() {
   // Type-safe dialog data
   const dialogData = dialogState.dialogData as BatsmanSelectDialogData;
 
+  const battingTeamPlayers =
+    liveMatch && currentInnings
+      ? (currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS)
+      : [];
+
   const availableBatters =
     liveMatch && currentInnings
-      ? CricketScoringEngine.getAvailableBatsmen(liveMatch.teamPlayers, currentInnings)
+      ? CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings)
       : [];
 
   const excludeIds = currentInnings
@@ -74,6 +80,62 @@ export function BatsmanSelectionModal() {
   if (dialogState.activeDialog !== 'batsmanSelect') {
     return null;
   }
+
+  useEffect(() => {
+    if (!currentInnings || !dialogData.recordOnSelect) return;
+
+    // If we are on 9 wickets, this action records the 10th wicket.
+    // In that case we should not wait for a replacement batsman selection.
+    if (currentInnings.totalWickets < 9) return;
+
+    const outBatsmanId = dialogData.outBatsmanId;
+    if (!outBatsmanId) return;
+
+    dispatch(createUndoSnapshot());
+
+    switch (dialogData.dismissalMode) {
+      case 'bowled':
+      case 'caught':
+      case 'lbw':
+      case 'hit-wicket':
+        dispatch(recordQuickWicket({ dismissalMode: dialogData.dismissalMode }));
+        break;
+      case 'stumped':
+        if (dialogData.ballType === 'wide') {
+          dispatch(recordStumpedWide({ runs: dialogData.runs ?? 0 }));
+        } else {
+          dispatch(recordStumpedRegular());
+        }
+        break;
+      case 'run-out':
+      case 'handled-ball':
+      case 'obstructing-field':
+        dispatch(
+          recordRunOutBall({
+            dismissalMode: dialogData.dismissalMode,
+            ballType: dialogData.ballType ?? 'regular',
+            runs: dialogData.runs ?? 0,
+            batsmanIdToMarkOut: outBatsmanId,
+          })
+        );
+        break;
+      case 'retired-out':
+        dispatch(recordRetiredOut());
+        break;
+      default:
+        break;
+    }
+
+    dispatch(closeDialog());
+  }, [
+    currentInnings,
+    dialogData.recordOnSelect,
+    dialogData.dismissalMode,
+    dialogData.ballType,
+    dialogData.runs,
+    dialogData.outBatsmanId,
+    dispatch,
+  ]);
 
   const handleSelectBatsman = (batter: TeamPlayer) => {
     if (!currentInnings) {
@@ -148,6 +210,10 @@ export function BatsmanSelectionModal() {
   };
 
   const handleCreateNewBatsman = (name: string) => {
+    if (currentInnings?.battingTeam !== 'Us') {
+      return;
+    }
+
     dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
     setNewPlayerName('');
   };
@@ -174,7 +240,7 @@ export function BatsmanSelectionModal() {
               batters={availableBatters}
               excludeIds={excludeIds}
               onSelect={handleSelectBatsman}
-              allowNew={true}
+              allowNew={currentInnings?.battingTeam === 'Us'}
               newPlayerName={newPlayerName}
               onNewPlayerNameChange={setNewPlayerName}
               onCreateNew={handleCreateNewBatsman}

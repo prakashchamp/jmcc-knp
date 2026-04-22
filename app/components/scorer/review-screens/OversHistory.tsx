@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
-import { formatBallDisplay } from '@/app/lib/ball-display-utils';
+import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
 import type { Ball } from '@/app/lib/cricket-scorer-types';
 import { getBattingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
 
@@ -31,17 +31,26 @@ export function OversHistory() {
     over: number;
     balls: Ball[];
     overRuns: number;
+    cumulativeRuns: number;
+    cumulativeWickets: number;
   }[] = [];
+
+  let totalRuns = 0;
+  let totalWickets = 0;
 
   for (const ball of selectedInnings?.ballHistory || []) {
     const overNum = Math.floor(ball.over);
 
     if (!overGroups[overNum]) {
-      overGroups[overNum] = { over: overNum, balls: [], overRuns: 0 };
+      overGroups[overNum] = { over: overNum, balls: [], overRuns: 0, cumulativeRuns: 0, cumulativeWickets: 0 };
     }
 
     overGroups[overNum].balls.push(ball);
     overGroups[overNum].overRuns += ball.runs.total || 0;
+    totalRuns += ball.runs.total || 0;
+    if (ball.isWicket) totalWickets += 1;
+    overGroups[overNum].cumulativeRuns = totalRuns;
+    overGroups[overNum].cumulativeWickets = totalWickets;
   }
 
   return (
@@ -58,7 +67,7 @@ export function OversHistory() {
       ) : (
       <div className="overflow-hidden rounded-lg border border-gray-600">
         <table className="w-full table-fixed text-xs">
-          <thead className="bg-teal-800 text-white border-b border-gray-600">
+          <thead className="bg-blue-800 text-white border-b border-gray-600">
             <tr>
               <th className="w-16 px-2 py-2 text-center font-bold">Over</th>
               <th className="w-16 px-2 py-2 text-center font-bold">Runs</th>
@@ -72,10 +81,11 @@ export function OversHistory() {
               return (
               <tr
                 key={overGroup.over}
-                className={isCurrentOver ? 'bg-teal-900/40 ring-1 ring-inset ring-teal-600 border-b border-teal-700' : idx % 2 === 0 ? 'bg-gray-800 border-b border-gray-700' : 'bg-gray-700 border-b border-gray-600'}
+                className='bg-gray-800 border-b border-gray-700'
               >
                 <td className="px-2 py-2 text-center font-semibold text-white">
-                  {overGroup.over + 1}.0
+                  <div className="text-sm font-semibold mb-1">{overGroup.over + 1}.{overGroup.balls.length < 6 ? overGroup.balls.length : 0}</div>
+                  <div className="text-m text-blue-300 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
                 </td>
                 <td className="px-2 py-2 text-center font-bold text-white">
                   {overGroup.overRuns}
@@ -85,7 +95,7 @@ export function OversHistory() {
                     {overGroup.balls.map((ball, ballIdx) => (
                       <span
                         key={ballIdx}
-                        className="inline-flex w-fit px-2 py-0.5 rounded border border-gray-600 bg-gray-800 text-center text-xs font-semibold text-white whitespace-nowrap"
+                        className={`inline-flex w-fit px-2 py-0.5 rounded border border-gray-600 ${getBallColor(ball)} text-center text-xs font-semibold whitespace-nowrap`}
                       >
                         {formatBallDisplay(ball)}
                       </span>
