@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { closeDialog, completeOver, addNewTeamPlayer, undoLastDelivery } from '@/app/lib/redux/slices/scorerSlice';
+import { closeDialog, completeOver, undoLastDelivery } from '@/app/lib/redux/slices/scorerSlice';
+import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { BowlerDropdownSelect } from './BowlerDropdownSelect';
 import {
   infoCardClass,
@@ -25,6 +27,8 @@ export function OverEndPopup() {
   const [selectedBowler, setSelectedBowler] = useState<TeamPlayer | null>(null);
   const [newBowlerName, setNewBowlerName] = useState('');
 
+  const teamName = useTeamName();
+  
   if (!currentInnings || !liveMatch) return null;
 
   const completedOverNumber = Math.ceil(currentInnings.totalBalls / 6);
@@ -51,7 +55,6 @@ export function OverEndPopup() {
       previousBowler = {
         id: lastBowlerData.id,
         name: lastBowlerData.name,
-        role: 'bowler',
       };
     }
   }
@@ -84,19 +87,11 @@ export function OverEndPopup() {
     dispatch(closeDialog());
   };
 
-  const handleCreateNewBowler = (name: string) => {
-    // Add the new player to the team
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
-    
-    // Create the new player object
-    const newBowler: TeamPlayer = {
-      id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: name.trim(),
-      role: 'bowler',
-    };
-    setSelectedBowler(newBowler);
+  const handleCreateNewBowler = async (name: string) => {
+    // Add the new player to the team and sync
+    const result = await dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() })).unwrap();
+    setSelectedBowler(result);
     setNewBowlerName('');
-
   };
 
   return (
@@ -109,7 +104,7 @@ export function OverEndPopup() {
         
         <div className="mb-4 space-y-2">
           <div className="flex items-center justify-between rounded-xl border border-blue-500/40 bg-blue-500/10 p-3">
-            <span className="font-semibold text-white">{currentInnings.battingTeam === 'Us' ? 'JMCC' : liveMatch.opponent}</span>
+            <span className="font-semibold text-white">{currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent}</span>
             <div className="text-center leading-tight text-white">
               <div className="text-xl font-bold">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
               <div className="text-sm">({Math.floor(currentInnings.totalBalls / 6)}.{currentInnings.totalBalls % 6}/{liveMatch.totalOvers}.0)</div>

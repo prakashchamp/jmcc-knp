@@ -10,7 +10,6 @@
 export interface Player {
   id: string;
   name: string;
-  role: 'batsman' | 'bowler' | 'allrounder';
   createdAt: string; // ISO 8601
 }
 
@@ -21,7 +20,6 @@ export interface Player {
 export interface TeamPlayer {
   id: string;
   name: string;
-  role: 'batsman' | 'bowler' | 'allrounder';
   jerseyNumber?: number;
 }
 
@@ -46,7 +44,7 @@ export interface Match {
   venue: 'Home' | 'Away' | 'Neutral';
   tossWonBy: 'Us' | 'Opponent' | 'Them'; // Support both old and new formats
   tossDecision: 'bat' | 'field';
-  result: 'won' | 'lost' | 'tie' | 'no_result' | 'no_result';
+  result: 'won' | 'lost' | 'tie' | 'no_result' | 'abandoned';
   winMargin: string; // "24 runs", "5 wickets", ""
 
   bestBatterId: string;
@@ -106,7 +104,6 @@ export interface Performance {
   matchId: string;
   playerId: string;
   playerName: string;
-  playerRole: 'batsman' | 'bowler' | 'allrounder';
 
   date: string; // ISO 8601
   year: string;

@@ -17,6 +17,7 @@ import {
   recordQuickWicket,
   finishCurrentInnings,
   completeMatchOnTargetReached,
+  viewCompletedMatch,
 } from '@/app/lib/redux/slices/scorerSlice';
 import type { Ball, LiveMatch, TeamPlayer, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getCurrentBowlerStats } from '@/app/lib/bowling-stats-utils';
@@ -42,6 +43,7 @@ import { StartNewMatchConfirmDialog } from './dialogs/StartNewMatchConfirmDialog
 import { OverEndPopup } from './dialogs/OverEndPopup';
 import { SixPlusDialog } from './dialogs/SixPlusDialog';
 import { FinishInningsDialog } from './dialogs/FinishInningsDialog';
+import { UploadConfirmDialog } from './dialogs/UploadConfirmDialog';
 import { ScorerMenu } from './ScorerMenu';
 import { BattingScorecard } from './review-screens/BattingScorecard';
 import { BowlingScorecard } from './review-screens/BowlingScorecard';
@@ -87,6 +89,8 @@ export function LiveScorer(props: LiveScorerProps) {
   const dialogState = useSelector((state: RootState) => state.scorer.dialogState);
   const loading = useSelector((state: RootState) => state.scorer.loading);
   const error = useSelector((state: RootState) => state.scorer.error);
+  const lastCompletedMatch = useSelector((state: RootState) => state.scorer.lastCompletedMatch);
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
   const [positionedBatsman1Id, setPositionedBatsman1Id] = useState<string | null>(null);
   const [positionedBatsman2Id, setPositionedBatsman2Id] = useState<string | null>(null);
   const [previousOverNumber, setPreviousOverNumber] = useState(0);
@@ -318,7 +322,9 @@ export function LiveScorer(props: LiveScorerProps) {
       <ScorerLandingPage 
         onStartNewMatch={handleStartNewMatch}
         onResumeMatch={handleResumeMatch}
-        hasMatchToResume={false}
+        hasMatchToResume={false} // Match is already handled by liveMatch !== null above
+        lastCompletedMatch={lastCompletedMatch}
+        onViewCompletedMatch={(match) => dispatch(viewCompletedMatch(match))}
         teamPlayers={teamPlayers}
       />
     );
@@ -540,7 +546,7 @@ export function LiveScorer(props: LiveScorerProps) {
         <div className="bg-gray-800 rounded py-1.5 px-2 mb-1 border border-teal-600/30">
           {/* JMCC Row */}
           <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-gray-700 border-l-4 border-teal-400' : 'bg-gray-800 border-l-4 border-gray-700'}`}>
-            <p className="text-xs font-semibold">JMCC</p>
+            <p className="text-xs font-semibold">{teamName}</p>
             <div className="flex items-center gap-2">
               <p className="font-bold text-base">{usInnings?.totalRuns ?? 0}/{usInnings?.totalWickets ?? 0}</p>
               <p className="text-teal-100">[{Math.floor((usInnings?.totalBalls ?? 0) / 6)}.{(usInnings?.totalBalls ?? 0) % 6} / {liveMatch.totalOvers}]</p>
@@ -794,6 +800,7 @@ export function LiveScorer(props: LiveScorerProps) {
       {dialogState.activeDialog === 'runOut' && <RunOutDialog />}
       {dialogState.activeDialog === 'batsmanSelect' && <BatsmanSelectionModal />}
       {dialogState.activeDialog === 'options' && <OptionsDialog />}
+      {dialogState.activeDialog === 'uploadConfirm' && <UploadConfirmDialog />}
       {dialogState.activeDialog === 'newBatsman' && <NewBatsmanDialog />}
       {dialogState.activeDialog === 'newBowler' && <NewBowlerDialog />}
       {dialogState.activeDialog === 'bowlerRetired' && <BowlerRetiredDialog />}

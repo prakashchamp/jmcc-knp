@@ -226,7 +226,6 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           performances.push({
             playerName,
             playerId: '',
-            playerRole: 'batsman',
             batting: {
               didBat: true,
               innings: 1,
@@ -323,7 +322,6 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         performances.push({
           playerName,
           playerId: '',
-          playerRole: 'bowler',
           batting: {
             didBat: false,
             innings: 0,

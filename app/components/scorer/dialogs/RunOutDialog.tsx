@@ -188,7 +188,6 @@ export function RunOutDialog() {
                 setRuns(normalizedValue.toString());
               }}
               className={`${inputClass} selection:bg-transparent selection:text-white`}
-              autoFocus
             />
           </div>
 

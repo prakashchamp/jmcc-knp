@@ -171,11 +171,13 @@ export function MatchDetailsDialog() {
 
   if (!liveMatch) return null;
 
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+
   const venueOptions: DropdownOption[] = ['Home', 'Away', 'Neutral'].map((option) => ({
     value: option,
     label: option,
   }));
-  const teamAName = 'JMCC';
+  const teamAName = teamName;
   const teamBName = opponent.trim() || liveMatch.opponent || 'Team B';
   const tossOptions: DropdownOption[] = [
     { value: 'Us', label: teamAName },

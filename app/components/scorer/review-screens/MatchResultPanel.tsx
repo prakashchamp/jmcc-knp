@@ -1,8 +1,9 @@
 'use client';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { LiveMatch, InningsState } from '@/app/lib/cricket-scorer-types';
-import { RootState } from '@/app/lib/redux/store';
+import { RootState, AppDispatch } from '@/app/lib/redux/store';
+import { openDialog } from '@/app/lib/redux/slices/scorerSlice';
 import { getBattingTeamInnings } from './ReviewTeamToggle';
 import { getBowlerStats } from '@/app/lib/bowling-stats-utils';
 import { getNormalizedBatsmen } from './review-batting-utils';
@@ -16,7 +17,9 @@ interface MatchResultPanelProps {
 }
 
 export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: MatchResultPanelProps) {
+  const dispatch = useDispatch<AppDispatch>();
   const currentInnings = useSelector((state: RootState) => state.scorer.currentInnings);
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
   const usInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Us');
   const themInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Them');
 
@@ -42,8 +45,8 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     const { jsPDF } = await import('jspdf');
 
     const formattedDate = formatDate(liveMatch.createdAt || new Date().toISOString());
-    const title = `JMCC vs ${liveMatch.opponent} - ${formattedDate}`;
-    const filename = `JMCC vs ${liveMatch.opponent} - ${formattedDate.replaceAll('/', '-')}.pdf`;
+    const title = `${teamName} vs ${liveMatch.opponent} - ${formattedDate}`;
+    const filename = `${teamName} vs ${liveMatch.opponent} - ${formattedDate.replaceAll('/', '-')}.pdf`;
 
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -100,7 +103,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
       y += 32;
     };
 
-    const getTeamName = (team: 'Us' | 'Them') => (team === 'Us' ? 'JMCC' : liveMatch.opponent);
+    const getTeamName = (team: 'Us' | 'Them') => (team === 'Us' ? teamName : liveMatch.opponent);
 
     const getMergedInnings = (): InningsState[] => {
       const inningsList = liveMatch.innings ? [...liveMatch.innings] : [];
@@ -334,7 +337,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
       { label: 'Venue', value: liveMatch.venue },
       { label: 'Result', value: summaryLine },
       { label: 'Match Format', value: `${liveMatch.totalOvers} overs` },
-      { label: 'Toss', value: `${liveMatch.tossWonBy === 'Us' ? 'JMCC' : liveMatch.opponent} (${liveMatch.tossDecision})` },
+      { label: 'Toss', value: `${liveMatch.tossWonBy === 'Us' ? teamName : liveMatch.opponent} (${liveMatch.tossDecision})` },
     ]);
 
     drawSectionHeader('Match Score');
@@ -352,7 +355,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     doc.setTextColor(...colors.textMuted);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('JMCC', leftX + 10, cardTop + 16);
+    doc.text(teamName, leftX + 10, cardTop + 16);
     doc.text(liveMatch.opponent, rightX + 10, cardTop + 16);
 
     doc.setTextColor(...colors.text);
@@ -392,13 +395,13 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
           <h2 className="mt-2 text-2xl font-extrabold text-white">Result</h2>
           <p className="mt-2 text-base font-semibold text-emerald-300">{summaryLine}</p>
           <p className="mt-1 text-sm text-slate-300">
-            {liveMatch.opponent} vs JMCC • {liveMatch.venue}
+            {liveMatch.opponent} vs {teamName} • {liveMatch.venue}
           </p>
         </section>
 
         <section className="grid grid-cols-2 gap-3">
           <article className="rounded-xl border border-slate-700 bg-slate-900/80 p-4">
-            <p className="text-xs uppercase tracking-wide text-slate-400">JMCC</p>
+            <p className="text-xs uppercase tracking-wide text-slate-400">{teamName}</p>
             <p className="mt-2 text-2xl font-bold text-white">{usInnings?.totalRuns || 0}/{usInnings?.totalWickets || 0}</p>
             <p className="text-xs text-slate-400">
               {Math.floor((usInnings?.totalBalls || 0) / 6)}.{(usInnings?.totalBalls || 0) % 6} overs
@@ -445,14 +448,31 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
           >
             Export Match Info PDF
           </button>
+          <button
+            onClick={() => dispatch(openDialog({ dialog: 'uploadConfirm' }))}
+            className="rounded-lg border border-emerald-500/60 bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Upload to Cloud
+          </button>
         </section>
 
-        <button
-          onClick={onStartNewMatch}
-          className="w-full rounded-lg border border-emerald-500/50 bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
-        >
-          Start New Match
-        </button>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            onClick={onStartNewMatch}
+            className="w-full rounded-lg border border-emerald-500/50 bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500"
+          >
+            Start New Match
+          </button>
+          <button
+            onClick={onStartNewMatch}
+            className="w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-700"
+          >
+            Back to Home
+          </button>
+        </div>
       </div>
     </div>
   );

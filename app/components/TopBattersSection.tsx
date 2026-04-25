@@ -12,11 +12,11 @@ export function TopBattersSection() {
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-700">
-        <h2 className="text-2xl font-bold text-gray-100 mb-6">Top Batters</h2>
-        <div className="animate-pulse space-y-4">
+      <div className="bg-gray-800 rounded-lg shadow-md p-4 sm:p-8 backdrop-blur-sm border border-gray-700">
+        <h2 className="text-lg sm:text-2xl font-bold text-gray-100 mb-4 sm:mb-6">Top Batters</h2>
+        <div className="animate-pulse space-y-3 sm:space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-24 bg-slate-700 rounded"></div>
+            <div key={i} className="h-20 sm:h-24 bg-slate-700 rounded"></div>
           ))}
         </div>
       </div>
@@ -25,24 +25,24 @@ export function TopBattersSection() {
 
   if (error) {
     return (
-      <div className="bg-red-900 rounded-lg p-6 border border-red-700">
-        <p className="text-red-200 font-semibold">Error loading top batters</p>
+      <div className="bg-red-900 rounded-lg p-3 sm:p-6 border border-red-700">
+        <p className="text-red-200 text-xs sm:text-base font-semibold">Error loading top batters</p>
       </div>
     );
   }
 
   if (!batters || batters.length === 0) {
     return (
-      <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-        <p className="text-gray-400">No batting data available</p>
+      <div className="bg-gray-700 rounded-lg p-3 sm:p-6 border border-gray-600">
+        <p className="text-gray-400 text-xs sm:text-sm">No batting data available</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-700">
-      <h2 className="text-2xl font-bold text-gray-100 mb-6">Top Batters (All Time)</h2>
-      <div className="space-y-4">
+    <div className="bg-gray-800 rounded-lg shadow-md p-4 sm:p-8 backdrop-blur-sm border border-gray-700">
+      <h2 className="text-lg sm:text-2xl font-bold text-gray-100 mb-4 sm:mb-6">Top Batters (All Time)</h2>
+      <div className="space-y-3 sm:space-y-4">
         {batters.map((batter, index) => (
           <StatCard
             key={batter.playerId}

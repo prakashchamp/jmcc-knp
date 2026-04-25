@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useAllTeams } from '@/app/lib/hooks/useTeam';
 import { TeamPlayer } from '@/app/lib/cricket-schema';
 import Link from 'next/link';
-import { setTeam, saveToRedux, setPendingCloudPush } from '@/app/lib/redux/slices/teamSlice';
+import { setTeam, saveToRedux, setPendingCloudPush, syncTeam, SINGLETON_TEAM_ID } from '@/app/lib/redux/slices/teamSlice';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 
 /**
@@ -27,7 +27,6 @@ export default function TeamSetupPage() {
   const [teamName, setTeamName] = useState('');
   const [players, setPlayers] = useState<TeamPlayer[]>([]);
   const [newPlayerName, setNewPlayerName] = useState('');
-  const [newPlayerRole, setNewPlayerRole] = useState<'batsman' | 'bowler' | 'allrounder'>('batsman');
   const [newPlayerJerseyNumber, setNewPlayerJerseyNumber] = useState('');
   const [saving, setSaving] = useState(false);
   const [pushing, setPushing] = useState(false);
@@ -79,13 +78,11 @@ export default function TeamSetupPage() {
     const newPlayer: TeamPlayer = {
       id: playerId,
       name: newPlayerName.trim(),
-      role: newPlayerRole,
       jerseyNumber: newPlayerJerseyNumber ? parseInt(newPlayerJerseyNumber) : undefined,
     };
 
     setPlayers([...players, newPlayer]);
     setNewPlayerName('');
-    setNewPlayerRole('batsman');
     setNewPlayerJerseyNumber('');
     setMessage(null);
   };
@@ -114,7 +111,7 @@ export default function TeamSetupPage() {
       const now = new Date().toISOString();
       dispatch(
         saveToRedux({
-          id: selectedTeamId || `team_${Date.now()}`,
+          id: SINGLETON_TEAM_ID,
           name: teamName.trim(),
           players,
           createdAt: reduxTeam?.createdAt || now,
@@ -129,10 +126,10 @@ export default function TeamSetupPage() {
     }
   };
 
-  // Push team to Firestore (no-op for now)
+  // Push team to Firestore
   const handlePushToCloud = async () => {
-    if (!savedToRedux) {
-      setMessage({ type: 'error', text: 'Save to Redux first before pushing to cloud' });
+    if (!reduxTeam) {
+      setMessage({ type: 'error', text: 'No team to push' });
       return;
     }
 
@@ -140,11 +137,10 @@ export default function TeamSetupPage() {
     setMessage(null);
 
     try {
-      // Firebase push disabled for now - just clear the pending flag
-      dispatch(setPendingCloudPush(false));
-      setMessage({ type: 'success', text: 'Team ready for cloud push (Firebase disabled)' });
+      await dispatch(syncTeam(reduxTeam)).unwrap();
+      setMessage({ type: 'success', text: 'Team successfully pushed to cloud!' });
     } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to push to Firestore' });
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to push to Firestore' });
     } finally {
       setPushing(false);
     }
@@ -154,13 +150,15 @@ export default function TeamSetupPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Team Setup</h1>
-            <p className="text-slate-300">Create and manage your cricket team roster</p>
+            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Team Setup</h1>
+            <p className="text-slate-300 text-sm sm:text-base">Create and manage your cricket team roster</p>
           </div>
-          <Link href="/" className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-colors">
-            ← Home
+          <Link href="/" className="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Back to home">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
           </Link>
         </div>
 
@@ -189,11 +187,10 @@ export default function TeamSetupPage() {
         {/* Messages */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg ${
-              message.type === 'success'
+            className={`mb-6 p-4 rounded-lg ${message.type === 'success'
                 ? 'bg-green-900 text-green-100'
                 : 'bg-red-900 text-red-100'
-            }`}
+              }`}
           >
             {message.text}
           </div>
@@ -249,22 +246,10 @@ export default function TeamSetupPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold mb-1">Role</label>
-                  <select
-                    value={newPlayerRole}
-                    onChange={(e) => setNewPlayerRole(e.target.value as any)}
-                    className="w-full px-4 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="batsman">Batsman</option>
-                    <option value="bowler">Bowler</option>
-                    <option value="allrounder">All-rounder</option>
-                  </select>
-                </div>
+              <div className="grid grid-cols-1 gap-4">
 
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Jersey Number (optional)</label>
+                  <label className="block text-sm font-semibold mb-2 text-slate-300">Jersey Number (optional)</label>
                   <input
                     type="number"
                     value={newPlayerJerseyNumber}
@@ -300,7 +285,6 @@ export default function TeamSetupPage() {
                         {player.jerseyNumber && `#${player.jerseyNumber} `}
                         {player.name}
                       </div>
-                      <div className="text-sm text-slate-400 capitalize">{player.role}</div>
                     </div>
 
                     <button

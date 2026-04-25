@@ -2,7 +2,8 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
-import { closeDialog, replaceBatsman, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
+import { closeDialog, replaceBatsman } from '@/app/lib/redux/slices/scorerSlice';
+import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { useState } from 'react';
@@ -65,12 +66,11 @@ export function NewBatsmanDialog() {
       return;
     }
 
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
+    dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() }));
 
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
-      role: 'batsman',
     };
 
     setSelectedBatter(newPlayer);

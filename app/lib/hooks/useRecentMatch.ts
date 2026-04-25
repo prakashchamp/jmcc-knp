@@ -2,37 +2,41 @@
 
 import { useState, useEffect } from 'react';
 import { Match } from '../cricket-schema';
-import { MOCK_MATCHES } from '../mock-data';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 /**
- * Hook to fetch the most recent match
- * Currently uses mock data - replace with Firestore queries when ready
+ * Hook to fetch the most recent match from Firestore
  */
 export function useRecentMatch(): { data: Match | null; loading: boolean; error: Error | null } {
   const [data, setData] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchMatch = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Use mock data instead of Firestore
-        const matches = MOCK_MATCHES;
+        const matchesRef = collection(db, 'matches');
+        const q = query(matchesRef, orderBy('createdAt', 'desc'), limit(1));
+        const querySnapshot = await getDocs(q);
 
-        if (matches.length === 0) {
+        if (querySnapshot.empty) {
           setData(null);
           return;
         }
 
-        // Sort by date in descending order and get the most recent
-        const sorted = [...matches].sort((a, b) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
-        });
-
-        setData(sorted[0]);
+        const doc = querySnapshot.docs[0];
+        setData({ id: doc.id, ...doc.data() } as unknown as Match);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch recent match'));
       } finally {
@@ -41,7 +45,7 @@ export function useRecentMatch(): { data: Match | null; loading: boolean; error:
     };
 
     fetchMatch();
-  }, []);
+  }, [fetchTrigger, isManualFetchMode]);
 
   return { data, loading, error };
 }

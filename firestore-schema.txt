@@ -1,7 +1,6 @@
 players/
   {playerId}/                         // auto-generated ID
     name:           "Rohit Sharma"    // string
-    role:           "batsman"         // string: batsman | bowler | allrounder
     created_at:     Timestamp         // timestamp
 
 matches/
@@ -34,7 +33,6 @@ performances/
     match_id:           "match001"    // string
     player_id:          "player007"   // string
     player_name:        "R. Sharma"   // string: denormalized
-    player_role:        "batsman"     // string: denormalized
 
     // Match context (copied from match doc)
     date:               Timestamp     // timestamp
@@ -77,7 +75,6 @@ performances/
     match_id:           "match001"    // string
     player_id:          "player007"   // string
     player_name:        "R. Sharma"   // string: denormalized
-    player_role:        "batsman"     // string: denormalized
 
     // Match context (copied from match doc)
     date:               Timestamp     // timestamp
@@ -119,7 +116,6 @@ player_stats_alltime/
     // Identity (denormalized)
     player_id:              "player007"   // string
     player_name:            "R. Sharma"   // string
-    player_role:            "batsman"     // string
 
     // General
     matches:                45            // number
@@ -164,7 +160,6 @@ player_stats_yearly/
     // Identity
     player_id:              "player007"   // string
     player_name:            "R. Sharma"   // string
-    player_role:            "batsman"     // string
     year:                   "2024"        // string
 
     // General
@@ -210,7 +205,6 @@ player_stats_monthly/
     // Identity
     player_id:              "player007"   // string
     player_name:            "R. Sharma"   // string
-    player_role:            "batsman"     // string
     month:                  "2024-03"     // string: YYYY-MM
     year:                   "2024"        // string: for yearly range queries
 

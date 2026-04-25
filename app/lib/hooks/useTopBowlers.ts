@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Performance, PlayerBowlingStats } from '../cricket-schema';
-import { MOCK_PERFORMANCES } from '../mock-data';
+import { PlayerBowlingStats } from '../cricket-schema';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 /**
- * Hook to fetch top 3 all-time bowlers
- * Currently uses mock data - replace with Firestore queries when ready
+ * Hook to fetch top 3 all-time bowlers from Firestore
  */
 export function useTopBowlers(): {
   data: PlayerBowlingStats[] | null;
@@ -16,30 +18,36 @@ export function useTopBowlers(): {
   const [data, setData] = useState<PlayerBowlingStats[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchTopBowlers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Use mock data instead of Firestore
-        const performances = MOCK_PERFORMANCES;
-
+        const performancesRef = collection(db, 'performances');
+        const querySnapshot = await getDocs(performancesRef);
+        
         // Build stats map
         const statsMap = new Map<string, PlayerBowlingStats & { matchIds: Set<string> }>();
 
-        performances.forEach((perf: Performance) => {
-          if (!perf.bowling.didBowl) {
+        querySnapshot.forEach((doc) => {
+          const perf = doc.data();
+          if (!perf.bowl_did_bowl) {
             return;
           }
 
-          const playerId = perf.playerId;
+          const playerId = perf.player_id;
 
           if (!statsMap.has(playerId)) {
             statsMap.set(playerId, {
               playerId,
-              playerName: perf.playerName,
+              playerName: perf.player_name,
               totalMatches: 0,
               totalInnings: 0,
               totalWickets: 0,
@@ -58,20 +66,20 @@ export function useTopBowlers(): {
 
           const stats = statsMap.get(playerId)!;
 
-          stats.totalInnings += perf.bowling.innings;
-          stats.totalWickets += perf.bowling.wickets;
-          stats.totalRuns = (stats.totalRuns || 0) + perf.bowling.runs;
-          stats.totalBalls += perf.bowling.balls;
+          stats.totalInnings += (perf.bowl_innings || 0);
+          stats.totalWickets += (perf.bowl_wickets || 0);
+          stats.totalRuns = (stats.totalRuns || 0) + (perf.bowl_runs || 0);
+          stats.totalBalls += (perf.bowl_balls || 0);
           
-          if (perf.bowling.isThreeFer) {
+          if (perf.bowl_is_three_fer) {
             stats.threeWickets += 1;
           }
-          if (perf.bowling.isFiveFer) {
+          if (perf.bowl_is_five_fer) {
             stats.fiveWickets += 1;
           }
           
-          stats.bestHaul = Math.max(stats.bestHaul, perf.bowling.wickets);
-          stats.matchIds.add(perf.matchId);
+          stats.bestHaul = Math.max(stats.bestHaul, perf.bowl_wickets || 0);
+          stats.matchIds.add(perf.match_id);
         });
 
         // Convert to array and calculate aggregates
@@ -100,7 +108,7 @@ export function useTopBowlers(): {
     };
 
     fetchTopBowlers();
-  }, []);
+  }, [fetchTrigger, isManualFetchMode]);
 
   return { data, loading, error };
 }

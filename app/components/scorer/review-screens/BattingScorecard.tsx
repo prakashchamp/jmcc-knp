@@ -6,6 +6,7 @@ import { RootState } from '@/app/lib/redux/store';
 import type { CurrentBatsman, InningsState } from '@/app/lib/cricket-scorer-types';
 import { getBattingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
 import { getNormalizedBatsmen } from './review-batting-utils';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 
 /**
  * Batting Scorecard Review Component
@@ -80,7 +81,7 @@ export function BattingScorecard() {
               {allBatsmen.map((batsman) => (
                 <tr
                   key={batsman.id}
-                  className={`${batsman.status === 'batting' ? 'bg-blue-900/40 ring-1 ring-inset ring-blue-600' : 'bg-gray-900'}`}
+                  className={`${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-blue-900/40 ring-1 ring-inset ring-blue-600' : 'bg-gray-900'}`}
                 >
                   <td className="px-2 py-2">
                     <div className="font-semibold text-white text-xs">{batsman.name}</div>
@@ -109,6 +110,8 @@ export function BattingScorecard() {
     );
   };
 
+  const teamName = useTeamName();
+
   return (
     <div className="px-2 py-2">
       <ReviewTeamToggle
@@ -118,7 +121,7 @@ export function BattingScorecard() {
       />
       {selectedInnings ? renderBattingTable(selectedInnings) : (
         <div className="text-center py-6 text-gray-400">
-          <p>No batting data available for {selectedTeam === 'Us' ? 'JMCC' : liveMatch?.opponent || 'the opponent'} yet.</p>
+          <p>No batting data available for {selectedTeam === 'Us' ? teamName : liveMatch?.opponent || 'the opponent'} yet.</p>
         </div>
       )}
     </div>

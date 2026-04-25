@@ -1,5 +1,75 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Team } from '@/app/lib/cricket-schema';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import { Team, TeamPlayer } from '@/app/lib/cricket-schema';
+import { getCollection, setDocument } from '@/services/firebase/operations';
+
+export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
+
+/**
+ * Fetch the primary team from Firestore
+ * Since only one team is allowed, we look for the singleton or the first team
+ */
+export const fetchTeam = createAsyncThunk(
+  'team/fetchTeam',
+  async (_, { rejectWithValue }) => {
+    try {
+      const teams = await getCollection<Team>('teams');
+      if (teams.length > 0) {
+        return {
+          ...teams[0].data,
+          id: teams[0].id,
+        };
+      }
+      return null;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch team');
+    }
+  }
+);
+
+/**
+ * Sync team data to Firestore
+ */
+export const syncTeam = createAsyncThunk(
+  'team/syncTeam',
+  async (team: Team, { rejectWithValue }) => {
+    try {
+      const result = await setDocument('teams', team.id, team, true);
+      if (result.success) {
+        return team;
+      }
+      return rejectWithValue(result.error?.message || 'Failed to sync team');
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to sync team');
+    }
+  }
+);
+
+/**
+ * Add a player to the team and sync to Firestore
+ */
+export const addPlayerAndSync = createAsyncThunk(
+  'team/addPlayerAndSync',
+  async (player: TeamPlayer, { getState, dispatch, rejectWithValue }) => {
+    const state = getState() as any;
+    const team = state.team.team as Team | null;
+    
+    if (!team) return rejectWithValue('No team loaded');
+    
+    const updatedTeam = {
+      ...team,
+      players: [...(team.players || []), player],
+      updatedAt: new Date().toISOString(),
+    };
+    
+    try {
+      const result = await dispatch(syncTeam(updatedTeam)).unwrap();
+      return result;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 
 interface TeamState {
   team: Team | null;
@@ -48,6 +118,33 @@ const teamSlice = createSlice({
     rehydrateTeam: (state, action: PayloadAction<TeamState>) => {
       return action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchTeam.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTeam.fulfilled, (state, action) => {
+        state.loading = false;
+        state.team = action.payload;
+      })
+      .addCase(fetchTeam.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(syncTeam.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(syncTeam.fulfilled, (state, action) => {
+        state.loading = false;
+        state.team = action.payload;
+        state.pendingCloudPush = false;
+        state.savedToRedux = true;
+      })
+      .addCase(syncTeam.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

@@ -1,20 +1,83 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
-import { MOCK_MATCHES, MOCK_PERFORMANCES } from '@/app/lib/mock-data';
 import { useParams, useRouter } from 'next/navigation';
+import { db } from '@/services/firebase/db';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { Match, Performance } from '@/app/lib/cricket-schema';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 export default function MatchDetailPage() {
   const params = useParams();
   const router = useRouter();
   const matchId = params.matchId as string;
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
-  // Find the match
-  const match = MOCK_MATCHES.find(m => m.id === matchId);
+  const [match, setMatch] = useState<Match | null>(null);
+  const [matchPerformances, setMatchPerformances] = useState<Performance[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Get performances for this match
-  const matchPerformances = MOCK_PERFORMANCES.filter(p => p.matchId === matchId);
+  useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch match
+        const matchRef = doc(db, 'matches', matchId);
+        const matchSnap = await getDoc(matchRef);
+        if (matchSnap.exists()) {
+          setMatch({ id: matchSnap.id, ...matchSnap.data() } as unknown as Match);
+        }
+
+        // Fetch performances
+        const perfsRef = collection(db, 'performances');
+        const q = query(perfsRef, where('match_id', '==', matchId));
+        const qSnap = await getDocs(q);
+        
+        const perfs = qSnap.docs.map(doc => {
+          const data = doc.data();
+          // Map flat Firestore fields back to nested Performance type if needed
+          // For now, I'll just map them manually if the component expects nested structure
+          return {
+            id: doc.id,
+            playerId: data.player_id,
+            playerName: data.player_name,
+            matchId: data.match_id,
+            batting: {
+              didBat: data.bat_did_bat,
+              innings: data.bat_innings || 0,
+              runs: data.bat_runs || 0,
+              balls: data.bat_balls || 0,
+              fours: data.bat_fours || 0,
+              sixes: data.bat_sixes || 0,
+              strikeRate: data.bat_balls > 0 ? (data.bat_runs / data.bat_balls) * 100 : 0,
+            },
+            bowling: {
+              didBowl: data.bowl_did_bowl,
+              innings: data.bowl_innings || 0,
+              overs: data.bowl_overs || 0,
+              runs: data.bowl_runs || 0,
+              wickets: data.bowl_wickets || 0,
+              economy: data.bowl_overs > 0 ? data.bowl_runs / data.bowl_overs : 0,
+            }
+          } as unknown as Performance;
+        });
+        setMatchPerformances(perfs);
+      } catch (err) {
+        console.error('Error fetching match details:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [matchId, fetchTrigger, isManualFetchMode]);
+
   const battingPerformances = matchPerformances.filter(p => p.batting.didBat && p.batting.innings > 0);
   const bowlingPerformances = matchPerformances.filter(p => p.bowling.didBowl && p.bowling.innings > 0);
 
@@ -88,6 +151,18 @@ export default function MatchDetailPage() {
     });
     return sorted;
   }, [bowlingPerformances, bowlingSortField, bowlingSortDir]);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <Header />
+        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+          <p className="mt-4 text-gray-300">Loading match details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!match) {
     return (
@@ -108,8 +183,8 @@ export default function MatchDetailPage() {
     );
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (matchData: Match) => {
+    const date = (matchData as any).createdAt?.toDate?.() || new Date((matchData as any).createdAt || new Date());
     const options: Intl.DateTimeFormatOptions = { 
       year: 'numeric', 
       month: 'long', 
@@ -141,36 +216,36 @@ export default function MatchDetailPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-900 to-slate-900">
       <Header />
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="mb-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium"
         >
           ← Back to Team Stats
         </button>
 
         {/* Match Header */}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 mb-8 shadow-md">
-          <h1 className="text-3xl font-bold text-white mb-4">Match Details</h1>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8 shadow-md">
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">Match Details</h1>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-6">
             <div>
-              <p className="text-gray-400 text-sm">Date</p>
-              <p className="text-lg font-semibold text-white">{formatDate(match.date)}</p>
+              <p className="text-gray-400 text-[10px] sm:text-sm">Date</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">{formatDate(match)}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Opponent</p>
-              <p className="text-lg font-semibold text-white">{match.opponent}</p>
+              <p className="text-gray-400 text-[10px] sm:text-sm">Opponent</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">{match.opponent}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Venue</p>
-              <p className="text-lg font-semibold text-white">{match.venue}</p>
+              <p className="text-gray-400 text-[10px] sm:text-sm">Venue</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">{match.venue}</p>
             </div>
             <div>
-              <p className="text-gray-400 text-sm">Result</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              <p className="text-gray-400 text-[10px] sm:text-sm">Result</p>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
+                <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-semibold ${
                   match.result === 'won' ? 'bg-green-900 text-green-200' :
                   match.result === 'lost' ? 'bg-red-900 text-red-200' :
                   match.result === 'tie' ? 'bg-yellow-900 text-yellow-200' :
@@ -178,54 +253,54 @@ export default function MatchDetailPage() {
                 }`}>
                   {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
                 </span>
-                {match.winMargin && <span className="text-white font-medium">{match.winMargin}</span>}
+                {match.winMargin && <span className="text-white text-[10px] sm:text-sm font-medium">{match.winMargin}</span>}
               </div>
             </div>
           </div>
         </div>
 
         {/* Batting Stats */}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden mb-8 shadow-md">
-          <h2 className="text-2xl font-bold text-white p-6 pb-4">Batting Statistics</h2>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden mb-6 sm:mb-8 shadow-md">
+          <h2 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h2>
           {sortedBattingPerformances.length === 0 ? (
-            <p className="p-6 text-gray-400">No batting statistics available</p>
+            <p className="p-4 sm:p-6 text-gray-400 text-xs sm:text-sm">No batting statistics available</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
                   <tr>
                     <th 
-                      className="px-4 py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
                       onClick={() => handleBattingSort('playerName')}
                     >
                       Player {battingSortField === 'playerName' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'playerName' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('runs')}
                     >
-                      Runs {battingSortField === 'runs' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'runs' && '⇅'}
+                      R {battingSortField === 'runs' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'runs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('balls')}
                     >
-                      Balls {battingSortField === 'balls' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'balls' && '⇅'}
+                      B {battingSortField === 'balls' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'balls' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('fours')}
                     >
                       4s {battingSortField === 'fours' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'fours' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('sixes')}
                     >
                       6s {battingSortField === 'sixes' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'sixes' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
                       onClick={() => handleBattingSort('strikeRate')}
                     >
                       SR {battingSortField === 'strikeRate' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'strikeRate' && '⇅'}
@@ -238,12 +313,12 @@ export default function MatchDetailPage() {
                       key={perf.id}
                       className={idx % 2 === 0 ? 'bg-slate-800 text-gray-100' : 'bg-slate-700 text-gray-100 hover:bg-slate-600'}
                     >
-                      <td className="px-4 py-3 font-semibold text-white">{perf.playerName}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-blue-600">{perf.batting.runs}</td>
-                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.balls}</td>
-                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.fours}</td>
-                      <td className="px-4 py-3 text-center text-gray-300">{perf.batting.sixes}</td>
-                      <td className="px-4 py-3 text-center text-orange-600">{perf.batting.strikeRate.toFixed(2)}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{perf.playerName}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{perf.batting.runs}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.balls}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.fours}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.sixes}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">{perf.batting.strikeRate.toFixed(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -254,43 +329,43 @@ export default function MatchDetailPage() {
 
         {/* Bowling Stats */}
         <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden shadow-md">
-          <h2 className="text-2xl font-bold text-white p-6 pb-4">Bowling Statistics</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Bowling Statistics</h2>
           {sortedBowlingPerformances.length === 0 ? (
-            <p className="p-6 text-gray-400">No bowling statistics available</p>
+            <p className="p-4 sm:p-6 text-gray-400 text-xs sm:text-sm">No bowling statistics available</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-yellow-700">
                   <tr>
                     <th 
-                      className="px-4 py-3 text-left font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('playerName')}
                     >
                       Player {bowlingSortField === 'playerName' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'playerName' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('overs')}
                     >
-                      Overs {bowlingSortField === 'overs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'overs' && '⇅'}
+                      O {bowlingSortField === 'overs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'overs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('runs')}
                     >
-                      Runs {bowlingSortField === 'runs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'runs' && '⇅'}
+                      R {bowlingSortField === 'runs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'runs' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('wickets')}
                     >
-                      Wkts {bowlingSortField === 'wickets' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'wickets' && '⇅'}
+                      W {bowlingSortField === 'wickets' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'wickets' && '⇅'}
                     </th>
                     <th 
-                      className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('economy')}
                     >
-                      Econ {bowlingSortField === 'economy' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'economy' && '⇅'}
+                      E {bowlingSortField === 'economy' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'economy' && '⇅'}
                     </th>
                   </tr>
                 </thead>
@@ -300,11 +375,11 @@ export default function MatchDetailPage() {
                       key={perf.id}
                       className={idx % 2 === 0 ? 'bg-gray-700' : 'bg-gray-800 hover:bg-gray-700'}
                     >
-                      <td className="px-4 py-3 font-semibold text-white">{perf.playerName}</td>
-                      <td className="px-4 py-3 text-center text-gray-300">{perf.bowling.overs}</td>
-                      <td className="px-4 py-3 text-center text-gray-300">{perf.bowling.runs}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
-                      <td className="px-4 py-3 text-center text-blue-400">{perf.bowling.economy.toFixed(2)}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{perf.playerName}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.overs}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.runs}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">{perf.bowling.economy.toFixed(1)}</td>
                     </tr>
                   ))}  
                 </tbody>

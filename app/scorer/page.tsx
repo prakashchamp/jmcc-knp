@@ -20,9 +20,35 @@ import { JMCC_TEAM_PLAYERS } from '@/app/lib/team-constants';
  * 
  * All data persists in localStorage automatically via Redux middleware
  */
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/app/lib/redux/store';
+import { fetchTeam } from '@/app/lib/redux/slices/teamSlice';
+
 function ScorecardPageContent() {
-  // Use JMCC team for scoring
-  const teamPlayers = JMCC_TEAM_PLAYERS;
+  const dispatch = useDispatch<AppDispatch>();
+  const team = useSelector((state: RootState) => state.team.team);
+  const loading = useSelector((state: RootState) => state.team.loading);
+
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
+
+  useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      return;
+    }
+    dispatch(fetchTeam());
+  }, [dispatch, fetchTrigger, isManualFetchMode]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white font-bold animate-pulse text-lg">Loading team roster...</div>
+      </div>
+    );
+  }
+
+  // Use Firestore team players if available, otherwise fallback to constants
+  const teamPlayers = team?.players || JMCC_TEAM_PLAYERS;
 
   return (
     <div className="min-h-screen bg-gray-100">

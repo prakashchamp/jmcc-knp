@@ -42,7 +42,7 @@ export function PlayersList({
         >
           <div className="font-semibold">{player.playerName}</div>
           <div className={`text-sm ${selectedPlayerId === player.playerId ? 'text-blue-100' : 'text-gray-500'}`}>
-            {player.playerRole} • {player.totalMatches} matches
+            {player.totalMatches} matches
           </div>
         </button>
       ))}

@@ -6,6 +6,7 @@ import { RootState } from '@/app/lib/redux/store';
 import type { InningsState } from '@/app/lib/cricket-scorer-types';
 import { getBowlerStats } from '@/app/lib/bowling-stats-utils';
 import { getBowlingTeamInnings, ReviewTeam, ReviewTeamToggle } from './ReviewTeamToggle';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 
 /**
  * Bowling Scorecard Review Component
@@ -95,6 +96,8 @@ export function BowlingScorecard() {
     );
   };
 
+  const teamName = useTeamName();
+
   return (
     <div className="px-2 py-2">
       <ReviewTeamToggle
@@ -104,7 +107,7 @@ export function BowlingScorecard() {
       />
       {selectedInnings ? renderBowlingTable(selectedInnings) : (
         <div className="text-center py-6 text-gray-400">
-          <p>No bowling data available for {selectedTeam === 'Us' ? 'JMCC' : liveMatch?.opponent || 'the opponent'} yet.</p>
+          <p>No bowling data available for {selectedTeam === 'Us' ? teamName : liveMatch?.opponent || 'the opponent'} yet.</p>
         </div>
       )}
     </div>

@@ -7,8 +7,8 @@ import type { CurrentBatsman, InningsState } from '@/app/lib/cricket-scorer-type
 import { getBowlerStats } from '@/app/lib/bowling-stats-utils';
 import { getNormalizedBatsmen } from './review-batting-utils';
 
-const getTeamName = (team: 'Us' | 'Them', opponent: string) =>
-  team === 'Us' ? 'JMCC' : opponent;
+const getTeamName = (team: 'Us' | 'Them', opponent: string, teamName: string) =>
+  team === 'Us' ? teamName : opponent;
 
 const getMergedInnings = (liveMatch: RootState['scorer']['liveMatch'], currentInnings: RootState['scorer']['currentInnings']) => {
   const inningsList = liveMatch?.innings ? [...liveMatch.innings] : [];
@@ -65,6 +65,9 @@ function getExtrasBreakdown(innings: InningsState | null | undefined) {
 
 function formatDismissal(batsman: CurrentBatsman): string {
   if (batsman.status === 'batting') {
+    if (batsman.dismissal?.mode === 'retired-hurt') {
+      return 'Retired Hurt';
+    }
     return 'not out';
   }
 
@@ -276,6 +279,7 @@ function CollapsibleSection({
  */
 export function MatchDetails() {
   const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
 
   if (!liveMatch) {
     return (
@@ -289,14 +293,14 @@ export function MatchDetails() {
   const firstInnings = inningsList.find((innings) => innings.inningsNumber === 1) ?? null;
   const secondInnings = inningsList.find((innings) => innings.inningsNumber === 2) ?? null;
 
-  const firstBattingTeam = firstInnings ? getTeamName(firstInnings.battingTeam, liveMatch.opponent) : 'JMCC';
+  const firstBattingTeam = firstInnings ? getTeamName(firstInnings.battingTeam, liveMatch.opponent, teamName) : teamName;
   const firstBowlingTeam = firstInnings
-    ? getTeamName(firstInnings.battingTeam === 'Us' ? 'Them' : 'Us', liveMatch.opponent)
+    ? getTeamName(firstInnings.battingTeam === 'Us' ? 'Them' : 'Us', liveMatch.opponent, teamName)
     : liveMatch.opponent;
-  const secondBattingTeam = secondInnings ? getTeamName(secondInnings.battingTeam, liveMatch.opponent) : liveMatch.opponent;
+  const secondBattingTeam = secondInnings ? getTeamName(secondInnings.battingTeam, liveMatch.opponent, teamName) : liveMatch.opponent;
   const secondBowlingTeam = secondInnings
-    ? getTeamName(secondInnings.battingTeam === 'Us' ? 'Them' : 'Us', liveMatch.opponent)
-    : 'JMCC';
+    ? getTeamName(secondInnings.battingTeam === 'Us' ? 'Them' : 'Us', liveMatch.opponent, teamName)
+    : teamName;
 
   return (
     <div className="space-y-3 px-2 py-2">
@@ -316,7 +320,7 @@ export function MatchDetails() {
           </div>
           <div>
             <p className="text-gray-400">Toss</p>
-            <p className="font-semibold text-white">{getTeamName(liveMatch.tossWonBy, liveMatch.opponent)}</p>
+            <p className="font-semibold text-white">{getTeamName(liveMatch.tossWonBy, liveMatch.opponent, teamName)}</p>
           </div>
         </div>
       </CollapsibleSection>

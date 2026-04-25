@@ -5,47 +5,52 @@ import { Header } from '@/app/components/Header';
 import { MonthlyBattingStatsTable } from '@/app/components/MonthlyBattingStatsTable';
 import { MonthlyBowlingStatsTable } from '@/app/components/MonthlyBowlingStatsTable';
 import { useMonthlyStats } from '@/app/lib/hooks/useMonthlyStats';
-import { MOCK_PERFORMANCES } from '@/app/lib/mock-data';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 export default function MonthlyStatsPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [availableMonths, setAvailableMonths] = useState<{ value: string; label: string }[]>([]);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
-  // Extract unique months from mock data and sort descending
+  // Extract unique months from Firestore matches
   useEffect(() => {
-    const months = new Set(MOCK_PERFORMANCES.map((perf) => perf.month));
-    const sortedMonths = Array.from(months)
-      .sort()
-      .reverse() // Most recent first
-      .map((monthStr) => {
-        const [year, month] = monthStr.split('-');
-        const monthNames = [
-          'January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December',
-        ];
-        const monthName = monthNames[parseInt(month) - 1];
-        return {
-          value: monthStr,
-          label: `${monthName} ${year}`,
-        };
-      });
-
-    setAvailableMonths(sortedMonths);
-    // Set default to most recent month
-    if (sortedMonths.length > 0) {
-      setSelectedMonth(sortedMonths[0].value);
+    if (isManualFetchMode && fetchTrigger === 0) {
+      return;
     }
-  }, []);
+    const fetchAvailableMonths = async () => {
+      try {
+        const matchesRef = collection(db, 'matches');
+        const snapshot = await getDocs(matchesRef);
+        
+        const monthsMap = new Map<string, string>();
+        snapshot.forEach(doc => {
+          const match = doc.data();
+          const date = match.createdAt?.toDate?.() || new Date(match.createdAt);
+          const monthKey = date.toLocaleString('default', { month: 'long' });
+          const yearKey = date.getFullYear().toString();
+          const label = `${monthKey} ${yearKey}`;
+          monthsMap.set(monthKey, label);
+        });
+
+        const sortedMonths = Array.from(monthsMap.entries()).map(([value, label]) => ({
+          value,
+          label
+        }));
+
+        setAvailableMonths(sortedMonths);
+        if (sortedMonths.length > 0) {
+          setSelectedMonth(sortedMonths[0].value);
+        }
+      } catch (err) {
+        console.error('Error fetching months:', err);
+      }
+    };
+
+    fetchAvailableMonths();
+  }, [fetchTrigger, isManualFetchMode]);
 
   const { players, loading, error } = useMonthlyStats(selectedMonth);
 

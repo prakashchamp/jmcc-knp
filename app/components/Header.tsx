@@ -3,6 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 
 /**
  * Header Component
@@ -12,6 +15,7 @@ import Image from 'next/image';
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const teamName = useTeamName();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -111,15 +115,14 @@ export function Header() {
             alt="JMCC Spartans Logo"
             width={48}
             height={48}
-            className="rounded-full object-cover shadow-md"
-            style={{ width: 'auto', height: 'auto' }}
+            className="rounded-full object-cover shadow-md aspect-square"
             priority
           />
         </div>
 
         {/* Team Name - Centered */}
         <div className="flex-1 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">JMCC Spartans</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{teamName}</h1>
           <p className="text-blue-100 text-sm mt-1">Cricket Team</p>
         </div>
 

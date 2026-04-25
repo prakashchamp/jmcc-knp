@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '@/app/lib/redux/store';
+import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
+import { TeamPlayer, LiveMatch } from '@/app/lib/cricket-scorer-types';
 import { validateAndClearCorruptedState } from '@/app/lib/redux/store';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { inputClass, primaryButtonClass, secondaryButtonClass } from './dialogs/dialogTheme';
 
 // Constant opponent player list
 const OPPONENT_PLAYERS: TeamPlayer[] = Array.from({ length: 11 }, (_, i) => ({
   id: `opponent-${i + 1}`,
   name: `Opp Player ${i + 1}`,
-  role: 'batsman' as const,
 }));
 
 interface ScorerLandingPageProps {
@@ -27,6 +31,8 @@ interface ScorerLandingPageProps {
   }) => void;
   onResumeMatch: () => void;
   hasMatchToResume: boolean;
+  lastCompletedMatch?: LiveMatch | null;
+  onViewCompletedMatch?: (match: LiveMatch) => void;
   teamPlayers?: TeamPlayer[];
 }
 
@@ -192,7 +198,17 @@ function DropdownInputField({
   );
 }
 
-export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToResume, teamPlayers = [] }: ScorerLandingPageProps) {
+export function ScorerLandingPage({ 
+  onStartNewMatch, 
+  onResumeMatch, 
+  hasMatchToResume, 
+  lastCompletedMatch = null,
+  onViewCompletedMatch,
+  teamPlayers = [] 
+}: ScorerLandingPageProps) {
+  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const teamName = useTeamName();
   // Navigation states: 'landing' | 'match' | 'players'
   const [step, setStep] = useState<'landing' | 'match' | 'players'>('landing');
   
@@ -235,7 +251,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
   const strikerOptions = teamPlayers.filter((player) => player.id !== nonStriker?.id);
   const nonStrikerOptions = teamPlayers.filter((player) => player.id !== striker?.id);
   const venueOptions: DropdownOption[] = ['Home', 'Away', 'Neutral'].map((option) => ({ value: option, label: option }));
-  const teamAName = 'JMCC';
+  const teamAName = teamName;
   const teamBName = formData.opponent.trim() || 'Team B';
   const isOpponentEntered = formData.opponent.trim().length > 0;
   const tossOptions: DropdownOption[] = [
@@ -259,27 +275,19 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
   };
 
   // Create new player handlers
-  const handleCreateNewStriker = () => {
+  const handleCreateNewStriker = async () => {
     if (newStrikerName.trim()) {
-      const newPlayer: TeamPlayer = {
-        id: `striker-${Date.now()}`,
-        name: newStrikerName.trim(),
-        role: 'batsman',
-      };
-      setStriker(newPlayer);
+      const result = await dispatch(addNewPlayerToTeamAndMatch({ name: newStrikerName.trim() })).unwrap();
+      setStriker(result);
       setNewStrikerName('');
       setStrikerOpen(false);
     }
   };
 
-  const handleCreateNewNonStriker = () => {
+  const handleCreateNewNonStriker = async () => {
     if (newNonStrikerName.trim()) {
-      const newPlayer: TeamPlayer = {
-        id: `non-striker-${Date.now()}`,
-        name: newNonStrikerName.trim(),
-        role: 'batsman',
-      };
-      setNonStriker(newPlayer);
+      const result = await dispatch(addNewPlayerToTeamAndMatch({ name: newNonStrikerName.trim() })).unwrap();
+      setNonStriker(result);
       setNewNonStrikerName('');
       setNonStrikerOpen(false);
     }
@@ -290,7 +298,6 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
       const newPlayer: TeamPlayer = {
         id: `bowler-${Date.now()}`,
         name: newBowlerName.trim(),
-        role: 'bowler',
       };
       setBowler(newPlayer);
       setNewBowlerName('');
@@ -406,6 +413,38 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                 Resume Match
               </button>
             )}
+
+            {/* Completed Matches Button */}
+            {lastCompletedMatch && (
+              <button
+                onClick={() => onViewCompletedMatch?.(lastCompletedMatch)}
+                className="w-full px-6 py-4 bg-emerald-700 hover:bg-emerald-600 text-white text-lg font-bold rounded-lg transition-colors border border-emerald-500/30"
+              >
+                <div className="flex flex-col items-center">
+                  <span>Completed Matches</span>
+                  <span className="text-[10px] font-medium opacity-80 uppercase tracking-wider mt-1">
+                    Last: {lastCompletedMatch.opponent}
+                  </span>
+                </div>
+              </button>
+            )}
+
+            {!lastCompletedMatch && (
+              <button
+                disabled
+                className="w-full px-6 py-4 bg-gray-700 text-gray-500 text-lg font-bold rounded-lg cursor-not-allowed opacity-50"
+              >
+                Completed Matches
+              </button>
+            )}
+
+            {/* Back to Home Button */}
+            <button
+              onClick={() => router.push('/')}
+              className="w-full px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-lg font-bold rounded-lg transition-colors border border-slate-700"
+            >
+              Back to Home
+            </button>
           </div>
         </div>
       </div>
@@ -553,6 +592,24 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
 
   // Player selection form
   if (step === 'players') {
+    // Derive who bats this innings from toss + decision + innings number
+    // innings1: JMCC bats if (tossWonBy=Us & bat) OR (tossWonBy=Them & field)
+    // innings2: flip innings1
+    const jmccBattsInnings1 =
+      (formData.tossWonBy === 'Us' && formData.tossDecision === 'bat') ||
+      (formData.tossWonBy === 'Them' && formData.tossDecision === 'field');
+    const jmccBatting = startFromSecondInnings ? !jmccBattsInnings1 : jmccBattsInnings1;
+
+    const battingTeamName = jmccBatting ? teamName : formData.opponent;
+    const bowlingTeamName = jmccBatting ? formData.opponent : teamName;
+    const strikerOptions = jmccBatting
+      ? teamPlayers.filter((p) => p.id !== nonStriker?.id)
+      : OPPONENT_PLAYERS.filter((p) => p.id !== nonStriker?.id);
+    const nonStrikerOptions = jmccBatting
+      ? teamPlayers.filter((p) => p.id !== striker?.id)
+      : OPPONENT_PLAYERS.filter((p) => p.id !== striker?.id);
+    const bowlerOptions = jmccBatting ? OPPONENT_PLAYERS : teamPlayers;
+
     return (
       <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-xl my-8 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60 backdrop-blur-sm sm:p-8">
@@ -566,7 +623,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
           <form onSubmit={handlePlayerSelection} className="space-y-5">
             <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">Batting Team</p>
-              <p className="mt-1 text-lg font-semibold text-white">🏏 JMCC</p>
+              <p className="mt-1 text-lg font-semibold text-white">🏏 {battingTeamName}</p>
             </div>
 
             <div className="relative">
@@ -601,24 +658,26 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                     ))}
                   </div>
 
-                  <div className="border-t border-slate-700 bg-slate-800/70 p-3">
-                    <input
-                      type="text"
-                      value={newStrikerName}
-                      onChange={(e) => setNewStrikerName(e.target.value)}
-                      placeholder="New player name"
-                      className={`${inputClass} mb-2`}
-                      onKeyPress={(e) => e.key === 'Enter' && handleCreateNewStriker()}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateNewStriker}
-                      disabled={!newStrikerName.trim()}
-                      className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
-                    >
-                      Create Player
-                    </button>
-                  </div>
+                  {jmccBatting && (
+                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                      <input
+                        type="text"
+                        value={newStrikerName}
+                        onChange={(e) => setNewStrikerName(e.target.value)}
+                        placeholder="New player name"
+                        className={`${inputClass} mb-2`}
+                        onKeyPress={(e) => e.key === 'Enter' && handleCreateNewStriker()}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCreateNewStriker}
+                        disabled={!newStrikerName.trim()}
+                        className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
+                      >
+                        Create Player
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -655,31 +714,33 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                     ))}
                   </div>
 
-                  <div className="border-t border-slate-700 bg-slate-800/70 p-3">
-                    <input
-                      type="text"
-                      value={newNonStrikerName}
-                      onChange={(e) => setNewNonStrikerName(e.target.value)}
-                      placeholder="New player name"
-                      className={`${inputClass} mb-2`}
-                      onKeyPress={(e) => e.key === 'Enter' && handleCreateNewNonStriker()}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateNewNonStriker}
-                      disabled={!newNonStrikerName.trim()}
-                      className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
-                    >
-                      Create Player
-                    </button>
-                  </div>
+                  {jmccBatting && (
+                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                      <input
+                        type="text"
+                        value={newNonStrikerName}
+                        onChange={(e) => setNewNonStrikerName(e.target.value)}
+                        placeholder="New player name"
+                        className={`${inputClass} mb-2`}
+                        onKeyPress={(e) => e.key === 'Enter' && handleCreateNewNonStriker()}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCreateNewNonStriker}
+                        disabled={!newNonStrikerName.trim()}
+                        className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
+                      >
+                        Create Player
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
             <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Bowling Team</p>
-              <p className="mt-1 text-lg font-semibold text-white">🎯 {formData.opponent}</p>
+              <p className="mt-1 text-lg font-semibold text-white">🎯 {bowlingTeamName}</p>
             </div>
 
             <div className="relative">
@@ -695,7 +756,7 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
               {bowlerOpen && (
                 <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
                   <div className="space-y-2 p-2">
-                    {OPPONENT_PLAYERS.map((player) => (
+                    {bowlerOptions.map((player) => (
                       <button
                         key={player.id}
                         type="button"
@@ -714,24 +775,26 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                     ))}
                   </div>
 
-                  <div className="border-t border-slate-700 bg-slate-800/70 p-3">
-                    <input
-                      type="text"
-                      value={newBowlerName}
-                      onChange={(e) => setNewBowlerName(e.target.value)}
-                      placeholder="New bowler name"
-                      className={`${inputClass} mb-2`}
-                      onKeyPress={(e) => e.key === 'Enter' && handleCreateNewBowler()}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleCreateNewBowler}
-                      disabled={!newBowlerName.trim()}
-                      className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
-                    >
-                      Create Bowler
-                    </button>
-                  </div>
+                  {!jmccBatting && (
+                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                      <input
+                        type="text"
+                        value={newBowlerName}
+                        onChange={(e) => setNewBowlerName(e.target.value)}
+                        placeholder="New bowler name"
+                        className={`${inputClass} mb-2`}
+                        onKeyPress={(e) => e.key === 'Enter' && handleCreateNewBowler()}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCreateNewBowler}
+                        disabled={!newBowlerName.trim()}
+                        className={`w-full px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-slate-700 ${primaryButtonClass}`}
+                      >
+                        Create Bowler
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Match, Performance } from '../cricket-schema';
-import { MOCK_MATCHES } from '../mock-data';
-import { getCollection } from '@/services/firebase/operations';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs, query, orderBy, limit as firestoreLimit } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 export interface RecentMatchStats {
   match: Match;
@@ -11,37 +13,49 @@ export interface RecentMatchStats {
 }
 
 /**
- * Hook to fetch recent N matches with their performances
+ * Hook to fetch recent N matches from Firestore
  */
-export function useRecentMatches(limit: number = 5) {
+export function useRecentMatches(limitCount: number = 5) {
   const [matches, setMatches] = useState<RecentMatchStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchMatches = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Use mock data - replace with Firestore when ready
-        const allMatches: Match[] = MOCK_MATCHES;
+        const matchesRef = collection(db, 'matches');
+        const q = query(matchesRef, orderBy('createdAt', 'desc'), firestoreLimit(limitCount));
+        const querySnapshot = await getDocs(q);
 
-        // Sort by date in descending order
-        const sorted = [...allMatches].sort((a, b) => {
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        const matchIds = querySnapshot.docs.map(doc => doc.id);
+        
+        if (matchIds.length === 0) {
+          setMatches([]);
+          return;
+        }
+
+        // Fetch performances for these matches
+        const performancesRef = collection(db, 'performances');
+        const perfSnapshot = await getDocs(performancesRef);
+        const allPerfs = perfSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as unknown as Performance));
+
+        const recentMatches: RecentMatchStats[] = querySnapshot.docs.map(doc => {
+          const matchId = doc.id;
+          return {
+            match: { id: matchId, ...doc.data() } as unknown as Match,
+            performances: allPerfs.filter(p => (p as any).match_id === matchId),
+          };
         });
 
-        // Get the last N matches
-        const recentMatches = sorted.slice(0, limit);
-
-        // For now, create stub performances - in production, fetch from 'performances' collection
-        const recentWithPerformances: RecentMatchStats[] = recentMatches.map((match) => ({
-          match,
-          performances: [], // TODO: Fetch from Firestore performances collection
-        }));
-
-        setMatches(recentWithPerformances);
+        setMatches(recentMatches);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch recent matches'));
       } finally {
@@ -50,7 +64,7 @@ export function useRecentMatches(limit: number = 5) {
     };
 
     fetchMatches();
-  }, [limit]);
+  }, [limitCount, fetchTrigger, isManualFetchMode]);
 
   return { matches, loading, error };
 }

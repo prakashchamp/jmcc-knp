@@ -28,11 +28,11 @@ function PlayerStatsContent() {
     <div className="min-h-screen bg-gray-900">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">Player Statistics</h1>
-          <p className="text-gray-400 mt-2">Click on a player to view their all-time statistics</p>
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white">Player Statistics</h1>
+          <p className="text-gray-400 mt-1 sm:mt-2 text-xs sm:text-base">Click on a player to view their all-time statistics</p>
         </div>
 
         {error && (

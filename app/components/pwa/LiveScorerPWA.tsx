@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BatsmanScorecard, BowlerScorecard, InningsScorecard } from '@/app/lib/pwa-cricket-types';
 import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 
@@ -23,6 +23,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
   onInningsComplete,
   isLoading = false,
 }) => {
+  // ── UI state ──────────────────────────────────────────────────────────────
   const [currentBalls, setCurrentBalls] = useState<any[]>([]);
   const [showExtrasModal, setShowExtrasModal] = useState(false);
   const [showWicketModal, setShowWicketModal] = useState(false);
@@ -30,145 +31,143 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
   const [ballsInOver, setBallsInOver] = useState(0);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'warning' } | null>(null);
 
-  // Get current strike info
-  const getCurrentStrike = () => {
-    return {
-      striker: innings.batsmen[0],
-      nonStriker: innings.batsmen[1],
-      bowler: innings.bowlers[0],
-    };
-  };
+  // ── Innings state (copy from prop so mutations trigger re-renders) ────────
+  const [batsmen, setBatsmen] = useState<BatsmanScorecard[]>(() => innings.batsmen.map(b => ({ ...b })));
+  const [bowlers, setBowlers] = useState<BowlerScorecard[]>(() => innings.bowlers.map(b => ({ ...b })));
+  // strikerIndex: 0 → batsmen[0] on strike; 1 → batsmen[1] on strike
+  const [strikerIndex, setStrikerIndex] = useState(0);
+  const [totalRuns, setTotalRuns] = useState(innings.totalRuns);
+  const [totalWickets, setTotalWickets] = useState(innings.totalWickets);
+  const [totalOversPlayed, setTotalOversPlayed] = useState(innings.totalOversPlayed);
+  const [extras, setExtras] = useState({ ...innings.extras });
 
+  // Derived current players
+  const striker = batsmen[strikerIndex];
+  const nonStriker = batsmen[strikerIndex === 0 ? 1 : 0];
+  const bowler = bowlers[bowlers.length - 1];
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const showToast = (message: string, type: 'info' | 'success' | 'warning' = 'info') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleRunBall = (runs: number) => {
-    const { striker } = getCurrentStrike();
+  const rotateStrike = () => setStrikerIndex(idx => (idx === 0 ? 1 : 0));
 
+  // ── Ball handlers ─────────────────────────────────────────────────────────
+  const handleRunBall = (runs: number) => {
     if (!striker) {
       showToast('No striker selected', 'warning');
       return;
     }
 
-    // Add runs to striker
-    striker.runs += runs;
-    striker.balls += 1;
+    // Update striker stats
+    setBatsmen(prev => {
+      const next = prev.map(b => ({ ...b }));
+      const s = next[strikerIndex];
+      s.runs += runs;
+      s.balls += 1;
+      s.strikeRate = (s.runs / s.balls) * 100;
+      if (runs === 4) s.fours += 1;
+      if (runs === 6) s.sixes += 1;
+      return next;
+    });
 
-    // Update strike rate
-    striker.strikeRate = (striker.runs / striker.balls) * 100;
+    setTotalRuns(r => r + runs);
 
-    // Count fours and sixes
-    if (runs === 4) striker.fours += 1;
-    if (runs === 6) striker.sixes += 1;
+    const newBallsInOver = ballsInOver + 1;
+    setCurrentBalls(prev => [...prev, { type: 'run', runs }]);
+    setBallsInOver(newBallsInOver);
 
-    // Apply strike rotation for odd runs
-    if (runs % 2 === 1) {
-      // Rotate strike
-      const temp = innings.batsmen[0];
-      innings.batsmen[0] = innings.batsmen[1];
-      innings.batsmen[1] = temp;
-    }
+    // Rotate strike on odd runs
+    const oddRuns = runs % 2 === 1;
+    if (oddRuns) rotateStrike();
 
-    // Update ball tracking
-    const newBalls = [...currentBalls, { type: 'run', runs }];
-    setCurrentBalls(newBalls);
-    setBallsInOver(ballsInOver + 1);
-
-    // Update innings totals
-    innings.totalRuns += runs;
-
-    // Check if over complete
-    if (ballsInOver + 1 >= 6) {
+    // End of over: rotate strike
+    if (newBallsInOver >= 6) {
       handleOverEnd();
     }
 
     onBallDelivery({ type: 'run', runs });
-    showToast(`${runs} runs • ${striker.name}`, 'success');
+    showToast(`${runs} runs`, 'success');
   };
 
   const handleExtraBall = (extraType: 'wide' | 'no-ball' | 'bye' | 'leg-bye', runs: number = 1) => {
-    const { striker } = getCurrentStrike();
+    setTotalRuns(r => r + runs);
 
-    innings.totalRuns += runs;
+    setExtras(prev => {
+      const next = { ...prev };
+      if (extraType === 'wide') next.wides += 1;
+      else if (extraType === 'no-ball') next.noBalls += 1;
+      else if (extraType === 'bye') next.byes += 1;
+      else if (extraType === 'leg-bye') next.legByes += 1;
+      return next;
+    });
 
-    // Add to extras
-    if (extraType === 'wide') {
-      innings.extras.wides += 1;
-    } else if (extraType === 'no-ball') {
-      innings.extras.noBalls += 1;
-    } else if (extraType === 'bye') {
-      innings.extras.byes += 1;
-    } else if (extraType === 'leg-bye') {
-      innings.extras.legByes += 1;
-    }
-
-    // For bye/leg-bye, runs go to extras not batter
-    if (extraType !== 'bye' && extraType !== 'leg-bye' && striker) {
-      striker.balls += 1;
-      striker.strikeRate = (striker.runs / striker.balls) * 100;
-    }
-
-    const newBalls = [...currentBalls, { type: 'extra', extraType, runs }];
-    setCurrentBalls(newBalls);
-
-    // No-ball and wide don't count as legal balls (don't increment over)
+    // Bye/leg-bye: striker faces the delivery
     if (extraType !== 'wide' && extraType !== 'no-ball') {
-      setBallsInOver(ballsInOver + 1);
+      setBatsmen(prev => {
+        const next = prev.map(b => ({ ...b }));
+        next[strikerIndex].balls += 1;
+        next[strikerIndex].strikeRate =
+          next[strikerIndex].balls > 0
+            ? (next[strikerIndex].runs / next[strikerIndex].balls) * 100
+            : 0;
+        return next;
+      });
+    }
 
-      if (ballsInOver + 1 >= 6) {
-        handleOverEnd();
-      }
+    setCurrentBalls(prev => [...prev, { type: 'extra', extraType, runs }]);
+
+    // Wide / no-ball = illegal delivery → does NOT count toward over
+    if (extraType !== 'wide' && extraType !== 'no-ball') {
+      const newBallsInOver = ballsInOver + 1;
+      setBallsInOver(newBallsInOver);
+      if (newBallsInOver >= 6) handleOverEnd(false);
     }
 
     onBallDelivery({ type: 'extra', extraType, runs });
-    showToast(`${extraType} (${runs} runs)`, 'success');
+    showToast(`${extraType} (+${runs})`, 'success');
     setShowExtrasModal(false);
     setSelectedExtra(null);
   };
 
   const handleWicket = () => {
-    const { striker } = getCurrentStrike();
-
     if (!striker) {
       showToast('No striker selected', 'warning');
       return;
     }
 
-    // Mark as out
-    striker.status = 'out';
-    innings.totalWickets += 1;
+    // Mark striker out
+    const newWickets = totalWickets + 1;
+    setTotalWickets(newWickets);
 
-    // Get next available batsman
+    // Find next JMCC player not yet in batsmen list
     const nextBatsman = abcTeamPlayers.find(
-      (p) => !innings.batsmen.some((b) => b.id === p.id)
+      p => !batsmen.some(b => b.id === p.id)
     );
 
-    if (nextBatsman) {
-      // Replace striker with next batsman
-      innings.batsmen[0] = {
-        id: nextBatsman.id,
-        name: nextBatsman.name,
-        runs: 0,
-        balls: 0,
-        fours: 0,
-        sixes: 0,
-        status: 'not-out',
-        strikeRate: 0,
-      };
-    }
+    setBatsmen(prev => {
+      const next = prev.map(b => ({ ...b }));
+      next[strikerIndex].status = 'out';
+      if (nextBatsman) {
+        next[strikerIndex] = {
+          id: nextBatsman.id,
+          name: nextBatsman.name,
+          runs: 0, balls: 0, fours: 0, sixes: 0, status: 'not-out', strikeRate: 0,
+        };
+      }
+      return next;
+    });
 
-    // Ball counts as legal
-    const newBalls = [...currentBalls, { type: 'wicket' }];
-    setCurrentBalls(newBalls);
-    setBallsInOver(ballsInOver + 1);
+    const newBallsInOver = ballsInOver + 1;
+    setCurrentBalls(prev => [...prev, { type: 'wicket' }]);
+    setBallsInOver(newBallsInOver);
 
-    // Check if innings over
-    if (innings.totalWickets >= 10) {
+    if (newWickets >= 10) {
       handleInningsEnd();
-    } else if (ballsInOver + 1 >= 6) {
-      handleOverEnd();
+    } else if (newBallsInOver >= 6) {
+      handleOverEnd(false);
     }
 
     onBallDelivery({ type: 'wicket' });
@@ -176,23 +175,20 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
     setShowWicketModal(false);
   };
 
+  /**
+   * Called at end of each over.
+   * @param oddRunsAlreadySwapped - if true, mid-ball odd-run swap already happened;
+   *   skip the end-of-over swap so we don't double-rotate.
+   */
   const handleOverEnd = () => {
-    // Rotate strike
-    const temp = innings.batsmen[0];
-    innings.batsmen[0] = innings.batsmen[1];
-    innings.batsmen[1] = temp;
+    rotateStrike();
 
-    // Update overs played
-    innings.totalOversPlayed = (Math.floor(innings.totalOversPlayed) + 1) +
-      (innings.totalOversPlayed % 1);
-
-    // Reset balls and show over selection modal
+    const completedOver = Math.floor(totalOversPlayed) + 1;
+    setTotalOversPlayed(completedOver);
     setCurrentBalls([]);
     setBallsInOver(0);
 
-    showToast(`End of Over ${Math.floor(innings.totalOversPlayed)}!`, 'info');
-
-    // Would show bowler selection here in full implementation
+    showToast(`End of Over ${completedOver}!`, 'info');
   };
 
   const handleInningsEnd = () => {
@@ -207,39 +203,46 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       showToast('No balls to undo', 'warning');
       return;
     }
-
-    // TODO: Implement proper undo with state rollback
     showToast('Undo not yet implemented', 'info');
   };
 
-  const { striker, nonStriker, bowler } = getCurrentStrike();
+  // ── Display helpers ───────────────────────────────────────────────────────
   const oversDisplay = (overs: number) => {
-    const fullOvers = Math.floor(overs);
-    const balls = overs % 1 === 0 ? 0 : Math.round((overs % 1) * 10);
-    return balls === 0 ? fullOvers : `${fullOvers}.${balls}`;
+    const full = Math.floor(overs);
+    const balls = Math.round((overs % 1) * 10);
+    return balls === 0 ? `${full}` : `${full}.${balls}`;
   };
 
   return (
     <div className="h-screen bg-white text-slate-900 flex flex-col p-4">
       {/* Match Header */}
       <div className="text-center mb-4 pb-3 border-b-2 border-slate-200">
-        <p className="text-sm font-semibold text-slate-600">{innings.battingTeam === 'ABC' ? 'ABC' : 'West Indies'}, {innings.inningsNumber}{innings.inningsNumber === 1 ? 'st' : 'nd'} inning</p>
+        <p className="text-sm font-semibold text-slate-600">
+          {innings.battingTeam === 'ABC' ? 'JMCC' : innings.battingTeam}, {innings.inningsNumber}
+          {innings.inningsNumber === 1 ? 'st' : 'nd'} innings
+        </p>
         <div className="flex justify-between items-baseline mt-2">
           <div className="text-left">
             <p className="text-3xl font-bold text-slate-900">
-              {innings.totalRuns} - {innings.totalWickets}
+              {totalRuns} - {totalWickets}
             </p>
             <p className="text-xs text-slate-500">
-              ({oversDisplay(innings.totalOversPlayed)})
+              ({oversDisplay(totalOversPlayed)} ov)
             </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-slate-500">CRR</p>
             <p className="text-lg font-bold text-slate-900">
-              {(innings.totalRuns / (innings.totalOversPlayed || 1)).toFixed(2)}
+              {(totalRuns / (totalOversPlayed || 1)).toFixed(2)}
             </p>
           </div>
         </div>
+        {innings.target && (
+          <p className="text-sm text-blue-600 font-semibold mt-1">
+            Target: {innings.target} • Need {innings.target - totalRuns} from{' '}
+            {(oversPerMatch - totalOversPlayed).toFixed(1)} ov
+          </p>
+        )}
       </div>
 
       {/* Stats Tables */}
@@ -247,7 +250,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
         {/* Batsman Stats */}
         {striker && (
           <div className="text-sm">
-            <p className="font-semibold text-slate-700 mb-2">Batsman</p>
+            <p className="font-semibold text-slate-700 mb-2">Batsmen</p>
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="border-b border-slate-300">
@@ -291,19 +294,19 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
               <thead>
                 <tr className="border-b border-slate-300">
                   <th className="text-left py-1 px-1 font-semibold">Name</th>
+                  <th className="text-center py-1 px-1 font-semibold">O</th>
                   <th className="text-center py-1 px-1 font-semibold">M</th>
                   <th className="text-center py-1 px-1 font-semibold">R</th>
                   <th className="text-center py-1 px-1 font-semibold">W</th>
-                  <th className="text-center py-1 px-1 font-semibold">ER</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b border-slate-200">
                   <td className="py-1 px-1">{bowler.name}</td>
+                  <td className="text-center py-1 px-1">{bowler.overs}</td>
                   <td className="text-center py-1 px-1">{bowler.maidens}</td>
                   <td className="text-center py-1 px-1">{bowler.runs}</td>
                   <td className="text-center py-1 px-1">{bowler.wickets}</td>
-                  <td className="text-center py-1 px-1">{bowler.economy.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
@@ -311,9 +314,11 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
         )}
 
         {/* This Over */}
-        {(currentBalls.length > 0 || ballsInOver > 0) && (
+        {currentBalls.length > 0 && (
           <div className="mt-4 pt-3 border-t border-slate-200">
-            <p className="font-semibold text-slate-700 mb-2">This over: {currentBalls.map(b => b.type === 'wicket' ? 'W' : (b.runs || 'E')).join(' ')}</p>
+            <p className="font-semibold text-slate-700 mb-2">
+              This over: {currentBalls.map(b => b.type === 'wicket' ? 'W' : (b.runs ?? 'E')).join(' ')}
+            </p>
             <div className="flex gap-1">
               {[...Array(6)].map((_, idx) => (
                 <div
@@ -329,62 +334,62 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
                   {idx < currentBalls.length
                     ? currentBalls[idx].type === 'wicket'
                       ? 'W'
-                      : currentBalls[idx].runs || 'E'
+                      : currentBalls[idx].runs ?? 'E'
                     : idx + 1}
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Extras summary */}
+        <div className="mt-2 text-xs text-slate-500">
+          Extras: {Object.values(extras).reduce((a, b) => a + b, 0)}
+          {' '}(W {extras.wides}, NB {extras.noBalls}, B {extras.byes}, LB {extras.legByes})
+        </div>
       </div>
 
       {/* Ball Input - Bottom Section */}
       <div className="border-t-2 border-slate-200 pt-4 space-y-3">
         {/* Dismissal Checkboxes */}
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('wide', 1)} />
-              <span className="text-sm font-medium">Wide</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('no-ball', 1)} />
-              <span className="text-sm font-medium">No Ball</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('bye', 1)} />
-              <span className="text-sm font-medium">Byes</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('leg-bye', 1)} />
-              <span className="text-sm font-medium">Leg Byes</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4" onChange={() => setShowWicketModal(true)} />
-              <span className="text-sm font-medium">Wicket</span>
-            </label>
-          </div>
+        <div className="flex flex-wrap gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('wide', 1)} />
+            <span className="text-sm font-medium">Wide</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('no-ball', 1)} />
+            <span className="text-sm font-medium">No Ball</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('bye', 1)} />
+            <span className="text-sm font-medium">Byes</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4" onChange={() => handleExtraBall('leg-bye', 1)} />
+            <span className="text-sm font-medium">Leg Byes</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="w-4 h-4" onChange={() => setShowWicketModal(true)} />
+            <span className="text-sm font-medium">Wicket</span>
+          </label>
         </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={handleUndo}
+            onClick={() => showToast('Retire not yet implemented', 'info')}
             disabled={isLoading}
             className="py-2 px-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white font-bold rounded text-sm transition-colors"
           >
             Retire
           </button>
           <button
-            onClick={() => {
-              const temp = innings.batsmen[0];
-              innings.batsmen[0] = innings.batsmen[1];
-              innings.batsmen[1] = temp;
-            }}
+            onClick={rotateStrike}
             disabled={isLoading}
             className="py-2 px-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-400 text-white font-bold rounded text-sm transition-colors"
           >
-            Swap batsman
+            Swap Batsmen
           </button>
         </div>
 
@@ -438,38 +443,27 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       {showExtrasModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
           <div className="w-full bg-slate-800 border-t border-slate-700 p-4 rounded-t-lg">
-            <p className="font-bold mb-4 text-lg">Select Extra Type</p>
+            <p className="font-bold mb-4 text-lg text-white">Select Extra Type</p>
             <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleExtraBall('wide', 1)}
-                className="py-4 px-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg min-h-[48px]"
-              >
+              <button onClick={() => handleExtraBall('wide', 1)}
+                className="py-4 px-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg min-h-[48px]">
                 Wide (+1)
               </button>
-              <button
-                onClick={() => handleExtraBall('no-ball', 1)}
-                className="py-4 px-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg min-h-[48px]"
-              >
+              <button onClick={() => handleExtraBall('no-ball', 1)}
+                className="py-4 px-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg min-h-[48px]">
                 No Ball (+1)
               </button>
-              <button
-                onClick={() => handleExtraBall('bye', 1)}
-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]"
-              >
+              <button onClick={() => handleExtraBall('bye', 1)}
+                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
                 Bye (+1)
               </button>
-              <button
-                onClick={() => handleExtraBall('leg-bye', 1)}
-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]"
-              >
+              <button onClick={() => handleExtraBall('leg-bye', 1)}
+                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
                 Leg Bye (+1)
               </button>
             </div>
             <button
-              onClick={() => {
-                setShowExtrasModal(false);
-                setSelectedExtra(null);
-              }}
+              onClick={() => { setShowExtrasModal(false); setSelectedExtra(null); }}
               className="w-full mt-3 py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg min-h-[48px]"
             >
               Cancel
@@ -482,7 +476,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       {showWicketModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
           <div className="w-full bg-slate-800 border-t border-slate-700 p-4 rounded-t-lg">
-            <p className="font-bold mb-4 text-lg">
+            <p className="font-bold mb-4 text-lg text-white">
               Confirm Wicket: {striker?.name}
             </p>
             <div className="grid grid-cols-2 gap-3">
@@ -506,7 +500,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-24 left-4 right-4 p-3 rounded-lg text-center font-semibold ${
+          className={`fixed bottom-24 left-4 right-4 p-3 rounded-lg text-center font-semibold text-white ${
             toast.type === 'success'
               ? 'bg-emerald-600'
               : toast.type === 'warning'

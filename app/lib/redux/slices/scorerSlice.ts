@@ -7,7 +7,7 @@ import { LiveMatch, Ball, InningsState, CurrentBatsman, CurrentBowler, TeamPlaye
  * Dialog state for modals
  */
 export interface DialogState {
-  activeDialog: 'extra' | 'wicket' | 'stumped' | 'runOut' | 'batsmanSelect' | 'finishInnings' | 'options' | 'newBatsman' | 'newBowler' | 'bowlerRetired' | 'batsmanRetired' | 'matchDetails' | 'initialBatters' | 'startNewMatchConfirm' | 'overEnd' | 'sixPlus' | null;
+  activeDialog: 'extra' | 'wicket' | 'stumped' | 'runOut' | 'batsmanSelect' | 'finishInnings' | 'options' | 'newBatsman' | 'newBowler' | 'bowlerRetired' | 'batsmanRetired' | 'matchDetails' | 'initialBatters' | 'startNewMatchConfirm' | 'overEnd' | 'sixPlus' | 'uploadConfirm' | null;
   dialogData?: {
     extraType?: ExtraType;
     hasWicket?: boolean;
@@ -44,6 +44,7 @@ export interface ScorerState {
   dialogState: DialogState;
   loading: boolean;
   error: string | null;
+  lastCompletedMatch: LiveMatch | null;
 }
 
 const initialState: ScorerState = {
@@ -56,6 +57,7 @@ const initialState: ScorerState = {
   },
   loading: false,
   error: null,
+  lastCompletedMatch: null,
 };
 
 /**
@@ -212,7 +214,19 @@ function updateBatsmanStats(innings: InningsState) {
   }
 }
 
-const scorerSlice = createSlice({
+const mergeInningsIntoMatch = (match: LiveMatch, currentInnings: InningsState | null): LiveMatch => {
+  if (!currentInnings) return match;
+  const newMatch = JSON.parse(JSON.stringify(match));
+  const existingIdx = newMatch.innings.findIndex((i: any) => i.inningsNumber === currentInnings.inningsNumber);
+  if (existingIdx >= 0) {
+    newMatch.innings[existingIdx] = currentInnings;
+  } else {
+    newMatch.innings.push(currentInnings);
+  }
+  return newMatch;
+};
+
+export const scorerSlice = createSlice({
   name: 'scorer',
   initialState,
   reducers: {
@@ -393,12 +407,10 @@ const scorerSlice = createSlice({
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Sync batsman stats to batsmanStats array
@@ -484,12 +496,10 @@ const scorerSlice = createSlice({
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Sync batsman stats to batsmanStats array
@@ -575,12 +585,10 @@ const scorerSlice = createSlice({
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Sync batsman stats to batsmanStats array
@@ -873,12 +881,10 @@ const scorerSlice = createSlice({
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Sync batsman stats to batsmanStats array (single source of truth)
@@ -1126,12 +1132,10 @@ const scorerSlice = createSlice({
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Auto-open batsman selection dialog for replacement, unless innings is all-out.
@@ -1523,8 +1527,8 @@ const scorerSlice = createSlice({
           innings.currentBowler.overs += 1;
           innings.currentBowler.balls = 0;
 
-          // Rotate strike at over end (but only if striker not dismissed)
-          if (innings.striker?.id !== batsmanIdToMarkOut && innings.totalBalls % 12 !== 0) {
+          // Always rotate strike at end of over (but only if striker not just dismissed)
+          if (innings.striker?.id !== batsmanIdToMarkOut) {
             const temp = innings.striker;
             innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
             innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
@@ -1598,18 +1602,15 @@ const scorerSlice = createSlice({
       // Update only team wickets (NOT balls or runs or bowler stats)
       innings.totalWickets += 1;
 
-      // Check if over completed (6 balls) - but don't increment totalBalls
-      // This is just for strike rotation logic
+      // Check if over completed (6 balls) - for strike rotation only
       if (innings.totalBalls % 6 === 0 && innings.currentBowler) {
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Auto-open batsman selection dialog for replacement, unless innings is all-out.
@@ -1642,18 +1643,15 @@ const scorerSlice = createSlice({
       // Don't mark as out and don't update any stats
       // The batsman is simply being replaced due to injury
       
-      // Check if over completed (6 balls) - but don't increment totalBalls
-      // This is just for strike rotation logic
+      // Check if over completed (6 balls) - for strike rotation only
       if (innings.totalBalls % 6 === 0 && innings.currentBowler) {
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
-        // Rotate strike at over end (even delivery always rotates)
-        if (innings.totalBalls % 12 !== 0) {
-          const temp = innings.striker;
-          innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
-          innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
-        }
+        // Always rotate strike at end of every over
+        const temp = innings.striker;
+        innings.striker = { ...innings.nonStriker, role: 'striker' } as CurrentBatsman;
+        innings.nonStriker = { ...temp, role: 'non-striker' } as CurrentBatsman;
       }
 
       // Auto-open batsman selection dialog for replacement
@@ -1970,6 +1968,19 @@ const scorerSlice = createSlice({
      * Clear match and reset to initial state
      */
     clearMatch: (state) => {
+      if (state.liveMatch) {
+        // If match is still in progress, mark it as abandoned/manually completed before saving to history
+        if (state.liveMatch.status === 'in-progress') {
+          const matchToSave = mergeInningsIntoMatch(state.liveMatch, state.currentInnings);
+          matchToSave.status = 'complete';
+          matchToSave.result = 'abandoned';
+          matchToSave.winMargin = 'Match manually completed';
+          state.lastCompletedMatch = matchToSave;
+        } else {
+          // If already complete, just ensure it's in the lastCompletedMatch slot
+          state.lastCompletedMatch = mergeInningsIntoMatch(state.liveMatch, state.currentInnings);
+        }
+      }
       state.liveMatch = null;
       state.currentInnings = null;
       state.undoStack = [];
@@ -1984,13 +1995,6 @@ const scorerSlice = createSlice({
       if (!state.currentInnings || !state.liveMatch || state.liveMatch.status !== 'in-progress') return;
       
       const { bowlerId, bowlerName } = action.payload;
-      
-      // Swap batsmen when over ends
-      if (state.currentInnings.striker && state.currentInnings.nonStriker) {
-        const temp = state.currentInnings.striker;
-        state.currentInnings.striker = state.currentInnings.nonStriker;
-        state.currentInnings.nonStriker = temp;
-      }
       
       // Set new bowler
       if (bowlerName && state.currentInnings) {
@@ -2061,7 +2065,7 @@ const scorerSlice = createSlice({
       match.winMargin = 'Match completed after 1st innings';
       match.status = 'complete';
       match.updatedAt = new Date().toISOString();
-
+      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2100,6 +2104,7 @@ const scorerSlice = createSlice({
 
       match.status = 'complete';
       match.updatedAt = new Date().toISOString();
+      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2126,6 +2131,7 @@ const scorerSlice = createSlice({
       match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
       match.status = 'complete';
       match.updatedAt = new Date().toISOString();
+      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2195,14 +2201,13 @@ const scorerSlice = createSlice({
     /**
      * Add a new player to the team during match
      */
-    addNewTeamPlayer: (state, action: PayloadAction<{ name: string; role?: string }>) => {
+    addNewTeamPlayer: (state, action: PayloadAction<{ name: string }>) => {
       if (!state.liveMatch) return;
 
-      const { name, role } = action.payload;
+      const { name } = action.payload;
       const newPlayer: TeamPlayer = {
         id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: name.trim(),
-        role: role as TeamPlayer['role'],
       };
 
       state.liveMatch.teamPlayers.push(newPlayer);
@@ -2213,6 +2218,16 @@ const scorerSlice = createSlice({
      */
     rehydrateScorer: (state, action: PayloadAction<ScorerState>) => {
       return action.payload;
+    },
+
+    /**
+     * Set a previously completed match as the active match to view its result
+     */
+    viewCompletedMatch: (state, action: PayloadAction<LiveMatch>) => {
+      state.liveMatch = action.payload;
+      state.currentInnings = action.payload.innings[action.payload.innings.length - 1];
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
     },
   },
 });
@@ -2254,6 +2269,7 @@ export const {
   updateMatchDetails,
   addNewTeamPlayer,
   rehydrateScorer,
+  viewCompletedMatch,
 } = scorerSlice.actions;
 
 export default scorerSlice.reducer;

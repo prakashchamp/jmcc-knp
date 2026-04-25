@@ -678,7 +678,6 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
           onChange={(e) => setValue(e.target.value)}
           className="w-full px-4 py-2 border-2 border-gray-300 rounded mb-4 text-lg font-semibold"
           placeholder="0"
-          autoFocus
           min="0"
         />
         <div className="grid grid-cols-2 gap-2">

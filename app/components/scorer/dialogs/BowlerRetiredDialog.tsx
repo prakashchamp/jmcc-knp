@@ -61,13 +61,12 @@ export function BowlerRetiredDialog() {
   const handleCreateNewBowler = (name: string) => {
     // Add the new player to the team if it's a team bowler
     if (isTeamBowler) {
-      dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
+      dispatch(addNewTeamPlayer({ name: name.trim() }));
     }
     
     const newBowler: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
-      role: 'bowler',
     };
     setSelectedBowler(newBowler);
     setNewBowlerName('');

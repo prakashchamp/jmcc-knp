@@ -44,7 +44,6 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         matchId: '',
         playerId: '',
         playerName: '',
-        playerRole: 'batsman',
         batting: {
           didBat: false,
           innings: 0,
@@ -135,7 +134,6 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             matchId,
             playerId: perf.playerId || `player_${perf.playerName}`,
             playerName: perf.playerName || '',
-            playerRole: (perf.playerRole as any) || 'batsman',
             date: completeMatch.date,
             year: completeMatch.year,
             month: completeMatch.month,
@@ -338,19 +336,6 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                     onChange={(e) => handlePerformanceChange(idx, 'playerName', e.target.value)}
                     className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Role</label>
-                  <select
-                    value={perf.playerRole || 'batsman'}
-                    onChange={(e) => handlePerformanceChange(idx, 'playerRole', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="batsman">Batsman</option>
-                    <option value="bowler">Bowler</option>
-                    <option value="allrounder">All-rounder</option>
-                  </select>
                 </div>
 
                 <div>

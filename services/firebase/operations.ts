@@ -99,8 +99,9 @@ export async function setDocument<T extends Record<string, any>>(
 ): Promise<WriteResult> {
   try {
     const docRef = doc(db, collectionName, docId);
+    const cleanedData = deepClone(data);
     const dataWithTimestamp = {
-      ...data,
+      ...cleanedData,
       updatedAt: new Date().toISOString(),
     };
     await setDoc(docRef, dataWithTimestamp, { merge });
@@ -125,8 +126,9 @@ export async function updateDocument<T extends Record<string, any>>(
 ): Promise<WriteResult> {
   try {
     const docRef = doc(db, collectionName, docId);
+    const cleanedData = deepClone(data);
     const dataWithTimestamp = {
-      ...data,
+      ...cleanedData,
       updatedAt: new Date().toISOString(),
     };
     await updateDoc(docRef, dataWithTimestamp);
@@ -172,10 +174,10 @@ export async function batchWrite(operations: BatchOperation[]): Promise<WriteRes
 
       switch (op.type) {
         case 'set':
-          batch.set(docRef, { ...op.data, updatedAt: new Date().toISOString() }, { merge: op.options?.merge });
+          batch.set(docRef, { ...deepClone(op.data), updatedAt: new Date().toISOString() }, { merge: op.options?.merge });
           break;
         case 'update':
-          batch.update(docRef, { ...op.data, updatedAt: new Date().toISOString() });
+          batch.update(docRef, { ...deepClone(op.data), updatedAt: new Date().toISOString() });
           break;
         case 'delete':
           batch.delete(docRef);

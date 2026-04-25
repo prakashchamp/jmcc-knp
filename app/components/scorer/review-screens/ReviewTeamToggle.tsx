@@ -1,5 +1,6 @@
 'use client';
 
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import type { InningsState, LiveMatch } from '@/app/lib/cricket-scorer-types';
 
 export type ReviewTeam = 'Us' | 'Them';
@@ -10,8 +11,8 @@ interface ReviewTeamToggleProps {
   onSelect: (team: ReviewTeam) => void;
 }
 
-export function getTeamDisplayName(team: ReviewTeam, opponentName?: string) {
-  return team === 'Us' ? 'JMCC' : opponentName || 'Opponent';
+export function getTeamDisplayName(team: ReviewTeam, opponentName?: string, teamName: string = 'JMCC') {
+  return team === 'Us' ? teamName : opponentName || 'Opponent';
 }
 
 function getAvailableInnings(liveMatch: LiveMatch | null, currentInnings: InningsState | null) {
@@ -69,6 +70,8 @@ export function getBowlingTeamInnings(
 }
 
 export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: ReviewTeamToggleProps) {
+  const teamName = useTeamName();
+
   return (
     <div className="mb-3 grid grid-cols-2 gap-2">
       <button
@@ -79,7 +82,7 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
             : 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
         }`}
       >
-        JMCC
+        {teamName}
       </button>
       <button
         onClick={() => onSelect('Them')}

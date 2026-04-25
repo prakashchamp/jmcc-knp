@@ -66,8 +66,8 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
   // Now conditional returns can happen after all hooks
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6">Bowling Statistics</h3>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Bowling Statistics</h3>
         <div className="h-64 bg-slate-600 rounded animate-pulse" />
       </div>
     );
@@ -75,21 +75,21 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
 
   if (bowlingPlayers.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6">Bowling Statistics</h3>
-        <p className="text-gray-400 text-center py-8">No bowling statistics available</p>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Bowling Statistics</h3>
+        <p className="text-gray-400 text-center py-8 text-xs sm:text-sm">No bowling statistics available</p>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-2xl font-bold text-white p-6 pb-4">Bowling Statistics</h3>
+      <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Bowling Statistics</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs">
           <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-gray-700">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('playerName')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('playerName')}>
                 Player
                 {sortField === 'playerName' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -97,7 +97,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalMatches')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalMatches')}>
                 Mat
                 {sortField === 'totalMatches' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -105,7 +105,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalInnings')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalInnings')}>
                 Inn
                 {sortField === 'totalInnings' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -113,7 +113,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalOvers')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalOvers')}>
                 Overs
                 {sortField === 'totalOvers' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -121,7 +121,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalWickets')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalWickets')}>
                 Wkts
                 {sortField === 'totalWickets' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -129,7 +129,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
                 3W
                 {sortField === 'threeWickets' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -137,7 +137,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
                 5W
                 {sortField === 'fiveWickets' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -145,7 +145,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
                 Best
                 {sortField === 'bestHaul' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -153,7 +153,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('economy')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('economy')}>
                 Econ
                 {sortField === 'economy' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -161,7 +161,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('strikeRate')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('strikeRate')}>
                 SR
                 {sortField === 'strikeRate' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -169,7 +169,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('average')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('average')}>
                 Avg
                 {sortField === 'average' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
@@ -182,26 +182,26 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
           <tbody className="divide-y divide-gray-700">
             {sortedPlayers.map((player, index) => {
               const stats = player.bowlingStats!;
-              const economy = stats.totalBalls > 0 ? ((stats.totalRuns / (stats.totalBalls / 6)) * stats.totalOvers).toFixed(2) : '0.00';
-              const strikeRate = stats.totalWickets > 0 ? (stats.totalBalls / stats.totalWickets).toFixed(2) : '0.00';
-              const average = stats.totalWickets > 0 ? (stats.totalRuns / stats.totalWickets).toFixed(2) : '0.00';
+              const economy = stats.totalBalls > 0 ? ((stats.totalRuns / (stats.totalBalls / 6)) * stats.totalOvers).toFixed(1) : '0.0';
+              const strikeRate = stats.totalWickets > 0 ? (stats.totalBalls / stats.totalWickets).toFixed(1) : '0.0';
+              const average = stats.totalWickets > 0 ? (stats.totalRuns / stats.totalWickets).toFixed(1) : '0.0';
 
               return (
                 <tr
                   key={player.playerId}
-                  className={index % 2 === 0 ? 'bg-gray-800 hover:bg-red-900' : 'bg-gray-700 hover:bg-red-900'}
+                  className={index % 2 === 0 ? 'bg-gray-800 hover:bg-red-900/40' : 'bg-gray-700 hover:bg-red-900/40'}
                 >
-                  <td className="px-4 py-3 text-left font-medium text-white">{player.playerName}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.totalMatches}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.totalInnings}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.totalOvers.toFixed(1)}</td>
-                  <td className="px-4 py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.threeWickets}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.fiveWickets}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{stats.bestHaul}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{economy}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{strikeRate}</td>
-                  <td className="px-4 py-3 text-center text-gray-300">{average}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-left font-medium text-white truncate max-w-[100px] sm:max-w-none">{player.playerName}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalMatches}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalInnings}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalOvers.toFixed(1)}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.threeWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fiveWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.bestHaul}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{economy}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{strikeRate}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{average}</td>
                 </tr>
               );
             })}

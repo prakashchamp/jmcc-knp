@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "./lib/redux/provider";
+import MobileInputHandler from "./components/MobileInputHandler";
+import { DevFetchButton } from "./components/DevFetchButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +31,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-gray-900 text-white">
-        <ReduxProvider>{children}</ReduxProvider>
+        <MobileInputHandler />
+        <ReduxProvider>
+          {children}
+          <DevFetchButton />
+        </ReduxProvider>
       </body>
     </html>
   );

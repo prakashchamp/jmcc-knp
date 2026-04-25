@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Performance, PlayerBattingStats } from '../cricket-schema';
-import { MOCK_PERFORMANCES } from '../mock-data';
+import { PlayerBattingStats } from '../cricket-schema';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 /**
- * Hook to fetch top 3 all-time batters
- * Currently uses mock data - replace with Firestore queries when ready
+ * Hook to fetch top 3 all-time batters from Firestore
  */
 export function useTopBatters(): {
   data: PlayerBattingStats[] | null;
@@ -16,30 +18,36 @@ export function useTopBatters(): {
   const [data, setData] = useState<PlayerBattingStats[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchTopBatters = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Use mock data instead of Firestore
-        const performances = MOCK_PERFORMANCES;
-
+        const performancesRef = collection(db, 'performances');
+        const querySnapshot = await getDocs(performancesRef);
+        
         // Build stats map
         const statsMap = new Map<string, PlayerBattingStats & { matchIds: Set<string> }>();
 
-        performances.forEach((perf: Performance) => {
-          if (!perf.batting.didBat) {
+        querySnapshot.forEach((doc) => {
+          const perf = doc.data();
+          if (!perf.bat_did_bat) {
             return;
           }
 
-          const playerId = perf.playerId;
+          const playerId = perf.player_id;
 
           if (!statsMap.has(playerId)) {
             statsMap.set(playerId, {
               playerId,
-              playerName: perf.playerName,
+              playerName: perf.player_name,
               totalMatches: 0,
               totalInnings: 0,
               notOuts: 0,
@@ -60,30 +68,30 @@ export function useTopBatters(): {
 
           const stats = statsMap.get(playerId)!;
 
-          stats.totalInnings += perf.batting.innings;
-          stats.totalRuns += perf.batting.runs;
-          stats.totalBalls += perf.batting.balls;
-          stats.totalFours += perf.batting.fours;
-          stats.totalSixes += perf.batting.sixes;
+          stats.totalInnings += (perf.bat_innings || 0);
+          stats.totalRuns += (perf.bat_runs || 0);
+          stats.totalBalls += (perf.bat_balls || 0);
+          stats.totalFours += (perf.bat_fours || 0);
+          stats.totalSixes += (perf.bat_sixes || 0);
           
-          if (!perf.batting.dismissed) {
-            stats.notOuts += perf.batting.innings;
+          if (!perf.bat_dismissed) {
+            stats.notOuts += (perf.bat_innings || 0);
           }
-          if (perf.batting.isDuck) {
+          if (perf.bat_is_duck) {
             stats.ducks += 1;
           }
-          if (perf.batting.isThirty) {
+          if (perf.bat_is_thirty) {
             stats.thirties += 1;
           }
-          if (perf.batting.isFifty) {
+          if (perf.bat_is_fifty) {
             stats.fifties += 1;
           }
-          if (perf.batting.isHundred) {
+          if (perf.bat_is_hundred) {
             stats.hundreds += 1;
           }
           
-          stats.bestScore = Math.max(stats.bestScore, perf.batting.runs);
-          stats.matchIds.add(perf.matchId);
+          stats.bestScore = Math.max(stats.bestScore, perf.bat_runs || 0);
+          stats.matchIds.add(perf.match_id);
         });
 
         // Convert to array and calculate aggregates
@@ -110,7 +118,7 @@ export function useTopBatters(): {
     };
 
     fetchTopBatters();
-  }, []);
+  }, [fetchTrigger, isManualFetchMode]);
 
   return { data, loading, error };
 }

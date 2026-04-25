@@ -35,7 +35,9 @@ export function BatterDropdownSelect({
   onNewPlayerNameChange,
 }: BatterDropdownSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const availableBatters = batters.filter((b) => !excludeIds.includes(b.id));
+  const availableBatters = batters.filter(
+    (b) => !excludeIds.includes(b.id) && b.id !== selectedBatter?.id
+  );
 
   return (
     <div className="space-y-2">

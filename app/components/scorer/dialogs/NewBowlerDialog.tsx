@@ -60,14 +60,13 @@ export function NewBowlerDialog() {
 
   const handleCreateNewBowler = (name: string) => {
     if (currentInnings.battingTeam === 'Them') {
-      dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
+      dispatch(addNewTeamPlayer({ name: name.trim() }));
     }
 
     // Create the new player object
     const newBowler: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
-      role: 'bowler',
     };
     setSelectedBowler(newBowler);
     setNewBowlerName('');

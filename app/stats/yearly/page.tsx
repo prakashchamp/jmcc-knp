@@ -5,29 +5,50 @@ import { Header } from '@/app/components/Header';
 import { YearlyBattingStatsTable } from '@/app/components/YearlyBattingStatsTable';
 import { YearlyBowlingStatsTable } from '@/app/components/YearlyBowlingStatsTable';
 import { useYearlyStats } from '@/app/lib/hooks/useYearlyStats';
-import { MOCK_PERFORMANCES } from '@/app/lib/mock-data';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 export default function YearlyStatsPage() {
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [availableYears, setAvailableYears] = useState<{ value: string; label: string }[]>([]);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
-  // Extract unique years from mock data and sort descending
+  // Extract unique years from Firestore matches
   useEffect(() => {
-    const years = new Set(MOCK_PERFORMANCES.map((perf) => perf.year));
-    const sortedYears = Array.from(years)
-      .sort()
-      .reverse() // Most recent first
-      .map((yearStr) => ({
-        value: yearStr,
-        label: yearStr,
-      }));
-
-    setAvailableYears(sortedYears);
-    // Set default to most recent year
-    if (sortedYears.length > 0) {
-      setSelectedYear(sortedYears[0].value);
+    if (isManualFetchMode && fetchTrigger === 0) {
+      return;
     }
-  }, []);
+    const fetchAvailableYears = async () => {
+      try {
+        const matchesRef = collection(db, 'matches');
+        const snapshot = await getDocs(matchesRef);
+        
+        const yearsSet = new Set<string>();
+        snapshot.forEach(doc => {
+          const match = doc.data();
+          const date = match.createdAt?.toDate?.() || new Date(match.createdAt);
+          const yearKey = date.getFullYear().toString();
+          yearsSet.add(yearKey);
+        });
+
+        const sortedYears = Array.from(yearsSet).sort().reverse().map(year => ({
+          value: year,
+          label: year
+        }));
+
+        setAvailableYears(sortedYears);
+        if (sortedYears.length > 0) {
+          setSelectedYear(sortedYears[0].value);
+        }
+      } catch (err) {
+        console.error('Error fetching years:', err);
+      }
+    };
+
+    fetchAvailableYears();
+  }, [fetchTrigger, isManualFetchMode]);
 
   const { players, loading, error } = useYearlyStats(selectedYear);
 

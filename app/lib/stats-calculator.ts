@@ -153,7 +153,6 @@ function calculateBowlingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
  */
 function createBattingInterface(
   playerStats: PlayerBattingRaw,
-  playerRole: 'batsman' | 'bowler' | 'allrounder',
   currentInnings: 1 | 2
 ): Batting {
   const isDismissed = playerStats.wickets.length > 0;
@@ -259,10 +258,7 @@ export function calculatePerformances(
       maidens: 0,
     };
 
-    // Map role type for consistency (no longer needed as both use 'allrounder')
-    const playerRoleForSchema = player.role || 'allrounder';
-
-    const batting = createBattingInterface(battingStats, playerRoleForSchema, currentInnings);
+    const batting = createBattingInterface(battingStats, currentInnings);
     const bowling = createBowlingInterface(bowlingStats);
 
     const performance: Performance = {
@@ -270,7 +266,6 @@ export function calculatePerformances(
       matchId,
       playerId: player.id,
       playerName: player.name,
-      playerRole: playerRoleForSchema,
       date,
       year,
       month,

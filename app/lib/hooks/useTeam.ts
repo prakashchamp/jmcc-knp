@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Team, TeamPlayer } from '../cricket-schema';
 import { getDocument, setDocument, updateDocument, deleteDocument } from '@/services/firebase/operations';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 /**
  * Hook to manage team data with Firestore
@@ -12,12 +14,18 @@ export function useTeam(teamId?: string) {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(!!teamId);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   /**
    * Fetch team by ID
    */
   useEffect(() => {
     if (!teamId) {
+      setLoading(false);
+      return;
+    }
+
+    if (isManualFetchMode && fetchTrigger === 0) {
       setLoading(false);
       return;
     }
@@ -47,7 +55,7 @@ export function useTeam(teamId?: string) {
     };
 
     fetchTeam();
-  }, [teamId]);
+  }, [teamId, fetchTrigger, isManualFetchMode]);
 
   /**
    * Create a new team
@@ -224,8 +232,13 @@ export function useAllTeams() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchTeams = async () => {
       try {
         setLoading(true);
@@ -251,7 +264,7 @@ export function useAllTeams() {
     };
 
     fetchTeams();
-  }, []);
+  }, [fetchTrigger, isManualFetchMode]);
 
   return {
     teams,

@@ -10,7 +10,6 @@
 export interface TeamPlayer {
   id: string;
   name: string;
-  role?: 'batsman' | 'bowler' | 'allrounder';
   jerseyNumber?: number;
 }
 
@@ -172,7 +171,7 @@ export interface LiveMatch {
   
   // Match status
   status: 'in-progress' | 'complete' | 'abandoned';
-  result?: 'won' | 'lost' | 'tie' | 'no_result';
+  result?: 'won' | 'lost' | 'tie' | 'no_result' | 'abandoned';
   winMargin?: string;
   
   // Timestamps
@@ -191,7 +190,7 @@ export interface MatchSummary {
   tossWonBy: 'Us' | 'Them';
   tossDecision: 'bat' | 'field';
   format: 'T20' | 'ODI' | 'Custom';
-  result: 'won' | 'lost' | 'tie' | 'no_result';
+  result: 'won' | 'lost' | 'tie' | 'no_result' | 'abandoned';
   winMargin?: string;
   innings: InningsSummary[];
   completedAt: string;

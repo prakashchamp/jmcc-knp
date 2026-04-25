@@ -120,7 +120,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
   if (loading) {
     return (
       <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-        <h3 className="text-2xl font-bold text-white p-6 pb-4">Recent Matches Bowling Stats</h3>
+        <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Bowling Statistics</h3>
         <div className="h-64 bg-slate-700 rounded animate-pulse" />
       </div>
     );
@@ -128,9 +128,9 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
 
   if (sortedStats.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6">Recent Matches Bowling Stats</h3>
-        <p className="text-gray-400 text-center py-8">No bowling data available</p>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Bowling Statistics</h3>
+        <p className="text-gray-400 text-center py-8 text-xs sm:text-sm">No bowling data available</p>
       </div>
     );
   }
@@ -144,58 +144,58 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-2xl font-bold text-white p-6 pb-4">Recent Matches Bowling Stats</h3>
+      <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Bowling Statistics</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs">
           <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-yellow-700">
             <tr>
               <th
-                className="px-4 py-3 text-left font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('playerName')}
               >
                 Player
                 {renderSortIndicator('playerName')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('matchesPlayed')}
               >
-                Matches
+                Mat
                 {renderSortIndicator('matchesPlayed')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('totalOvers')}
               >
                 Overs
                 {renderSortIndicator('totalOvers')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('totalWickets')}
               >
-                Wickets
+                Wkts
                 {renderSortIndicator('totalWickets')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('totalRuns')}
               >
                 Runs
                 {renderSortIndicator('totalRuns')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('economy')}
               >
-                Economy
+                Econ
                 {renderSortIndicator('economy')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
                 onClick={() => handleSort('totalMaidens')}
               >
-                Maidens
+                Mdls
                 {renderSortIndicator('totalMaidens')}
               </th>
             </tr>
@@ -207,19 +207,19 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
                 className='bg-gray-800 text-gray-100'
               >
                 <td 
-                  className="px-4 py-3 font-semibold text-yellow-400 cursor-pointer hover:text-yellow-300 transition-colors"
+                  className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-yellow-400 cursor-pointer hover:text-yellow-300 transition-colors truncate max-w-[100px] sm:max-w-none"
                   onClick={() => handlePlayerClick(stats.playerId)}
                 >
                   {stats.playerName}
                 </td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.matchesPlayed}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.totalOvers}</td>
-                <td className="px-4 py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.totalRuns}</td>
-                <td className="px-4 py-3 text-center text-green-400">
-                  {stats.economy > 0 ? stats.economy.toFixed(2) : '-'}
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.matchesPlayed}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalOvers}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalRuns}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
+                  {stats.economy > 0 ? stats.economy.toFixed(1) : '-'}
                 </td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.totalMaidens}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalMaidens}</td>
               </tr>
             ))}
           </tbody>

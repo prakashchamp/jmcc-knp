@@ -3,12 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
 import { TeamMatchCard } from '@/app/components/TeamMatchCard';
-import { MOCK_MATCHES } from '@/app/lib/mock-data';
 import { Match } from '@/app/lib/cricket-schema';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 export default function TeamStatsPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
   const [selectedResult, setSelectedResult] = useState<string>('all');
   const [activeView, setActiveView] = useState<'month' | 'year'>('month');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -17,46 +21,58 @@ export default function TeamStatsPage() {
   const [currentYearPage, setCurrentYearPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Load matches on component mount
+  // Load matches from Firestore
   useEffect(() => {
-    setLoading(true);
-    try {
-      // Sort matches by date (newest first)
-      const sortedMatches = [...MOCK_MATCHES].sort((a, b) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
-      setMatches(sortedMatches);
+    const fetchMatches = async () => {
+      setLoading(true);
+      try {
+        const matchesRef = collection(db, 'matches');
+        const q = query(matchesRef, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        
+        const fetchedMatches = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as unknown as Match));
 
-      // Extract unique months and sort descending
-      const months = new Set(sortedMatches.map((m) => m.month));
-      const sortedMonths = Array.from(months)
-        .sort()
-        .reverse()
-        .map((monthStr) => {
-          const [year, month] = monthStr.split('-');
-          const monthNames = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December',
-          ];
-          const monthName = monthNames[parseInt(month) - 1];
-          return {
-            value: monthStr,
-            label: `${monthName} ${year}`,
-          };
+        setMatches(fetchedMatches);
+
+        // Extract unique months
+        const monthsMap = new Map<string, string>();
+        fetchedMatches.forEach(match => {
+          const date = (match as any).createdAt?.toDate?.() || new Date((match as any).createdAt);
+          const monthKey = date.toLocaleString('default', { month: 'long' });
+          const yearKey = date.getFullYear().toString();
+          const value = monthKey; // Or whatever key is used for filtering
+          const label = `${monthKey} ${yearKey}`;
+          monthsMap.set(value, label);
         });
-      
-      setAvailableMonths(sortedMonths);
-      if (sortedMonths.length > 0) {
-        setSelectedMonth(sortedMonths[0].value);
-      }
+        
+        const sortedMonths = Array.from(monthsMap.entries()).map(([value, label]) => ({
+          value,
+          label
+        }));
+        
+        setAvailableMonths(sortedMonths);
+        if (sortedMonths.length > 0) {
+          setSelectedMonth(sortedMonths[0].value);
+        }
 
-      // Extract unique years and sort descending
-      const years = Array.from(new Set(sortedMatches.map((m) => m.year))).sort().reverse();
-      setAvailableYears(years);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+        // Extract unique years
+        const years = Array.from(new Set(fetchedMatches.map((m) => {
+          const date = (m as any).createdAt?.toDate?.() || new Date((m as any).createdAt);
+          return date.getFullYear().toString();
+        }))).sort().reverse();
+        setAvailableYears(years);
+      } catch (err) {
+        console.error('Error fetching matches:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, [fetchTrigger, isManualFetchMode]);
 
   // Filter matches based on selected result
   const getFilteredMatches = (matchesToFilter: Match[]) => {
@@ -66,7 +82,11 @@ export default function TeamStatsPage() {
   };
 
   // Month view - filter by selected month
-  const monthMatches = matches.filter(m => m.month === selectedMonth);
+  const monthMatches = matches.filter(m => {
+    const date = (m as any).createdAt?.toDate?.() || new Date((m as any).createdAt);
+    const monthKey = date.toLocaleString('default', { month: 'long' });
+    return monthKey === selectedMonth;
+  });
   const filteredMonthMatches = getFilteredMatches(monthMatches);
 
   // Year view - get all matches for pagination
@@ -101,16 +121,16 @@ export default function TeamStatsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <Header />
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
         {/* Title and View Toggle */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-6">Team Statistics</h1>
+        <div className="mb-4 sm:mb-8">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">Team Statistics</h1>
 
           {/* View Toggle Tabs */}
-          <div className="flex gap-2 mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
+          <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
             <button
               onClick={() => setActiveView('month')}
-              className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 activeView === 'month'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-300 hover:text-white'
@@ -120,7 +140,7 @@ export default function TeamStatsPage() {
             </button>
             <button
               onClick={() => setActiveView('year')}
-              className={`px-4 py-2 rounded-md font-medium transition-colors ${
+              className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 activeView === 'year'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-gray-300 hover:text-white'
@@ -132,15 +152,15 @@ export default function TeamStatsPage() {
 
           {/* Month Selector for Month View */}
           {activeView === 'month' && availableMonths.length > 0 && (
-            <div className="mb-6 flex items-center gap-3">
-              <label htmlFor="month-select" className="font-medium text-gray-300">
+            <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+              <label htmlFor="month-select" className="text-xs sm:text-sm font-medium text-gray-300">
                 Select Month:
               </label>
               <select
                 id="month-select"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 py-1 sm:px-4 sm:py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-xs sm:text-sm font-medium hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {availableMonths.map((month) => (
                   <option key={month.value} value={month.value}>
@@ -152,26 +172,26 @@ export default function TeamStatsPage() {
           )}
 
           {/* Overview cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 border border-blue-500 shadow-sm text-white">
-              <p className="text-blue-100 text-sm font-medium">Total Matches</p>
-              <p className="text-3xl font-bold text-white mt-1">{stats.total}</p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left">
+              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Total Matches</p>
+              <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 border border-green-400 shadow-sm text-white">
-              <p className="text-green-100 text-sm font-medium">Wins</p>
-              <p className="text-3xl font-bold text-white mt-1">{stats.won}</p>
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 sm:p-4 border border-green-400 shadow-sm text-white text-center sm:text-left">
+              <p className="text-green-100 text-[10px] sm:text-sm font-medium">Wins</p>
+              <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.won}</p>
             </div>
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-4 border border-red-400 shadow-sm text-white">
-              <p className="text-red-100 text-sm font-medium">Losses</p>
-              <p className="text-3xl font-bold text-white mt-1">{stats.lost}</p>
+            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-2 sm:p-4 border border-red-400 shadow-sm text-white text-center sm:text-left">
+              <p className="text-red-100 text-[10px] sm:text-sm font-medium">Losses</p>
+              <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.lost}</p>
             </div>
-            <div className="bg-gradient-to-br from-yellow-700 to-yellow-800 rounded-lg p-4 border border-yellow-600 shadow-sm text-white">
-              <p className="text-yellow-100 text-sm font-medium">Ties</p>
-              <p className="text-3xl font-bold text-white mt-1">{stats.tied}</p>
+            <div className="bg-gradient-to-br from-yellow-700 to-yellow-800 rounded-lg p-2 sm:p-4 border border-yellow-600 shadow-sm text-white text-center sm:text-left">
+              <p className="text-yellow-100 text-[10px] sm:text-sm font-medium">Ties</p>
+              <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.tied}</p>
             </div>
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 border border-blue-500 shadow-sm text-white">
-              <p className="text-blue-100 text-sm font-medium">Win Rate</p>
-              <p className="text-3xl font-bold text-white mt-1">{winRate}%</p>
+            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left col-span-2 md:col-span-1">
+              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Win Rate</p>
+              <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{winRate}%</p>
             </div>
           </div>
         </div>

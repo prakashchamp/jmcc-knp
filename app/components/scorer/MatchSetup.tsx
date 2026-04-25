@@ -7,7 +7,6 @@ import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 const OPPONENT_PLAYERS: TeamPlayer[] = Array.from({ length: 11 }, (_, i) => ({
   id: `opponent-${i + 1}`,
   name: `Opp Player ${i + 1}`,
-  role: 'batsman' as const,
 }));
 
 interface MatchSetupProps {
@@ -63,7 +62,6 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
       const newPlayer: TeamPlayer = {
         id: `striker-${Date.now()}`,
         name: newStrikerName.trim(),
-        role: 'batsman',
       };
       setStriker(newPlayer);
       setNewStrikerName('');
@@ -76,7 +74,6 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
       const newPlayer: TeamPlayer = {
         id: `non-striker-${Date.now()}`,
         name: newNonStrikerName.trim(),
-        role: 'batsman',
       };
       setNonStriker(newPlayer);
       setNewNonStrikerName('');
@@ -89,7 +86,6 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
       const newPlayer: TeamPlayer = {
         id: `bowler-${Date.now()}`,
         name: newBowlerName.trim(),
-        role: 'bowler',
       };
       setBowler(newPlayer);
       setNewBowlerName('');

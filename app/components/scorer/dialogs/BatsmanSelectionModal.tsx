@@ -213,8 +213,7 @@ export function BatsmanSelectionModal() {
     if (currentInnings?.battingTeam !== 'Us') {
       return;
     }
-
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
+    dispatch(addNewTeamPlayer({ name: name.trim() }));
     setNewPlayerName('');
   };
 

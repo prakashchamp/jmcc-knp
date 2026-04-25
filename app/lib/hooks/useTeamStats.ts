@@ -1,36 +1,44 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Match, TeamStats } from '../cricket-schema';
-import { MOCK_MATCHES } from '../mock-data';
+import { TeamStats } from '../cricket-schema';
+import { db } from '@/services/firebase/db';
+import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/lib/redux/store';
 
 /**
- * Hook to fetch and aggregate team statistics
- * Currently uses mock data - replace with Firestore queries when ready
+ * Hook to fetch and aggregate team statistics from Firestore
  */
 export function useTeamStats(): { data: TeamStats | null; loading: boolean; error: Error | null } {
   const [data, setData] = useState<TeamStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
+    if (isManualFetchMode && fetchTrigger === 0) {
+      setLoading(false);
+      return;
+    }
     const fetchStats = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Use mock data instead of Firestore
-        const matches = MOCK_MATCHES;
+        const matchesRef = collection(db, 'matches');
+        const querySnapshot = await getDocs(matchesRef);
 
         const stats: TeamStats = {
-          totalMatches: matches.length,
+          totalMatches: querySnapshot.size,
           wins: 0,
           losses: 0,
           noResults: 0,
           ties: 0,
         };
 
-        matches.forEach((match: Match) => {
+        querySnapshot.forEach((doc) => {
+          const match = doc.data();
           switch (match.result) {
             case 'won':
               stats.wins++;
@@ -57,7 +65,7 @@ export function useTeamStats(): { data: TeamStats | null; loading: boolean; erro
     };
 
     fetchStats();
-  }, []);
+  }, [fetchTrigger, isManualFetchMode]);
 
   return { data, loading, error };
 }

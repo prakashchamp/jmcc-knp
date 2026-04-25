@@ -58,12 +58,11 @@ export function BatsmanRetiredDialog() {
       return;
     }
 
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
-
+    dispatch(addNewTeamPlayer({ name: name.trim() }));
+    
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
-      role: 'batsman',
     };
 
     setSelectedBatter(newPlayer);

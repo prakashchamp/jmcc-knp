@@ -84,8 +84,8 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
 
   if (loading) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6">Batting Statistics</h3>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Batting Statistics</h3>
         <div className="h-64 bg-slate-700 rounded animate-pulse" />
       </div>
     );
@@ -93,60 +93,60 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
 
   if (battingPlayers.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6">Batting Statistics</h3>
-        <p className="text-gray-400 text-center py-8">No batting statistics available for this period</p>
+      <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
+        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Batting Statistics</h3>
+        <p className="text-gray-400 text-center py-8 text-xs sm:text-sm">No batting statistics available for this period</p>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-2xl font-bold text-white p-6 pb-4">Batting Statistics</h3>
+      <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-xs">
           <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('playerName')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('playerName')}>
                 Player {sortField === 'playerName' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'playerName' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
                 Mat {sortField === 'totalMatches' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalMatches' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
                 Inn {sortField === 'totalInnings' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalInnings' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
                 Runs {sortField === 'totalRuns' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalRuns' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
                 Balls {sortField === 'totalBalls' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalBalls' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('ducks')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('ducks')}>
                 Ducks {sortField === 'ducks' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'ducks' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
                 NO {sortField === 'notOuts' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'notOuts' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
                 4s {sortField === 'totalFours' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalFours' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
                 6s {sortField === 'totalSixes' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalSixes' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('thirties')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('thirties')}>
                 30s {sortField === 'thirties' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'thirties' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('fifties')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('fifties')}>
                 50s {sortField === 'fifties' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'fifties' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
                 HS {sortField === 'bestScore' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'bestScore' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
                 SR {sortField === 'strikeRate' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'strikeRate' && '⇅'}
               </th>
-              <th className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('average')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('average')}>
                 Avg {sortField === 'average' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'average' && '⇅'}
               </th>
             </tr>
@@ -157,23 +157,23 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
                 key={player.playerId}
                 className={idx % 2 === 0 ? 'bg-gray-800 text-gray-100' : 'bg-gray-700 text-gray-100 hover:bg-gray-600'}
               >
-                <td className="px-4 py-3 font-semibold text-white">{player.playerName}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.totalMatches}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.totalInnings}</td>
-                <td className="px-4 py-3 text-center font-semibold text-blue-400">{player.battingStats.totalRuns}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.totalBalls}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.ducks}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.notOuts}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.totalFours}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.totalSixes}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.thirties}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{player.battingStats.fifties}</td>
-                <td className="px-4 py-3 text-center font-semibold text-green-400">{player.battingStats.bestScore}</td>
-                <td className="px-4 py-3 text-center text-orange-400">
-                  {player.battingStats.strikeRate.toFixed(2)}
+                <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{player.playerName}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalMatches}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalInnings}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{player.battingStats.totalRuns}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalBalls}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.ducks}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.notOuts}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalFours}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalSixes}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.thirties}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.fifties}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-400">{player.battingStats.bestScore}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
+                  {player.battingStats.strikeRate.toFixed(1)}
                 </td>
-                <td className="px-4 py-3 text-center text-red-400">
-                  {player.battingStats.average.toFixed(2)}
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
+                  {player.battingStats.average.toFixed(1)}
                 </td>
               </tr>
             ))}

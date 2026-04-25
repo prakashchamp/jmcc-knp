@@ -25,7 +25,8 @@ export function FinishInningsDialog() {
   const oversText = `${Math.floor(currentInnings.totalBalls / 6)}.${currentInnings.totalBalls % 6}`;
   const ballExtras = currentInnings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0);
   const totalExtras = ballExtras + (currentInnings.penaltyExtras || 0);
-  const battingTeamName = currentInnings.battingTeam === 'Us' ? 'JMCC' : liveMatch.opponent;
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const battingTeamName = currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent;
 
   return (
     <div className={modalOverlayClass}>

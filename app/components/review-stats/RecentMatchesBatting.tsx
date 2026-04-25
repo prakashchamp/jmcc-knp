@@ -184,7 +184,7 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
                 {renderSortIndicator('sixes')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
                 onClick={() => handleSort('strikeRate')}
               >
                 SR
@@ -200,13 +200,13 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
                   idx % 2 === 0 ? 'bg-gray-800 text-gray-100' : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
                 }
               >
-                <td className="px-4 py-3 font-semibold text-white">{stats.playerName}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.matches}</td>
-                <td className="px-4 py-3 text-center font-semibold text-blue-400">{stats.runs}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.balls}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.fours}</td>
-                <td className="px-4 py-3 text-center text-gray-300">{stats.sixes}</td>
-                <td className="px-4 py-3 text-center text-orange-400">
+                <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white">{stats.playerName}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.matches}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{stats.runs}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.balls}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fours}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.sixes}</td>
+                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
                   {stats.strikeRate > 0 ? stats.strikeRate.toFixed(1) : '-'}
                 </td>
               </tr>

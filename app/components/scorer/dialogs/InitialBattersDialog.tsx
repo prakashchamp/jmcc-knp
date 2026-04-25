@@ -2,12 +2,14 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
-import { closeDialog, setInitialBattersAndBowler, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
+import { closeDialog, setInitialBattersAndBowler } from '@/app/lib/redux/slices/scorerSlice';
+import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
 import { useState } from 'react';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
 import { BowlerDropdownSelect } from './BowlerDropdownSelect';
+import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import {
   infoCardClass,
   modalOverlayClass,
@@ -28,6 +30,8 @@ export function InitialBattersDialog() {
   const [newBatterName, setNewBatterName] = useState('');
   const [newBowlerName, setNewBowlerName] = useState('');
 
+  const teamName = useTeamName();
+  
   if (!liveMatch || !currentInnings) return null;
 
   const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
@@ -88,7 +92,7 @@ export function InitialBattersDialog() {
       return;
     }
 
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'batsman' }));
+    dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() }));
     setNewBatterName('');
   };
 
@@ -98,12 +102,11 @@ export function InitialBattersDialog() {
       return;
     }
 
-    dispatch(addNewTeamPlayer({ name: name.trim(), role: 'bowler' }));
+    dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() }));
 
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
-      role: 'bowler',
     };
 
     setBowler(newPlayer);
@@ -150,7 +153,7 @@ export function InitialBattersDialog() {
 
         <div className="mb-4">
           <BowlerDropdownSelect
-            label={`Opening Bowler (${currentInnings.battingTeam === 'Us' ? liveMatch.opponent : 'JMCC'})`}
+            label={`Opening Bowler (${currentInnings.battingTeam === 'Us' ? liveMatch.opponent : teamName})`}
             placeholder="Select bowler"
             selectedBowler={bowler}
             bowlers={bowlingTeamPlayers}

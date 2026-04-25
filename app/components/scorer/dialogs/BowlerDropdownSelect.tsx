@@ -38,7 +38,9 @@ export function BowlerDropdownSelect({
   previousBowlerId,
 }: BowlerDropdownSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const availableBowlers = bowlers.filter((b) => !excludeIds.includes(b.id));
+  const availableBowlers = bowlers.filter(
+    (b) => !excludeIds.includes(b.id) && b.id !== selectedBowler?.id && b.id !== previousBowlerId
+  );
 
   return (
     <div className="space-y-2">
@@ -65,7 +67,6 @@ export function BowlerDropdownSelect({
                 <div className="px-4 py-3 text-center text-sm text-gray-400">No bowlers available</div>
               ) : (
                 availableBowlers.map((bowler) => {
-                  const isDisabled = previousBowlerId && bowler.id === previousBowlerId;
                   const isSelected = selectedBowler?.id === bowler.id;
 
                   return (
@@ -73,18 +74,13 @@ export function BowlerDropdownSelect({
                       key={bowler.id}
                       type="button"
                       onClick={() => {
-                        if (!isDisabled) {
-                          onSelect(bowler);
-                          setIsOpen(false);
-                        }
+                        onSelect(bowler);
+                        setIsOpen(false);
                       }}
-                      disabled={isDisabled || false}
                       className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm transition-all ${
                         isSelected
                           ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                          : isDisabled
-                            ? 'cursor-not-allowed border-slate-800 bg-slate-900 text-slate-500 opacity-60'
-                            : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                          : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -93,20 +89,16 @@ export function BowlerDropdownSelect({
                         </div>
 
                         <div className="flex shrink-0 items-center gap-2">
-                          {bowler.jerseyNumber && !isDisabled && (
+                          {bowler.jerseyNumber && (
                             <span className="rounded-full border border-slate-500 px-2 py-0.5 text-[11px] text-slate-200">
                               #{bowler.jerseyNumber}
                             </span>
                           )}
-                          {isDisabled ? (
-                            <span className="rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-[11px] font-semibold text-amber-200">
-                              Last Over
-                            </span>
-                          ) : isSelected ? (
+                          {isSelected && (
                             <span className="rounded-full border border-blue-400/60 bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-100">
                               Selected
                             </span>
-                          ) : null}
+                          )}
                         </div>
                       </div>
                     </button>
