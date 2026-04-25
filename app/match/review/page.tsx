@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { LiveMatch, TeamPlayer, Ball } from '@/app/lib/cricket-scorer-types';
 import { Performance } from '@/app/lib/cricket-schema';
 import { calculatePerformances } from '@/app/lib/stats-calculator';
-import { setDocument, batchWrite } from '@/services/firebase/operations';
+import { batchWriteServerAction } from '@/app/lib/actions/firebase-actions';
 import Link from 'next/link';
 
 const STORAGE_KEY = 'jmcc_live_match_draft';
@@ -106,33 +106,24 @@ export default function MatchReviewPage() {
         {
           type: 'set' as const,
           collection: 'matches',
-          docId: matchId,
+          id: matchId,
           data: matchDoc,
           options: { merge: false },
         },
         ...performances.map((perf) => ({
           type: 'set' as const,
           collection: 'performances',
-          docId: perf.id,
+          id: perf.id,
           data: perf,
           options: { merge: false },
         })),
       ];
 
       // Execute batch write
-      const results = await batchWrite(
-        operations.map((op) => ({
-          type: op.type,
-          collection: op.collection,
-          docId: op.docId,
-          data: op.data,
-          options: op.options,
-        }))
-      );
+      const result = await batchWriteServerAction(operations);
 
       // Check if all succeeded
-      const allSucceeded = results.every((r) => r.success);
-      if (allSucceeded) {
+      if (result.success) {
         setMessage({
           type: 'success',
           text: `Match saved! ${performances.length} performances recorded.`,
@@ -145,7 +136,7 @@ export default function MatchReviewPage() {
           window.location.href = '/stats/team-stats';
         }, 2000);
       } else {
-        setMessage({ type: 'error', text: 'Some data failed to save. Please try again.' });
+        setMessage({ type: 'error', text: result.error || 'Some data failed to save. Please try again.' });
       }
     } catch (err) {
       setMessage({

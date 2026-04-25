@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getCollectionData } from '@/services/firebase/operations';
 import { Performance, PlayerBattingStats, PlayerBowlingStats } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
@@ -32,19 +31,22 @@ export function useAllPlayers() {
         setError(null);
 
         // Fetch real performances from Firestore
-        const performances = await getCollectionData<Performance>('performances');
+        const { getAllPerformancesAction } = await import('@/app/lib/actions/stats-actions');
+        const performances = await getAllPerformancesAction();
         
         const playerMap = new Map<string, PlayerStats>();
         const playerMatchIds = new Map<string, Set<string>>();
 
         // Process performances (Batting & Bowling)
-        performances.forEach((perf) => {
-          const playerId = perf.playerId;
+        performances.forEach((perf: any) => {
+          const playerId = perf.player_id || perf.playerId;
+          const playerName = perf.player_name || perf.playerName;
+          const matchId = perf.match_id || perf.matchId;
 
           if (!playerMap.has(playerId)) {
             playerMap.set(playerId, {
               playerId,
-              playerName: perf.playerName,
+              playerName: playerName,
               battingStats: null,
               bowlingStats: null,
               totalMatches: 0,
@@ -54,14 +56,15 @@ export function useAllPlayers() {
 
           const player = playerMap.get(playerId)!;
           const matchIds = playerMatchIds.get(playerId)!;
-          matchIds.add(perf.matchId);
+          matchIds.add(matchId);
 
           // Process Batting
-          if (perf.batting.didBat) {
+          const batDidBat = perf.bat_did_bat !== undefined ? perf.bat_did_bat : perf.batting?.didBat;
+          if (batDidBat) {
             if (!player.battingStats) {
               player.battingStats = {
                 playerId,
-                playerName: perf.playerName,
+                playerName: playerName,
                 totalMatches: 0,
                 totalInnings: 0,
                 notOuts: 0,
@@ -80,29 +83,41 @@ export function useAllPlayers() {
             }
 
             const stats = player.battingStats!;
-            stats.totalInnings += perf.batting.innings;
-            stats.totalRuns += perf.batting.runs;
-            stats.totalBalls += perf.batting.balls;
-            stats.totalFours += perf.batting.fours;
-            stats.totalSixes += perf.batting.sixes;
+            const batInnings = perf.bat_innings !== undefined ? perf.bat_innings : perf.batting?.innings || 0;
+            const batRuns = perf.bat_runs !== undefined ? perf.bat_runs : perf.batting?.runs || 0;
+            const batBalls = perf.bat_balls !== undefined ? perf.bat_balls : perf.batting?.balls || 0;
+            const batFours = perf.bat_fours !== undefined ? perf.bat_fours : perf.batting?.fours || 0;
+            const batSixes = perf.bat_sixes !== undefined ? perf.bat_sixes : perf.batting?.sixes || 0;
+            const batDismissed = perf.bat_dismissed !== undefined ? perf.bat_dismissed : perf.batting?.dismissed;
+            const batIsDuck = perf.bat_is_duck !== undefined ? perf.bat_is_duck : perf.batting?.isDuck;
+            const batIsThirty = perf.bat_is_thirty !== undefined ? perf.bat_is_thirty : perf.batting?.isThirty;
+            const batIsFifty = perf.bat_is_fifty !== undefined ? perf.bat_is_fifty : perf.batting?.isFifty;
+            const batIsHundred = perf.bat_is_hundred !== undefined ? perf.bat_is_hundred : perf.batting?.isHundred;
+
+            stats.totalInnings += batInnings;
+            stats.totalRuns += batRuns;
+            stats.totalBalls += batBalls;
+            stats.totalFours += batFours;
+            stats.totalSixes += batSixes;
             
-            if (!perf.batting.dismissed) {
-              stats.notOuts += perf.batting.innings;
+            if (!batDismissed) {
+              stats.notOuts += batInnings;
             }
-            if (perf.batting.isDuck) stats.ducks += 1;
-            if (perf.batting.isThirty) stats.thirties += 1;
-            if (perf.batting.isFifty) stats.fifties += 1;
-            if (perf.batting.isHundred) stats.hundreds += 1;
+            if (batIsDuck) stats.ducks += 1;
+            if (batIsThirty) stats.thirties += 1;
+            if (batIsFifty) stats.fifties += 1;
+            if (batIsHundred) stats.hundreds += 1;
             
-            stats.bestScore = Math.max(stats.bestScore, perf.batting.runs);
+            stats.bestScore = Math.max(stats.bestScore, batRuns);
           }
 
           // Process Bowling
-          if (perf.bowling.didBowl) {
+          const bowlDidBowl = perf.bowl_did_bowl !== undefined ? perf.bowl_did_bowl : perf.bowling?.didBowl;
+          if (bowlDidBowl) {
             if (!player.bowlingStats) {
               player.bowlingStats = {
                 playerId,
-                playerName: perf.playerName,
+                playerName: playerName,
                 totalMatches: 0,
                 totalInnings: 0,
                 totalWickets: 0,
@@ -119,15 +134,20 @@ export function useAllPlayers() {
             }
 
             const stats = player.bowlingStats!;
-            stats.totalInnings += perf.bowling.innings;
-            stats.totalWickets += perf.bowling.wickets;
-            stats.totalRuns += perf.bowling.runs;
-            stats.totalBalls += perf.bowling.balls;
+            const bowlInnings = perf.bowl_innings !== undefined ? perf.bowl_innings : perf.bowling?.innings || 0;
+            const bowlWickets = perf.bowl_wickets !== undefined ? perf.bowl_wickets : perf.bowling?.wickets || 0;
+            const bowlRuns = perf.bowl_runs !== undefined ? perf.bowl_runs : perf.bowling?.runs || 0;
+            const bowlBalls = perf.bowl_balls !== undefined ? perf.bowl_balls : perf.bowling?.balls || 0;
+
+            stats.totalInnings += bowlInnings;
+            stats.totalWickets += bowlWickets;
+            stats.totalRuns += bowlRuns;
+            stats.totalBalls += bowlBalls;
             
-            if (perf.bowling.wickets === 3) stats.threeWickets += 1;
-            if (perf.bowling.wickets >= 5) stats.fiveWickets += 1;
+            if (bowlWickets === 3) stats.threeWickets += 1;
+            if (bowlWickets >= 5) stats.fiveWickets += 1;
             
-            stats.bestHaul = Math.max(stats.bestHaul, perf.bowling.wickets);
+            stats.bestHaul = Math.max(stats.bestHaul, bowlWickets);
           }
         });
 

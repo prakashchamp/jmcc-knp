@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { PlayerBattingStats, PlayerBowlingStats } from '../cricket-schema';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -31,18 +29,18 @@ export function useMonthlyStats(month?: string) {
         setLoading(true);
         setError(null);
 
+        const { getAllMatchesAction, getAllPerformancesAction } = await import('@/app/lib/actions/stats-actions');
+        
         // 1. Fetch matches to filter by month/year
-        const matchesRef = collection(db, 'matches');
-        const matchesSnapshot = await getDocs(matchesRef);
+        const matches = await getAllMatchesAction();
         
         const validMatchIds = new Set<string>();
-        matchesSnapshot.forEach((doc) => {
-          const match = doc.data();
-          const createdAt = match.createdAt?.toDate?.() || new Date(match.createdAt);
+        matches.forEach((match) => {
+          const createdAt = new Date(match.createdAt);
           const matchMonth = createdAt.toLocaleString('default', { month: 'long' });
           
           if (!month || matchMonth === month) {
-            validMatchIds.add(doc.id);
+            validMatchIds.add(match.id);
           }
         });
 
@@ -53,25 +51,25 @@ export function useMonthlyStats(month?: string) {
         }
 
         // 2. Fetch performances for these matches
-        const performancesRef = collection(db, 'performances');
-        const querySnapshot = await getDocs(performancesRef); // Small enough for now, can optimize later with chunks of where('match_id', 'in', ...)
+        const allPerformances = await getAllPerformancesAction();
         
         const playerMap = new Map<string, MonthlyPlayerStats>();
         const playerMatchIds = new Map<string, Set<string>>();
 
-        querySnapshot.forEach((doc) => {
-          const perf = doc.data();
-          if (!validMatchIds.has(perf.match_id)) return;
+        allPerformances.forEach((perf: any) => {
+          const matchId = perf.match_id || perf.matchId;
+          if (!validMatchIds.has(matchId)) return;
 
-          const playerId = perf.player_id;
+          const playerId = perf.player_id || perf.playerId;
+          const playerName = perf.player_name || perf.playerName;
 
           if (!playerMap.has(playerId)) {
             playerMap.set(playerId, {
               playerId,
-              playerName: perf.player_name,
+              playerName: playerName,
               battingStats: {
                 playerId,
-                playerName: perf.player_name,
+                playerName: playerName,
                 totalMatches: 0,
                 totalInnings: 0,
                 notOuts: 0,
@@ -89,7 +87,7 @@ export function useMonthlyStats(month?: string) {
               },
               bowlingStats: {
                 playerId,
-                playerName: perf.player_name,
+                playerName: playerName,
                 totalMatches: 0,
                 totalInnings: 0,
                 totalWickets: 0,
@@ -109,7 +107,7 @@ export function useMonthlyStats(month?: string) {
 
           const player = playerMap.get(playerId)!;
           const matchIds = playerMatchIds.get(playerId)!;
-          matchIds.add(perf.match_id);
+          matchIds.add(matchId);
 
           // Batting processing
           if (perf.bat_did_bat) {

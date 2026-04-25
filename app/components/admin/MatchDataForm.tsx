@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
-import { setDocument } from '@/services/firebase/operations';
+import { batchWriteServerAction } from '@/app/lib/actions/firebase-actions';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -122,10 +122,17 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         createdAt: now,
       };
 
-      // Save match
-      await setDocument('matches', matchId, completeMatch);
+      const operations = [];
 
-      // Save performances
+      // Add match operation
+      operations.push({
+        type: 'set' as const,
+        collection: 'matches',
+        id: matchId,
+        data: completeMatch,
+      });
+
+      // Add performance operations
       for (const perf of performances) {
         if (perf.playerName) {
           const performanceId = `${matchId}_${perf.playerId || perf.playerName}`;
@@ -168,8 +175,19 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             createdAt: now,
           };
 
-          await setDocument('performances', performanceId, completePerf);
+          operations.push({
+            type: 'set' as const,
+            collection: 'performances',
+            id: performanceId,
+            data: completePerf,
+          });
         }
+      }
+
+      const result = await batchWriteServerAction(operations);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save match data');
       }
 
       setSuccessMessage('Match data saved successfully!');

@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
 import { TeamMatchCard } from '@/app/components/TeamMatchCard';
 import { Match } from '@/app/lib/cricket-schema';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -26,21 +24,15 @@ export default function TeamStatsPage() {
     const fetchMatches = async () => {
       setLoading(true);
       try {
-        const matchesRef = collection(db, 'matches');
-        const q = query(matchesRef, orderBy('createdAt', 'desc'));
-        const snapshot = await getDocs(q);
+        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
+        const fetchedMatches = await getAllMatchesAction();
         
-        const fetchedMatches = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as unknown as Match));
-
         setMatches(fetchedMatches);
 
         // Extract unique months
         const monthsMap = new Map<string, string>();
         fetchedMatches.forEach(match => {
-          const date = (match as any).createdAt?.toDate?.() || new Date((match as any).createdAt);
+          const date = new Date(match.createdAt);
           const monthKey = date.toLocaleString('default', { month: 'long' });
           const yearKey = date.getFullYear().toString();
           const value = monthKey; // Or whatever key is used for filtering
@@ -60,7 +52,7 @@ export default function TeamStatsPage() {
 
         // Extract unique years
         const years = Array.from(new Set(fetchedMatches.map((m) => {
-          const date = (m as any).createdAt?.toDate?.() || new Date((m as any).createdAt);
+          const date = new Date(m.createdAt);
           return date.getFullYear().toString();
         }))).sort().reverse();
         setAvailableYears(years);

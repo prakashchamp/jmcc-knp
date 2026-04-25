@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { TeamStats } from '../cricket-schema';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -26,19 +24,18 @@ export function useTeamStats(): { data: TeamStats | null; loading: boolean; erro
         setLoading(true);
         setError(null);
 
-        const matchesRef = collection(db, 'matches');
-        const querySnapshot = await getDocs(matchesRef);
+        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
+        const matches = await getAllMatchesAction();
 
         const stats: TeamStats = {
-          totalMatches: querySnapshot.size,
+          totalMatches: matches.length,
           wins: 0,
           losses: 0,
           noResults: 0,
           ties: 0,
         };
 
-        querySnapshot.forEach((doc) => {
-          const match = doc.data();
+        matches.forEach((match) => {
           switch (match.result) {
             case 'won':
               stats.wins++;

@@ -7,6 +7,15 @@ import { TeamPlayer } from '@/app/lib/cricket-schema';
 import Link from 'next/link';
 import { setTeam, saveToRedux, setPendingCloudPush, syncTeam, SINGLETON_TEAM_ID } from '@/app/lib/redux/slices/teamSlice';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
+import {
+  modalOverlayClass,
+  modalPanelClass,
+  modalHeaderClass,
+  modalEyebrowClass,
+  modalTitleClass,
+  secondaryButtonClass,
+  dangerButtonClass
+} from '@/app/components/scorer/dialogs/dialogTheme';
 
 /**
  * Team Setup Page
@@ -32,6 +41,12 @@ export default function TeamSetupPage() {
   const [pushing, setPushing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Editing states
+  const [isEditingTeamName, setIsEditingTeamName] = useState(false);
+  const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState<TeamPlayer | null>(null);
+
   // Populate form when team is selected from Redux
   useEffect(() => {
     if (reduxTeam) {
@@ -43,15 +58,12 @@ export default function TeamSetupPage() {
   // Auto-select team if one exists (single team only policy)
   useEffect(() => {
     if (existingTeams.length > 0 && !selectedTeamId) {
-      // Auto-select the first (and only) team
       handleSelectTeam(existingTeams[0].id);
     }
   }, [existingTeams, selectedTeamId]);
 
-  // Handle team selection from existing teams
   const handleSelectTeam = (teamId: string) => {
     setSelectedTeamId(teamId);
-    // Load team from existing teams
     const selectedTeamData = existingTeams.find((t) => t.id === teamId);
     if (selectedTeamData) {
       dispatch(setTeam(selectedTeamData));
@@ -59,24 +71,21 @@ export default function TeamSetupPage() {
     setMessage(null);
   };
 
-  // Handle create new team
-  const handleCreateNewTeam = () => {
-    setSelectedTeamId(undefined);
-    setTeamName('');
-    setPlayers([]);
-    setMessage(null);
-  };
-
-  // Add player to list
   const handleAddPlayer = () => {
     if (!newPlayerName.trim()) {
       setMessage({ type: 'error', text: 'Player name is required' });
       return;
     }
 
-    const playerId = `player_${Date.now()}`;
+    // Generate unique 3-digit ID
+    let newId;
+    const existingIds = players.map(p => p.id);
+    do {
+      newId = Math.floor(100 + Math.random() * 900).toString();
+    } while (existingIds.includes(newId));
+
     const newPlayer: TeamPlayer = {
-      id: playerId,
+      id: newId,
       name: newPlayerName.trim(),
       jerseyNumber: newPlayerJerseyNumber ? parseInt(newPlayerJerseyNumber) : undefined,
     };
@@ -84,21 +93,30 @@ export default function TeamSetupPage() {
     setPlayers([...players, newPlayer]);
     setNewPlayerName('');
     setNewPlayerJerseyNumber('');
+    setIsAddModalOpen(false);
     setMessage(null);
   };
 
-  // Remove player from list
-  const handleRemovePlayer = (playerId: string) => {
-    setPlayers(players.filter((p) => p.id !== playerId));
+  const handleUpdatePlayer = (id: string, name: string, jersey?: number) => {
+    setPlayers(players.map(p => p.id === id ? { ...p, name, jerseyNumber: jersey } : p));
   };
 
-  // Save team to Redux
+  const handleRemovePlayer = (player: TeamPlayer) => {
+    setPlayerToDelete(player);
+  };
+
+  const confirmDeletePlayer = () => {
+    if (playerToDelete) {
+      setPlayers(players.filter((p) => p.id !== playerToDelete.id));
+      setPlayerToDelete(null);
+    }
+  };
+
   const handleSaveTeamToRedux = () => {
     if (!teamName.trim()) {
       setMessage({ type: 'error', text: 'Team name is required' });
       return;
     }
-
     if (players.length === 0) {
       setMessage({ type: 'error', text: 'Add at least one player' });
       return;
@@ -111,7 +129,7 @@ export default function TeamSetupPage() {
       const now = new Date().toISOString();
       dispatch(
         saveToRedux({
-          id: SINGLETON_TEAM_ID,
+          id: reduxTeam?.id || SINGLETON_TEAM_ID,
           name: teamName.trim(),
           players,
           createdAt: reduxTeam?.createdAt || now,
@@ -126,7 +144,6 @@ export default function TeamSetupPage() {
     }
   };
 
-  // Push team to Firestore
   const handlePushToCloud = async () => {
     if (!reduxTeam) {
       setMessage({ type: 'error', text: 'No team to push' });
@@ -138,6 +155,7 @@ export default function TeamSetupPage() {
 
     try {
       await dispatch(syncTeam(reduxTeam)).unwrap();
+      console.log('Cloud Sync Success:', reduxTeam.name, 'with', reduxTeam.players.length, 'players');
       setMessage({ type: 'success', text: 'Team successfully pushed to cloud!' });
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to push to Firestore' });
@@ -147,186 +165,229 @@ export default function TeamSetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-6">
+      <div className="max-w-xl mx-auto">
         {/* Header */}
-        <div className="mb-8 flex justify-between items-start">
+        <div className="mb-6 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl sm:text-4xl font-bold mb-2">Team Setup</h1>
-            <p className="text-slate-300 text-sm sm:text-base">Create and manage your cricket team roster</p>
+            <h1 className="text-xl sm:text-3xl font-bold mb-1">Team Setup</h1>
+            <p className="text-slate-400 text-xs sm:text-sm">Manage your team and players</p>
           </div>
           <Link href="/" className="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Back to home">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
         </div>
 
-        {/* Info: Only one team allowed */}
-        {existingTeams.length > 0 && (
-          <div className="mb-6 p-4 bg-blue-900 border border-blue-700 text-blue-100 rounded-lg">
-            <p className="font-semibold">ℹ️ Only one team is allowed</p>
-            <p className="text-sm mt-1">You cannot create multiple teams. Edit your existing team below.</p>
-          </div>
-        )}
-
-        {/* Redux Status Indicators */}
-        <div className="flex gap-4 mb-6">
-          {savedToRedux && (
-            <div className="px-4 py-2 bg-green-900 text-green-100 rounded-lg font-semibold flex items-center gap-2">
-              ✓ Saved to Redux
-            </div>
-          )}
-          {pendingCloudPush && (
-            <div className="px-4 py-2 bg-amber-900 text-amber-100 rounded-lg font-semibold flex items-center gap-2">
-              ⚠ Pending Cloud Push
-            </div>
-          )}
+        {/* Status & Messages */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {savedToRedux && <span className="px-2 py-0.5 bg-green-900/50 text-green-300 border border-green-700 rounded-full text-[10px] font-semibold">✓ Redux Saved</span>}
+          {pendingCloudPush && <span className="px-2 py-0.5 bg-amber-900/50 text-amber-300 border border-amber-700 rounded-full text-[10px] font-semibold">⚠ Cloud Pending</span>}
         </div>
+        {message && <div className={`mb-4 p-3 text-xs rounded-lg ${message.type === 'success' ? 'bg-green-900 text-green-100' : 'bg-red-900 text-red-100'}`}>{message.text}</div>}
 
-        {/* Messages */}
-        {message && (
-          <div
-            className={`mb-6 p-4 rounded-lg ${message.type === 'success'
-                ? 'bg-green-900 text-green-100'
-                : 'bg-red-900 text-red-100'
-              }`}
-          >
-            {message.text}
+        {/* Team Details Container */}
+        <div className="bg-slate-800/50 rounded-2xl p-4 sm:p-6 border border-slate-700 shadow-xl space-y-6">
+
+          {/* Team Name Section - Centered */}
+          <div className="flex flex-col items-center space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Team Name</label>
+            <div className="flex gap-2 w-full max-w-xs">
+              <input
+                type="text"
+                disabled={!isEditingTeamName}
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                className={`flex-1 px-4 py-1.5 rounded-lg bg-slate-900/50 border text-center transition-all ${isEditingTeamName ? 'border-blue-500 ring-1 ring-blue-500 text-white' : 'border-slate-700 text-slate-300'}`}
+              />
+              <button
+                onClick={() => setIsEditingTeamName(!isEditingTeamName)}
+                className={`p-1.5 rounded-lg border transition-colors ${isEditingTeamName ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'}`}
+              >
+                {isEditingTeamName ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Team Selection - Auto-select if exists, otherwise show create */}
-        {existingTeams.length > 0 && !selectedTeamId && (
-          <div className="bg-slate-800 rounded-lg p-6 mb-6 border border-slate-700">
-            <h2 className="text-xl font-semibold mb-4">Your Team</h2>
+          {/* Roster Section */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players ({players.length})</label>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                </svg>
+                Add Player
+              </button>
+            </div>
 
-            <div className="space-y-3">
-              {existingTeams.map((team) => (
-                <button
-                  key={team.id}
-                  onClick={() => handleSelectTeam(team.id)}
-                  className="w-full p-4 bg-slate-700 hover:bg-slate-600 rounded-lg text-left transition-colors"
-                >
-                  <div className="font-semibold">{team.name}</div>
-                  <div className="text-sm text-slate-400">{team.players?.length || 0} players</div>
-                </button>
+            <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 custom-scrollbar">
+              {players.map((player) => (
+                <div key={player.id} className="group flex gap-2 items-center bg-slate-900/40 p-2 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-all">
+                  <div className="w-8 text-center text-[10px] font-bold text-slate-500">
+                    {editingPlayerId === player.id ? (
+                      <input
+                        type="number"
+                        value={player.jerseyNumber || ''}
+                        onChange={(e) => handleUpdatePlayer(player.id, player.name, e.target.value ? parseInt(e.target.value) : undefined)}
+                        className="w-full bg-slate-800 border border-blue-500 rounded text-center text-white p-0.5"
+                        placeholder="#"
+                      />
+                    ) : (
+                      <span>#{player.jerseyNumber || '??'}</span>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    disabled={editingPlayerId !== player.id}
+                    value={player.name}
+                    onChange={(e) => handleUpdatePlayer(player.id, e.target.value, player.jerseyNumber)}
+                    className={`flex-1 px-2 py-1 rounded text-xs transition-all bg-transparent ${editingPlayerId === player.id ? 'bg-slate-800 border-b border-blue-500 text-white' : 'border-transparent text-slate-300'}`}
+                  />
+                  <div className="flex gap-1 items-center">
+                    <button
+                      onClick={() => setEditingPlayerId(editingPlayerId === player.id ? null : player.id)}
+                      className={`p-1 rounded-md transition-colors ${editingPlayerId === player.id ? 'text-green-400 hover:bg-green-900/30' : 'text-slate-500 hover:text-white'}`}
+                    >
+                      {editingPlayerId === player.id ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleRemovePlayer(player)}
+                      className="p-1 text-slate-600 hover:text-red-400 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Team Form */}
-        <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-          {/* Team Name Input */}
-          <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">Team Name</label>
-            <input
-              type="text"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="e.g., Sparta Tigers"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-            />
+          {/* Action Buttons */}
+          <div className="pt-2 flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handleSaveTeamToRedux}
+              disabled={saving || !teamName.trim() || players.length === 0}
+              className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
+            >
+              {saving ? 'Saving...' : 'Save Locally'}
+            </button>
+            <button
+              onClick={handlePushToCloud}
+              disabled={pushing || !savedToRedux}
+              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
+            >
+              {pushing ? 'Syncing...' : 'Sync to Cloud'}
+            </button>
           </div>
 
-          {/* Player Input Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold mb-4">Add Players</h3>
+          {selectedTeamId && (
+            <Link href="/scorer" className="block w-full py-2.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs font-semibold text-center transition-all active:scale-95">
+              🚀 Start Scoring
+            </Link>
+          )}
+        </div>
+      </div>
 
-            <div className="space-y-4 bg-slate-700 p-4 rounded-lg mb-4">
-              <div>
-                <label className="block text-sm font-semibold mb-1">Player Name</label>
+      {/* Add Player Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-800 w-full max-w-xs rounded-xl border border-slate-700 shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-slate-700 flex justify-between items-center">
+              <h3 className="text-sm font-bold uppercase tracking-wider">New Player</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-slate-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name</label>
                 <input
+                  autoFocus
                   type="text"
                   value={newPlayerName}
                   onChange={(e) => setNewPlayerName(e.target.value)}
-                  placeholder="Enter player name"
-                  className="w-full px-4 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                  placeholder="Player name"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
                 />
               </div>
-
-              <div className="grid grid-cols-1 gap-4">
-
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-slate-300">Jersey Number (optional)</label>
-                  <input
-                    type="number"
-                    value={newPlayerJerseyNumber}
-                    onChange={(e) => setNewPlayerJerseyNumber(e.target.value)}
-                    placeholder="e.g., 7"
-                    className="w-full px-4 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Jersey #</label>
+                <input
+                  type="number"
+                  value={newPlayerJerseyNumber}
+                  onChange={(e) => setNewPlayerJerseyNumber(e.target.value)}
+                  placeholder="Optional"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
+                />
               </div>
-
               <button
                 onClick={handleAddPlayer}
-                className="w-full p-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-colors"
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-bold transition-all mt-1"
               >
                 Add Player
               </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Players List */}
-          {players.length > 0 && (
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold mb-4">Team Roster ({players.length})</h3>
-
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {players.map((player) => (
-                  <div
-                    key={player.id}
-                    className="flex justify-between items-center bg-slate-700 p-3 rounded-lg"
-                  >
-                    <div>
-                      <div className="font-semibold">
-                        {player.jerseyNumber && `#${player.jerseyNumber} `}
-                        {player.name}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleRemovePlayer(player.id)}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded text-sm font-semibold transition-colors"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <div className="flex gap-4">
-              <button
-                onClick={handleSaveTeamToRedux}
-                disabled={saving || !teamName.trim() || players.length === 0}
-                className="flex-1 p-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-600 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
-              >
-                {saving ? 'Saving to Redux...' : 'Save to Redux'}
-              </button>
-
-              <button
-                onClick={handlePushToCloud}
-                disabled={pushing || !savedToRedux}
-                className="flex-1 p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
-              >
-                {pushing ? 'Pushing to Cloud...' : 'Push to Cloud'}
-              </button>
+      {/* Delete Confirmation Modal */}
+      {playerToDelete && (
+        <div className={modalOverlayClass}>
+          <div className={`${modalPanelClass} w-full max-w-xs p-5 sm:p-6`}>
+            <div className={modalHeaderClass}>
+              <p className={modalEyebrowClass}>Confirm Action</p>
+              <h2 className={modalTitleClass}>Remove Player?</h2>
             </div>
 
-            {selectedTeamId && (
-              <Link href="/scorer" className="block p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors text-center">
-                Start Scoring
-              </Link>
-            )}
+            <div className="mb-6">
+              <p className="text-sm text-slate-400">
+                Are you sure you want to remove <span className="text-white font-semibold">{playerToDelete.name}</span> from the roster?
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPlayerToDelete(null)}
+                className={`flex-1 px-4 py-2 text-xs ${secondaryButtonClass}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeletePlayer}
+                className={`flex-1 px-4 py-2 text-xs ${dangerButtonClass}`}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

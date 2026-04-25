@@ -3,8 +3,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
 import { useParams, useRouter } from 'next/navigation';
-import { db } from '@/services/firebase/db';
-import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
@@ -27,47 +25,39 @@ export default function MatchDetailPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch match
-        const matchRef = doc(db, 'matches', matchId);
-        const matchSnap = await getDoc(matchRef);
-        if (matchSnap.exists()) {
-          setMatch({ id: matchSnap.id, ...matchSnap.data() } as unknown as Match);
-        }
-
-        // Fetch performances
-        const perfsRef = collection(db, 'performances');
-        const q = query(perfsRef, where('match_id', '==', matchId));
-        const qSnap = await getDocs(q);
+        const { getMatchDetailsAction } = await import('@/app/lib/actions/stats-actions');
+        const data = await getMatchDetailsAction(matchId);
         
-        const perfs = qSnap.docs.map(doc => {
-          const data = doc.data();
-          // Map flat Firestore fields back to nested Performance type if needed
-          // For now, I'll just map them manually if the component expects nested structure
-          return {
-            id: doc.id,
-            playerId: data.player_id,
-            playerName: data.player_name,
-            matchId: data.match_id,
-            batting: {
-              didBat: data.bat_did_bat,
-              innings: data.bat_innings || 0,
-              runs: data.bat_runs || 0,
-              balls: data.bat_balls || 0,
-              fours: data.bat_fours || 0,
-              sixes: data.bat_sixes || 0,
-              strikeRate: data.bat_balls > 0 ? (data.bat_runs / data.bat_balls) * 100 : 0,
-            },
-            bowling: {
-              didBowl: data.bowl_did_bowl,
-              innings: data.bowl_innings || 0,
-              overs: data.bowl_overs || 0,
-              runs: data.bowl_runs || 0,
-              wickets: data.bowl_wickets || 0,
-              economy: data.bowl_overs > 0 ? data.bowl_runs / data.bowl_overs : 0,
-            }
-          } as unknown as Performance;
-        });
-        setMatchPerformances(perfs);
+        if (data) {
+          setMatch(data.match);
+          
+          const perfs = data.performances.map((perf: any) => {
+            return {
+              id: perf.id,
+              playerId: perf.player_id || perf.playerId,
+              playerName: perf.player_name || perf.playerName,
+              matchId: perf.match_id || perf.matchId,
+              batting: {
+                didBat: perf.bat_did_bat,
+                innings: perf.bat_innings || 0,
+                runs: perf.bat_runs || 0,
+                balls: perf.bat_balls || 0,
+                fours: perf.bat_fours || 0,
+                sixes: perf.bat_sixes || 0,
+                strikeRate: perf.bat_balls > 0 ? (perf.bat_runs / perf.bat_balls) * 100 : 0,
+              },
+              bowling: {
+                didBowl: perf.bowl_did_bowl,
+                innings: perf.bowl_innings || 0,
+                overs: perf.bowl_overs || 0,
+                runs: perf.bowl_runs || 0,
+                wickets: perf.bowl_wickets || 0,
+                economy: perf.bowl_overs > 0 ? perf.bowl_runs / perf.bowl_overs : 0,
+              }
+            } as unknown as Performance;
+          });
+          setMatchPerformances(perfs);
+        }
       } catch (err) {
         console.error('Error fetching match details:', err);
       } finally {

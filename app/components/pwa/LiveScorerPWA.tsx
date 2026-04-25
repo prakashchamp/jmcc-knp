@@ -180,7 +180,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
    * @param oddRunsAlreadySwapped - if true, mid-ball odd-run swap already happened;
    *   skip the end-of-over swap so we don't double-rotate.
    */
-  const handleOverEnd = () => {
+  const handleOverEnd = (_oddRunsAlreadySwapped?: boolean) => {
     rotateStrike();
 
     const completedOver = Math.floor(totalOversPlayed) + 1;

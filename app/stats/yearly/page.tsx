@@ -5,8 +5,6 @@ import { Header } from '@/app/components/Header';
 import { YearlyBattingStatsTable } from '@/app/components/YearlyBattingStatsTable';
 import { YearlyBowlingStatsTable } from '@/app/components/YearlyBowlingStatsTable';
 import { useYearlyStats } from '@/app/lib/hooks/useYearlyStats';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -22,13 +20,12 @@ export default function YearlyStatsPage() {
     }
     const fetchAvailableYears = async () => {
       try {
-        const matchesRef = collection(db, 'matches');
-        const snapshot = await getDocs(matchesRef);
+        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
+        const matches = await getAllMatchesAction();
         
         const yearsSet = new Set<string>();
-        snapshot.forEach(doc => {
-          const match = doc.data();
-          const date = match.createdAt?.toDate?.() || new Date(match.createdAt);
+        matches.forEach(match => {
+          const date = new Date(match.createdAt);
           const yearKey = date.getFullYear().toString();
           yearsSet.add(yearKey);
         });
@@ -39,7 +36,7 @@ export default function YearlyStatsPage() {
         }));
 
         setAvailableYears(sortedYears);
-        if (sortedYears.length > 0) {
+        if (sortedYears.length > 0 && !selectedYear) {
           setSelectedYear(sortedYears[0].value);
         }
       } catch (err) {
@@ -48,7 +45,7 @@ export default function YearlyStatsPage() {
     };
 
     fetchAvailableYears();
-  }, [fetchTrigger, isManualFetchMode]);
+  }, [fetchTrigger, isManualFetchMode, selectedYear]);
 
   const { players, loading, error } = useYearlyStats(selectedYear);
 

@@ -5,8 +5,6 @@ import { Header } from '@/app/components/Header';
 import { MonthlyBattingStatsTable } from '@/app/components/MonthlyBattingStatsTable';
 import { MonthlyBowlingStatsTable } from '@/app/components/MonthlyBowlingStatsTable';
 import { useMonthlyStats } from '@/app/lib/hooks/useMonthlyStats';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -22,13 +20,12 @@ export default function MonthlyStatsPage() {
     }
     const fetchAvailableMonths = async () => {
       try {
-        const matchesRef = collection(db, 'matches');
-        const snapshot = await getDocs(matchesRef);
+        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
+        const matches = await getAllMatchesAction();
         
         const monthsMap = new Map<string, string>();
-        snapshot.forEach(doc => {
-          const match = doc.data();
-          const date = match.createdAt?.toDate?.() || new Date(match.createdAt);
+        matches.forEach(match => {
+          const date = new Date(match.createdAt);
           const monthKey = date.toLocaleString('default', { month: 'long' });
           const yearKey = date.getFullYear().toString();
           const label = `${monthKey} ${yearKey}`;
@@ -41,7 +38,7 @@ export default function MonthlyStatsPage() {
         }));
 
         setAvailableMonths(sortedMonths);
-        if (sortedMonths.length > 0) {
+        if (sortedMonths.length > 0 && !selectedMonth) {
           setSelectedMonth(sortedMonths[0].value);
         }
       } catch (err) {
@@ -50,7 +47,7 @@ export default function MonthlyStatsPage() {
     };
 
     fetchAvailableMonths();
-  }, [fetchTrigger, isManualFetchMode]);
+  }, [fetchTrigger, isManualFetchMode, selectedMonth]);
 
   const { players, loading, error } = useMonthlyStats(selectedMonth);
 

@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { Match } from '../cricket-schema';
-import { db } from '@/services/firebase/db';
-import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
@@ -25,18 +23,13 @@ export function useRecentMatch(): { data: Match | null; loading: boolean; error:
       try {
         setLoading(true);
         setError(null);
-
-        const matchesRef = collection(db, 'matches');
-        const q = query(matchesRef, orderBy('createdAt', 'desc'), limit(1));
-        const querySnapshot = await getDocs(q);
-
-        if (querySnapshot.empty) {
+        const { getRecentMatchesAction } = await import('@/app/lib/actions/stats-actions');
+        const matches = await getRecentMatchesAction(1);
+        if (matches && matches.length > 0) {
+          setData(matches[0].match as Match);
+        } else {
           setData(null);
-          return;
         }
-
-        const doc = querySnapshot.docs[0];
-        setData({ id: doc.id, ...doc.data() } as unknown as Match);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch recent match'));
       } finally {

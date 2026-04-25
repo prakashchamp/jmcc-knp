@@ -1,13 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Team, TeamPlayer } from '../cricket-schema';
-import { getDocument, setDocument, updateDocument, deleteDocument } from '@/services/firebase/operations';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { 
+  getServerDocument, 
+  getServerCollection, 
+  setServerDocument, 
+  updateServerDocument 
+} from '@/app/lib/actions/firebase-actions';
 
 /**
- * Hook to manage team data with Firestore
+ * Hook to manage team data with Firestore using Server Actions
  * Provides CRUD operations and state management
  */
 export function useTeam(teamId?: string) {
@@ -17,7 +22,7 @@ export function useTeam(teamId?: string) {
   const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   /**
-   * Fetch team by ID
+   * Fetch team by ID using Server Action
    */
   useEffect(() => {
     if (!teamId) {
@@ -35,7 +40,7 @@ export function useTeam(teamId?: string) {
         setLoading(true);
         setError(null);
 
-        const result = await getDocument<Team>('teams', teamId);
+        const result = await getServerDocument<Team>('teams', teamId);
         if (result) {
           setTeam({
             ...result.data,
@@ -58,7 +63,7 @@ export function useTeam(teamId?: string) {
   }, [teamId, fetchTrigger, isManualFetchMode]);
 
   /**
-   * Create a new team
+   * Create a new team using Server Action
    */
   const saveTeam = async (teamData: Omit<Team, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> => {
     try {
@@ -73,14 +78,13 @@ export function useTeam(teamId?: string) {
         updatedAt: now,
       };
 
-      const result = await setDocument<Team>('teams', teamId, newTeam);
+      const result = await setServerDocument<Team>('teams', teamId, newTeam);
 
       if (result.success) {
         setTeam(newTeam);
         return teamId;
       } else {
-        const errorMsg = result.error instanceof Error ? result.error.message : 'Failed to save team';
-        throw new Error(errorMsg);
+        throw new Error(result.error || 'Failed to save team');
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to save team');
@@ -90,7 +94,7 @@ export function useTeam(teamId?: string) {
   };
 
   /**
-   * Update team name
+   * Update team name using Server Action
    */
   const updateTeamName = async (newName: string): Promise<boolean> => {
     if (!team?.id) {
@@ -100,7 +104,7 @@ export function useTeam(teamId?: string) {
 
     try {
       setError(null);
-      const result = await updateDocument<Team>('teams', team.id, {
+      const result = await updateServerDocument<Team>('teams', team.id, {
         name: newName,
       });
 
@@ -108,8 +112,7 @@ export function useTeam(teamId?: string) {
         setTeam({ ...team, name: newName });
         return true;
       } else {
-        const errorMsg = result.error instanceof Error ? result.error.message : 'Failed to update team name';
-        throw new Error(errorMsg);
+        throw new Error(result.error || 'Failed to update team name');
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update team name');
@@ -119,7 +122,7 @@ export function useTeam(teamId?: string) {
   };
 
   /**
-   * Update team players list
+   * Update team players list using Server Action
    */
   const updateTeamPlayers = async (players: TeamPlayer[]): Promise<boolean> => {
     if (!team?.id) {
@@ -129,7 +132,7 @@ export function useTeam(teamId?: string) {
 
     try {
       setError(null);
-      const result = await updateDocument<Team>('teams', team.id, {
+      const result = await updateServerDocument<Team>('teams', team.id, {
         players,
       });
 
@@ -137,76 +140,10 @@ export function useTeam(teamId?: string) {
         setTeam({ ...team, players });
         return true;
       } else {
-        const errorMsg = result.error instanceof Error ? result.error.message : 'Failed to update players';
-        throw new Error(errorMsg);
+        throw new Error(result.error || 'Failed to update players');
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to update players');
-      setError(error);
-      return false;
-    }
-  };
-
-  /**
-   * Add a player to the team
-   */
-  const addPlayer = async (player: TeamPlayer): Promise<boolean> => {
-    if (!team?.id) {
-      setError(new Error('No team loaded'));
-      return false;
-    }
-
-    try {
-      const updatedPlayers = [...team.players, player];
-      return await updateTeamPlayers(updatedPlayers);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to add player');
-      setError(error);
-      return false;
-    }
-  };
-
-  /**
-   * Remove a player from the team
-   */
-  const removePlayer = async (playerId: string): Promise<boolean> => {
-    if (!team?.id) {
-      setError(new Error('No team loaded'));
-      return false;
-    }
-
-    try {
-      const updatedPlayers = team.players.filter((p) => p.id !== playerId);
-      return await updateTeamPlayers(updatedPlayers);
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to remove player');
-      setError(error);
-      return false;
-    }
-  };
-
-  /**
-   * Delete team
-   */
-  const deleteTeam = async (): Promise<boolean> => {
-    if (!team?.id) {
-      setError(new Error('No team loaded'));
-      return false;
-    }
-
-    try {
-      setError(null);
-      const result = await deleteDocument('teams', team.id);
-
-      if (result.success) {
-        setTeam(null);
-        return true;
-      } else {
-        const errorMsg = result.error instanceof Error ? result.error.message : 'Failed to delete team';
-        throw new Error(errorMsg);
-      }
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to delete team');
       setError(error);
       return false;
     }
@@ -219,14 +156,11 @@ export function useTeam(teamId?: string) {
     saveTeam,
     updateTeamName,
     updateTeamPlayers,
-    addPlayer,
-    removePlayer,
-    deleteTeam,
   };
 }
 
 /**
- * Hook to fetch all teams
+ * Hook to fetch all teams using Server Action
  */
 export function useAllTeams() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -234,41 +168,46 @@ export function useAllTeams() {
   const [error, setError] = useState<Error | null>(null);
   const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
+  const fetchTeams = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const results = await getServerCollection<Team>('teams');
+
+      setTeams(
+        results.map((result) => ({
+          ...result.data,
+          id: result.id,
+        }))
+      );
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to fetch teams');
+      setError(error);
+      setTeams([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (isManualFetchMode && fetchTrigger === 0) {
       setLoading(false);
       return;
     }
-    const fetchTeams = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const results = await (
-          await import('@/services/firebase/operations')
-        ).getCollection<Team>('teams');
-
-        setTeams(
-          results.map((result) => ({
-            ...result.data,
-            id: result.id,
-          }))
-        );
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error('Failed to fetch teams');
-        setError(error);
-        setTeams([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeams();
-  }, [fetchTrigger, isManualFetchMode]);
+    
+    // Only fetch if we have a trigger or if we are not in manual mode and don't have teams yet
+    if (isManualFetchMode || teams.length === 0) {
+      fetchTeams();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchTrigger, isManualFetchMode, fetchTeams, teams.length]);
 
   return {
     teams,
     loading,
     error,
+    fetchTeams,
   };
 }

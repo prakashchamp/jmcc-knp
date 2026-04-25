@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../store';
-import { batchWrite } from '@/services/firebase/operations';
+import { batchWriteServerAction } from '@/app/lib/actions/firebase-actions';
 import { calculatePerformances } from '@/app/lib/stats-calculator';
 import { 
   mapMatchToFirestore, 
@@ -8,7 +8,6 @@ import {
   findBestBatter, 
   findBestBowler 
 } from '@/app/lib/firestore-mapper';
-import { BatchOperation } from '@/services/firebase/types';
 
 export const uploadMatchToFirestore = createAsyncThunk(
   'scorer/uploadMatchToFirestore',
@@ -53,7 +52,7 @@ export const uploadMatchToFirestore = createAsyncThunk(
       const bestBowler = findBestBowler(performances);
 
       // 4. Prepare batch operations
-      const operations: BatchOperation[] = [];
+      const operations = [];
 
       // Match document
       const matchData = mapMatchToFirestore(liveMatch);
@@ -70,28 +69,27 @@ export const uploadMatchToFirestore = createAsyncThunk(
       };
 
       operations.push({
-        type: 'set',
+        type: 'set' as const,
         collection: 'matches',
-        docId: liveMatch.id,
+        id: liveMatch.id,
         data: enrichedMatchData,
       });
 
       // Performance documents
       performances.forEach(perf => {
         operations.push({
-          type: 'set',
+          type: 'set' as const,
           collection: 'performances',
-          docId: `${liveMatch.id}_${perf.playerId}`,
+          id: `${liveMatch.id}_${perf.playerId}`,
           data: mapPerformanceToFirestore(perf),
         });
       });
 
       // 5. Execute batch write
-      const results = await batchWrite(operations);
+      const result = await batchWriteServerAction(operations);
       
-      const failed = results.filter(r => !r.success);
-      if (failed.length > 0) {
-        return rejectWithValue(`Failed to upload ${failed.length} documents`);
+      if (!result.success) {
+        return rejectWithValue(result.error || 'Failed to upload documents');
       }
 
       return { matchId: liveMatch.id, count: operations.length };

@@ -42,7 +42,7 @@ function ScorecardPageContent() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white font-bold animate-pulse text-lg">Loading team roster...</div>
+        <div className="text-white font-bold animate-pulse text-lg">Loading team players...</div>
       </div>
     );
   }
