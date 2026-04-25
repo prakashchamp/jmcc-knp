@@ -249,6 +249,40 @@ const scorerSlice = createSlice({
     },
 
     /**
+     * Initialize match directly at second innings.
+     * Creates a synthetic completed first innings with just the score,
+     * then sets up an empty second innings with correct target.
+     */
+    initializeMatchAtSecondInnings: (state, action: PayloadAction<{ match: LiveMatch; firstInningsScore: number }>) => {
+      const { match, firstInningsScore } = action.payload;
+      const firstInningsBattingTeam = getFirstInningsBattingTeam(match.tossWonBy, match.tossDecision);
+      const secondInningsBattingTeam = getSecondInningsBattingTeam(match.tossWonBy, match.tossDecision);
+
+      // Create synthetic completed first innings
+      const firstInnings = createEmptyInnings(1, match.teamPlayers);
+      firstInnings.battingTeam = firstInningsBattingTeam;
+      firstInnings.totalRuns = firstInningsScore;
+      firstInnings.totalBalls = match.totalOvers * 6; // Mark as fully completed
+      firstInnings.totalWickets = 10; // Mark as all out for simplicity
+
+      // Create empty second innings
+      const secondInnings = createEmptyInnings(2, match.teamPlayers);
+      secondInnings.battingTeam = secondInningsBattingTeam;
+      secondInnings.target = firstInningsScore + 1;
+
+      match.innings = [firstInnings, secondInnings];
+      match.currentInnings = 2;
+      match.status = 'in-progress';
+      match.updatedAt = new Date().toISOString();
+
+      state.liveMatch = match;
+      state.currentInnings = secondInnings;
+      state.undoStack = [];
+      state.dialogState = { activeDialog: null, dialogData: {} };
+      state.error = null;
+    },
+
+    /**
      * Create snapshot for undo before recording a ball
      */
     createUndoSnapshot: (state) => {
@@ -2142,6 +2176,20 @@ const scorerSlice = createSlice({
         ...action.payload,
         updatedAt: new Date().toISOString(),
       };
+
+      // Update first innings batting team based on toss winner + decision
+      const firstInningsBattingTeam = getFirstInningsBattingTeam(
+        action.payload.tossWonBy,
+        action.payload.tossDecision
+      );
+
+      if (state.liveMatch.innings && state.liveMatch.innings.length > 0) {
+        state.liveMatch.innings[0].battingTeam = firstInningsBattingTeam;
+      }
+
+      if (state.currentInnings && state.currentInnings.inningsNumber === 1) {
+        state.currentInnings.battingTeam = firstInningsBattingTeam;
+      }
     },
 
     /**
@@ -2171,6 +2219,7 @@ const scorerSlice = createSlice({
 
 export const {
   initializeLiveMatch,
+  initializeMatchAtSecondInnings,
   createUndoSnapshot,
   undoLastDelivery,
   recordBattingBall,

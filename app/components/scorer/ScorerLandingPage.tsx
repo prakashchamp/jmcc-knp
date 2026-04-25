@@ -22,6 +22,8 @@ interface ScorerLandingPageProps {
     striker?: TeamPlayer;
     nonStriker?: TeamPlayer;
     bowler?: TeamPlayer;
+    startFromSecondInnings?: boolean;
+    firstInningsScore?: number;
   }) => void;
   onResumeMatch: () => void;
   hasMatchToResume: boolean;
@@ -210,6 +212,10 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
     totalOvers: '20',
   });
 
+  // Start from 2nd innings
+  const [startFromSecondInnings, setStartFromSecondInnings] = useState(false);
+  const [firstInningsScore, setFirstInningsScore] = useState('');
+
   // Player selections
   const [striker, setStriker] = useState<TeamPlayer | null>(null);
   const [nonStriker, setNonStriker] = useState<TeamPlayer | null>(null);
@@ -315,6 +321,11 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
       return;
     }
 
+    if (startFromSecondInnings && (!firstInningsScore.trim() || parseInt(firstInningsScore, 10) < 0)) {
+      alert('Please enter a valid 1st innings score');
+      return;
+    }
+
     // Proceed to player selection
     setStep('players');
   };
@@ -356,6 +367,8 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
       striker,
       nonStriker,
       bowler,
+      startFromSecondInnings,
+      firstInningsScore: startFromSecondInnings ? (parseInt(firstInningsScore, 10) || 0) : undefined,
     });
   };
 
@@ -475,6 +488,44 @@ export function ScorerLandingPage({ onStartNewMatch, onResumeMatch, hasMatchToRe
                 min="1"
                 disabled={!isOpponentEntered}
               />
+            </div>
+
+            {/* Start from 2nd Innings Toggle */}
+            <div className={`rounded-xl border p-4 transition-colors ${startFromSecondInnings ? 'border-amber-500/40 bg-amber-500/10' : 'border-slate-700 bg-slate-800/50'} ${!isOpponentEntered ? 'opacity-50 pointer-events-none' : ''}`}>
+              <label className="flex items-center justify-between cursor-pointer">
+                <div>
+                  <p className="text-sm font-semibold text-slate-200">Start from 2nd Innings</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Skip 1st innings, enter score directly</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={startFromSecondInnings}
+                  disabled={!isOpponentEntered}
+                  onClick={() => setStartFromSecondInnings(!startFromSecondInnings)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    startFromSecondInnings ? 'bg-amber-500' : 'bg-slate-600'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    startFromSecondInnings ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </label>
+
+              {startFromSecondInnings && (
+                <div className="mt-4">
+                  <label className="mb-2 block text-sm font-semibold text-amber-200">1st Innings Score</label>
+                  <input
+                    type="number"
+                    value={firstInningsScore}
+                    onChange={(e) => setFirstInningsScore(e.target.value)}
+                    className={inputClass}
+                    placeholder="e.g., 150"
+                    min="0"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Buttons */}

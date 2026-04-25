@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import {
   initializeLiveMatch,
+  initializeMatchAtSecondInnings,
   openDialog,
   recordBattingBall,
   createUndoSnapshot,
@@ -267,6 +268,8 @@ export function LiveScorer(props: LiveScorerProps) {
     striker?: TeamPlayer;
     nonStriker?: TeamPlayer;
     bowler?: TeamPlayer;
+    startFromSecondInnings?: boolean;
+    firstInningsScore?: number;
   }) => {
     const newMatch: LiveMatch = {
       id: `match_${Date.now()}`,
@@ -284,7 +287,15 @@ export function LiveScorer(props: LiveScorerProps) {
       updatedAt: new Date().toISOString(),
     };
 
-    dispatch(initializeLiveMatch(newMatch));
+    if (matchDetails.startFromSecondInnings && typeof matchDetails.firstInningsScore === 'number') {
+      // Start directly from 2nd innings
+      dispatch(initializeMatchAtSecondInnings({
+        match: newMatch,
+        firstInningsScore: matchDetails.firstInningsScore,
+      }));
+    } else {
+      dispatch(initializeLiveMatch(newMatch));
+    }
 
     // If we have striker and bowler, set them immediately
     if (matchDetails.striker && matchDetails.nonStriker && matchDetails.bowler) {
