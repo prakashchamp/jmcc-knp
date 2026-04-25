@@ -48,15 +48,31 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
         id: `over-${overCount}-ball-${ballCount + 1}`,
         over: overCount,
         ball: ballCount + 1,
-        batter,
-        bowler: bowler.trim() || 'Bowler',
-        runsBall: runsBall,
-        ...(hasExtra && { extras: { type: extraType, runs: extraRunsValue || 0 } }),
+        timestamp: Date.now(),
+        batter: {
+          id: batter,
+          name: batter,
+        },
+        nonStriker: {
+          id: '',
+          name: '',
+        },
+        bowler: {
+          id: bowler.trim() || 'Bowler',
+          name: bowler.trim() || 'Bowler',
+        },
+        runs: {
+          batter: runsBall,
+          extras: extraRunsValue || 0,
+          total: runsBall + (extraRunsValue || 0),
+        },
+        isWicket: hasWicket,
+        ...(hasExtra && { extra: { type: extraType, isWide: extraType === 'wide', isNoBall: extraType === 'no-ball' } }),
         ...(hasWicket && {
-          wicket: {
-            playerName: wicketPlayer,
-            dismissalMode,
-            fielder: wicketFielder || undefined,
+          dismissal: {
+            mode: dismissalMode,
+            playerOut: { id: wicketPlayer, name: wicketPlayer },
+            fielder: wicketFielder ? { id: wicketFielder, name: wicketFielder } : undefined,
           },
         }),
       };

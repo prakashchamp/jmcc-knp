@@ -45,12 +45,11 @@ export function FallOfWickets() {
    * Calculate cumulative runs at the point of each wicket
    */
   const getRunsAtWicket = (batsmanId: string): number => {
-    // Find the wicket ball for this batsman
-    const wicketBallIndex = selectedInnings?.ballHistory.findIndex(
+    const wicketBallIndex = selectedInnings ? selectedInnings.ballHistory.findIndex(
       (ball) =>
         ball.isWicket &&
         ball.dismissal?.playerOut.id === batsmanId
-    );
+    ) : -1;
 
     if (wicketBallIndex !== -1) {
       // Sum all runs up to and including this ball

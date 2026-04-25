@@ -13,8 +13,13 @@ interface ScorecardDisplayProps {
  * Shows current match score and player stats
  */
 export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayProps) {
+  // Get current innings ball history
+  const currentInningsIndex = liveMatch.currentInnings - 1;
+  const currentInnings = liveMatch.innings && liveMatch.innings[currentInningsIndex] ? liveMatch.innings[currentInningsIndex] : null;
+  const ballHistory = currentInnings ? currentInnings.ballHistory : [];
+
   // Calculate current overs and balls
-  const totalBalls = liveMatch.ballHistory.length;
+  const totalBalls = ballHistory.length;
   const overs = Math.floor(totalBalls / 6);
   const balls = totalBalls % 6;
 
@@ -22,19 +27,19 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
   let totalRuns = 0;
   let wicketsLost = 0;
 
-  liveMatch.ballHistory.forEach((ball) => {
-    totalRuns += ball.runsBall;
-    if (ball.extras) {
-      totalRuns += ball.extras.runs;
+  ballHistory.forEach((ball) => {
+    totalRuns += ball.runs.batter;
+    if (ball.extra) {
+      totalRuns += ball.runs.extras;
     }
-    if (ball.wicket && ball.wicket.playerName) {
+    if (ball.isWicket && ball.dismissal?.playerOut) {
       wicketsLost += 1;
     }
   });
 
   // Get player stats
   const playerStats = teamPlayers.map((player) => {
-    const stats = getPlayerCurrentStats(liveMatch.ballHistory, player.name, teamPlayers);
+    const stats = getPlayerCurrentStats(ballHistory, player.name, teamPlayers);
     return {
       player,
       stats,
@@ -71,24 +76,23 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
       </div>
 
       {/* Recent Balls */}
-      {liveMatch.ballHistory.length > 0 && (
+      {ballHistory.length > 0 && (
         <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
           <div className="text-sm font-semibold mb-2">Recent Deliveries</div>
           <div className="flex gap-1 flex-wrap">
-            {liveMatch.ballHistory.slice(-18).map((ball, idx) => {
-              let displayRuns = ball.runsBall.toString();
-              if (ball.extras) {
-                displayRuns = (ball.runsBall + ball.extras.runs).toString();
+            {ballHistory.slice(-18).map((ball, idx) => {
+              let displayRuns = ball.runs.batter.toString();
+              if (ball.extra) {
+                displayRuns = (ball.runs.batter + ball.runs.extras).toString();
               }
-              if (ball.wicket) {
+              if (ball.isWicket) {
                 displayRuns = 'W';
               }
 
               return (
                 <div
                   key={idx}
-                  className={`w-8 h-8 flex items-center justify-center rounded font-semibold text-xs ${
-                    displayRuns === 'W'
+                  className={`w-8 h-8 flex items-center justify-center rounded font-semibold text-xs ${displayRuns === 'W'
                       ? 'bg-red-600 text-white'
                       : parseInt(displayRuns) === 0
                         ? 'bg-slate-600 text-slate-300'
@@ -96,7 +100,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
                           ? 'bg-green-600 text-white'
                           : 'bg-blue-600 text-white'
                   }`}
-                  title={`${ball.over}.${ball.ball}: ${ball.batter} vs ${ball.bowler}`}
+                  title={`${ball.over}.${ball.ball}: ${ball.batter.name} vs ${ball.bowler.name}`}
                 >
                   {displayRuns}
                 </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LiveMatch, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { LiveMatch, TeamPlayer, Ball } from '@/app/lib/cricket-scorer-types';
 import { Performance } from '@/app/lib/cricket-schema';
 import { calculatePerformances } from '@/app/lib/stats-calculator';
 import { setDocument, batchWrite } from '@/services/firebase/operations';
@@ -41,15 +41,18 @@ export default function MatchReviewPage() {
       // For now we'll create placeholder players to show the pattern
       setTeamPlayers(extractedPlayers);
 
+      // Aggregate ballHistory from all innings
+      const allBalls = draft.innings.reduce((acc, inn) => [...acc, ...inn.ballHistory], [] as Ball[]);
+
       // Calculate performances
-      if (draft.ballHistory.length > 0) {
+      if (allBalls.length > 0) {
         const matchId = draft.matchId || `temp_${Date.now()}`;
         const calcs = calculatePerformances(
-          draft.ballHistory,
+          allBalls,
           extractedPlayers,
           matchId,
           draft.opponent,
-          draft.date,
+          draft.createdAt,
           draft.currentInnings
         );
         setPerformances(calcs);
@@ -82,18 +85,18 @@ export default function MatchReviewPage() {
       // Prepare Match document for Firestore
       const matchDoc = {
         id: matchId,
-        date: liveMatch.date,
-        year: new Date(liveMatch.date).getUTCFullYear().toString(),
-        month: String(new Date(liveMatch.date).getUTCMonth() + 1).padStart(2, '0'),
+        date: liveMatch.createdAt,
+        year: new Date(liveMatch.createdAt).getUTCFullYear().toString(),
+        month: String(new Date(liveMatch.createdAt).getUTCMonth() + 1).padStart(2, '0'),
         opponent: liveMatch.opponent,
         venue: liveMatch.venue,
         tossWonBy: liveMatch.tossWonBy,
         tossDecision: liveMatch.tossDecision,
-        result: liveMatch.result || 'no-result',
+        result: liveMatch.result || 'no_result',
         winMargin: liveMatch.winMargin,
         matchFormat: liveMatch.format,
         totalOvers: liveMatch.totalOvers,
-        ballHistory: liveMatch.ballHistory,
+        ballHistory: liveMatch.innings.reduce((acc, inn) => [...acc, ...inn.ballHistory], [] as Ball[]),
         scorerInitiatedFrom: 'scorer-app' as const,
         createdAt: new Date().toISOString(),
       };
@@ -179,17 +182,18 @@ export default function MatchReviewPage() {
     );
   }
 
+  // Aggregate balls for summary
+  const allBalls = liveMatch.innings.reduce((acc, inn) => [...acc, ...inn.ballHistory], [] as Ball[]);
+
   // Calculate totals
-  const totalRuns = liveMatch.ballHistory.reduce((sum, ball) => {
-    let runs = ball.runsBall;
-    if (ball.extras) runs += ball.extras.runs;
-    return sum + runs;
+  const totalRuns = allBalls.reduce((sum, ball) => {
+    return sum + ball.runs.total;
   }, 0);
 
-  const totalWickets = liveMatch.ballHistory.filter((b) => b.wicket).length;
-  const totalBalls = liveMatch.ballHistory.length;
-  const overs = Math.floor(totalBalls / 6);
-  const balls = totalBalls % 6;
+  const totalWickets = allBalls.filter((b) => b.isWicket).length;
+  const totalBallsCount = allBalls.length;
+  const overs = Math.floor(totalBallsCount / 6);
+  const balls = totalBallsCount % 6;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
@@ -315,7 +319,7 @@ export default function MatchReviewPage() {
         )}
 
         {/* Ball History */}
-        {liveMatch.ballHistory.length > 0 && (
+        {allBalls.length > 0 && (
           <div className="bg-slate-800 rounded-lg p-6 border border-slate-700 mb-6 overflow-x-auto">
             <h2 className="text-xl font-bold mb-4">Ball-by-Ball Details</h2>
 
@@ -332,19 +336,19 @@ export default function MatchReviewPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {liveMatch.ballHistory.map((ball, idx) => (
+                  {allBalls.map((ball, idx) => (
                     <tr key={idx} className="border-b border-slate-700 hover:bg-slate-700">
                       <td className="py-2 px-2 font-mono">{ball.over}.{ball.ball}</td>
-                      <td className="py-2 px-2">{ball.batter}</td>
-                      <td className="py-2 px-2 text-slate-400">{ball.bowler}</td>
-                      <td className="py-2 px-2 text-center font-semibold">{ball.runsBall}</td>
+                      <td className="py-2 px-2">{ball.batter.name}</td>
+                      <td className="py-2 px-2 text-slate-400">{ball.bowler.name}</td>
+                      <td className="py-2 px-2 text-center font-semibold">{ball.runs.batter}</td>
                       <td className="py-2 px-2">
-                        {ball.extras ? `${ball.extras.type} +${ball.extras.runs}` : '-'}
+                        {ball.extra ? `${ball.extra.type} +${ball.runs.extras}` : '-'}
                       </td>
                       <td className="py-2 px-2">
-                        {ball.wicket ? (
+                        {ball.isWicket && ball.dismissal ? (
                           <span className="text-red-400 font-semibold">
-                            {ball.wicket.playerName} ({ball.wicket.dismissalMode})
+                            {ball.dismissal.playerOut.name} ({ball.dismissal.mode})
                           </span>
                         ) : (
                           '-'

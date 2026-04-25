@@ -23,15 +23,13 @@ export const store = configureStore({
           'scorer.undoStack',
         ],
       },
-    }).concat([
-      // localStorage persistence middleware
-      (store) => (next) => (action) => {
+    }).concat((storeApi: any) => (next: any) => (action: any) => {
         const result = next(action);
 
         // Auto-save scorer and match state to localStorage after every action
         if (typeof window !== 'undefined') {
           try {
-            const state = store.getState();
+            const state = storeApi.getState();
             const persistedState = {
               scorer: state.scorer,
               match: state.match,
@@ -43,8 +41,7 @@ export const store = configureStore({
         }
 
         return result;
-      },
-    ]),
+      }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

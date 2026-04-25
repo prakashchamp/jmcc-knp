@@ -7,7 +7,9 @@ import { PlayersList } from '@/app/components/PlayersList';
 import { PlayerStatsDetail } from '@/app/components/PlayerStatsDetail';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
 
-export default function PlayerStatsPage() {
+import { Suspense } from 'react';
+
+function PlayerStatsContent() {
   const searchParams = useSearchParams();
   const { players, loading, error } = useAllPlayers();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
@@ -62,5 +64,17 @@ export default function PlayerStatsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function PlayerStatsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+      </div>
+    }>
+      <PlayerStatsContent />
+    </Suspense>
   );
 }

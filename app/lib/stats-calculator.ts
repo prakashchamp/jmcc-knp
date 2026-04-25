@@ -37,34 +37,34 @@ function calculateBattingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
 
   ballHistory.forEach((ball) => {
     // Only count if batter is from our team
-    if (!playerNames.has(ball.batter)) {
+    if (!playerNames.has(ball.batter.name)) {
       return;
     }
 
-    let batterStat = statsMap.get(ball.batter);
+    let batterStat = statsMap.get(ball.batter.name);
     if (!batterStat) {
       batterStat = {
-        playerName: ball.batter,
+        playerName: ball.batter.name,
         runs: 0,
         balls: 0,
         fours: 0,
         sixes: 0,
         wickets: [],
       };
-      statsMap.set(ball.batter, batterStat);
+      statsMap.set(ball.batter.name, batterStat);
     }
 
     // Count runs from ball
-    const ballRuns = ball.runsBall;
+    const ballRuns = ball.runs.batter;
     batterStat.runs += ballRuns;
 
     // Count extras (except wides and no-balls which don't count as balls faced)
-    if (ball.extras) {
-      batterStat.runs += ball.extras.runs;
+    if (ball.extra) {
+      batterStat.runs += ball.runs.extras;
     }
 
     // Count ball faced (not counting wides/no-balls)
-    if (!ball.extras || (ball.extras.type !== 'wide' && ball.extras.type !== 'no-ball')) {
+    if (!ball.extra || (ball.extra.type !== 'wide' && ball.extra.type !== 'no-ball')) {
       batterStat.balls += 1;
 
       // Count fours and sixes (only on legal deliveries)
@@ -76,9 +76,9 @@ function calculateBattingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
     }
 
     // Count wicket if batter is out
-    if (ball.wicket && ball.wicket.playerName === ball.batter) {
+    if (ball.isWicket && ball.dismissal?.playerOut.name === ball.batter.name) {
       batterStat.wickets.push({
-        dismissalMode: ball.wicket.dismissalMode,
+        dismissalMode: ball.dismissal.mode,
       });
     }
   });
@@ -98,21 +98,21 @@ function calculateBowlingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
 
   ballHistory.forEach((ball) => {
     // Only count if bowler is from our team
-    if (!playerNames.has(ball.bowler)) {
+    if (!playerNames.has(ball.bowler.name)) {
       return;
     }
 
-    let bowlerStat = statsMap.get(ball.bowler);
+    let bowlerStat = statsMap.get(ball.bowler.name);
     if (!bowlerStat) {
       bowlerStat = {
-        playerName: ball.bowler,
+        playerName: ball.bowler.name,
         overs: 0,
         balls: 0,
         runs: 0,
         wickets: 0,
         maidens: 0,
       };
-      statsMap.set(ball.bowler, bowlerStat);
+      statsMap.set(ball.bowler.name, bowlerStat);
     }
 
     // Count ball bowled (overs calculated from balls)
@@ -120,24 +120,24 @@ function calculateBowlingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
     bowlerStat.overs = Math.floor(bowlerStat.balls / 6);
 
     // Count runs conceded
-    const ballRuns = ball.runsBall;
+    const ballRuns = ball.runs.batter;
     bowlerStat.runs += ballRuns;
 
     // Count extras
-    if (ball.extras) {
-      bowlerStat.runs += ball.extras.runs;
+    if (ball.extra) {
+      bowlerStat.runs += ball.runs.extras;
 
       // Wides and no-balls don't count as balls bowled (but runs are conceded)
-      if (ball.extras.type === 'wide' || ball.extras.type === 'no-ball') {
+      if (ball.extra.type === 'wide' || ball.extra.type === 'no-ball') {
         bowlerStat.balls -= 1; // Undo the increment above
       }
     }
 
     // Count wicket if bowler took it
-    if (ball.wicket && ball.wicket.dismissalMode !== 'run-out') {
+    if (ball.isWicket && ball.dismissal && ball.dismissal.mode !== 'run-out') {
       // Most wickets are credited to bowler, except run-outs
       bowlerStat.wickets += 1;
-    } else if (ball.wicket && ball.wicket.dismissalMode === 'run-out' && ball.wicket.fielder === ball.bowler) {
+    } else if (ball.isWicket && ball.dismissal && ball.dismissal.mode === 'run-out' && ball.dismissal.fielder?.name === ball.bowler.name) {
       // Run-out only credited if fielder is the bowler
       bowlerStat.wickets += 1;
     }
@@ -260,7 +260,7 @@ export function calculatePerformances(
     };
 
     // Map role type for consistency (no longer needed as both use 'allrounder')
-    const playerRoleForSchema = player.role;
+    const playerRoleForSchema = player.role || 'allrounder';
 
     const batting = createBattingInterface(battingStats, playerRoleForSchema, currentInnings);
     const bowling = createBowlingInterface(bowlingStats);
@@ -316,37 +316,39 @@ export function getPlayerCurrentStats(
 
   ballHistory.forEach((ball) => {
     // Batting
-    if (ball.batter === playerName) {
-      battingRuns += ball.runsBall;
-      if (ball.extras) {
-        battingRuns += ball.extras.runs;
+    if (ball.batter.name === playerName) {
+      battingRuns += ball.runs.batter;
+      if (ball.extra) {
+        battingRuns += ball.runs.extras;
       }
 
-      if (!ball.extras || (ball.extras.type !== 'wide' && ball.extras.type !== 'no-ball')) {
+      if (!ball.extra || (ball.extra.type !== 'wide' && ball.extra.type !== 'no-ball')) {
         battingBalls += 1;
 
-        if (ball.runsBall === 4) {
+        if (ball.runs.batter === 4) {
           battingFours += 1;
-        } else if (ball.runsBall === 6) {
+        } else if (ball.runs.batter === 6) {
           battingSixes += 1;
         }
       }
 
-      if (ball.wicket && ball.wicket.playerName === playerName) {
+      if (ball.isWicket && ball.dismissal?.playerOut.name === playerName) {
         battingOut = true;
       }
     }
 
     // Bowling
-    if (ball.bowler === playerName) {
+    if (ball.bowler.name === playerName) {
       bowlingBalls += 1;
-      bowlingRuns += ball.runsBall;
+      bowlingRuns += ball.runs.batter;
 
-      if (ball.extras) {
-        bowlingRuns += ball.extras.runs;
+      if (ball.extra) {
+        bowlingRuns += ball.runs.extras;
       }
 
-      if (ball.wicket) {
+      if (ball.isWicket && ball.dismissal?.mode !== 'run-out') {
+        bowlingWickets += 1;
+      } else if (ball.isWicket && ball.dismissal?.mode === 'run-out' && ball.dismissal?.fielder?.name === playerName) {
         bowlingWickets += 1;
       }
     }
