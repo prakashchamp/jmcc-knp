@@ -4,6 +4,7 @@ import { ReactNode, useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store';
 import { rehydrateScorer } from './slices/scorerSlice';
+import { rehydrateTeam } from './slices/teamSlice';
 import { loadStateFromLocalStorage } from './store';
 
 /**
@@ -16,6 +17,9 @@ export function ReduxProvider({ children }: { children: ReactNode }) {
     // Rehydrate Redux state from localStorage on client mount
     const savedState = loadStateFromLocalStorage();
     if (savedState) {
+      if (savedState.team) {
+        store.dispatch(rehydrateTeam(savedState.team));
+      }
       if (savedState.scorer) {
         store.dispatch(rehydrateScorer(savedState.scorer));
       }

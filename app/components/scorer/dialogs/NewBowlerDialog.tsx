@@ -59,16 +59,18 @@ export function NewBowlerDialog() {
   };
 
   const handleCreateNewBowler = (name: string) => {
-    if (currentInnings.battingTeam === 'Them') {
-      dispatch(addNewTeamPlayer({ name: name.trim() }));
-    }
-
-    // Create the new player object
     const newBowler: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
     };
-    setSelectedBowler(newBowler);
+
+    if (currentInnings.battingTeam === 'Them') {
+      // Them is batting, so WE are bowling. Add to our roster.
+      dispatch(addNewTeamPlayer({ name: name.trim(), id: newBowler.id }));
+    }
+
+    // Immediately select the new bowler
+    handleSelectBowler(newBowler);
     setNewBowlerName('');
   };
 
@@ -80,24 +82,20 @@ export function NewBowlerDialog() {
           <h2 className={modalTitleClass}>Change Bowler</h2>
         </div>
 
-        {availableBowlers.length === 0 ? (
-          <p className="py-4 text-center text-slate-400">No bowlers available</p>
-        ) : (
-          <div className="mb-4">
-            <BowlerDropdownSelect
-              label="Select Bowler:"
-              placeholder="Choose bowler"
-              selectedBowler={selectedBowler}
-              bowlers={availableBowlers}
-              onSelect={handleSelectBowler}
-              previousBowlerId={previousBowlerId}
-              allowNew={true}
-              newPlayerName={newBowlerName}
-              onNewPlayerNameChange={setNewBowlerName}
-              onCreateNew={handleCreateNewBowler}
-            />
-          </div>
-        )}
+        <div className="mb-4">
+          <BowlerDropdownSelect
+            label="Select Bowler:"
+            placeholder="Choose bowler"
+            selectedBowler={selectedBowler}
+            bowlers={availableBowlers}
+            onSelect={handleSelectBowler}
+            previousBowlerId={previousBowlerId}
+            allowNew={true}
+            newPlayerName={newBowlerName}
+            onNewPlayerNameChange={setNewBowlerName}
+            onCreateNew={handleCreateNewBowler}
+          />
+        </div>
 
         <button
           onClick={() => dispatch(closeDialog())}

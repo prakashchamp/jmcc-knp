@@ -29,9 +29,6 @@ export function getNormalizedBatsmen(
     byId.set(batsman.id, batsman);
   }
 
-  const rosterIds = getRosterIdsForTeam(liveMatch, innings.battingTeam);
-
   return Array.from(byId.values())
-    .filter((batsman) => rosterIds.has(batsman.id))
     .sort((a, b) => (a.batsmanOrder || 0) - (b.batsmanOrder || 0));
 }

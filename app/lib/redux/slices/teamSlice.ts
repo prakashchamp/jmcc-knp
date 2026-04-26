@@ -11,10 +11,7 @@ export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
  */
 export const fetchTeam = createAsyncThunk(
   'team/fetchTeam',
-  async (_, { getState, rejectWithValue }) => {
-    const state = getState() as RootState;
-    if (state.team.team) return state.team.team;
-
+  async (_, { rejectWithValue }) => {
     try {
       const teams = await getServerCollection<Team>('teams');
       if (teams.length > 0) {

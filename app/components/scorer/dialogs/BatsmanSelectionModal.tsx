@@ -210,13 +210,19 @@ export function BatsmanSelectionModal() {
   };
 
   const handleCreateNewBatsman = (name: string) => {
-    if (currentInnings?.battingTeam !== 'Us') {
-      return;
+    const newPlayer: TeamPlayer = {
+      id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: name.trim(),
+    };
+
+    if (currentInnings?.battingTeam === 'Us') {
+      dispatch(addNewTeamPlayer({ name: name.trim(), id: newPlayer.id }));
     }
-    dispatch(addNewTeamPlayer({ name: name.trim() }));
+    
+    // Select the newly created player (works for both Us and Them)
+    handleSelectBatsman(newPlayer);
     setNewPlayerName('');
   };
-
 
   return (
     <div className={modalOverlayClass}>
@@ -226,26 +232,20 @@ export function BatsmanSelectionModal() {
           <h3 className={modalTitleClass}>Select New Batsman</h3>
         </div>
 
-        {availableBatters.length === 0 ? (
-          <div className="py-8 text-center">
-            <p className="font-medium text-red-400">No available batsmen</p>
-          </div>
-        ) : (
-          <div className="mb-4">
-            <BatterDropdownSelect
-              label="Select New Batsman:"
-              placeholder="Choose batsman"
-              selectedBatter={null}
-              batters={availableBatters}
-              excludeIds={excludeIds}
-              onSelect={handleSelectBatsman}
-              allowNew={currentInnings?.battingTeam === 'Us'}
-              newPlayerName={newPlayerName}
-              onNewPlayerNameChange={setNewPlayerName}
-              onCreateNew={handleCreateNewBatsman}
-            />
-          </div>
-        )}
+        <div className="mb-4">
+          <BatterDropdownSelect
+            label="Select New Batsman:"
+            placeholder="Choose batsman"
+            selectedBatter={null}
+            batters={availableBatters}
+            excludeIds={excludeIds}
+            onSelect={handleSelectBatsman}
+            allowNew={true}
+            newPlayerName={newPlayerName}
+            onNewPlayerNameChange={setNewPlayerName}
+            onCreateNew={handleCreateNewBatsman}
+          />
+        </div>
 
         <button
           onClick={() => dispatch(closeDialog())}

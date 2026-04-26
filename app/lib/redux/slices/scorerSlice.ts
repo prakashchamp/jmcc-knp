@@ -2201,12 +2201,12 @@ export const scorerSlice = createSlice({
     /**
      * Add a new player to the team during match
      */
-    addNewTeamPlayer: (state, action: PayloadAction<{ name: string }>) => {
+    addNewTeamPlayer: (state, action: PayloadAction<{ name: string; id?: string }>) => {
       if (!state.liveMatch) return;
 
-      const { name } = action.payload;
+      const { name, id } = action.payload;
       const newPlayer: TeamPlayer = {
-        id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: id || `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         name: name.trim(),
       };
 

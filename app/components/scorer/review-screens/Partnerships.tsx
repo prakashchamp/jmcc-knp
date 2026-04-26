@@ -121,52 +121,64 @@ export function Partnerships() {
     prevWicketIndex = nextWicketIndex;
   }
 
-  // Add current partnership from Redux state (tracked incrementally as balls are recorded)
-  // Accumulate all batsmen from balls after last wicket (handles retired hurt case)
-  if (selectedInnings.ballHistory.length > 0) {
+  // Add current partnership from Redux state
+  if (selectedInnings.striker && selectedInnings.nonStriker) {
     const ballsAfterLastWicket = selectedInnings.ballHistory.slice(
       prevWicketIndex + 1
     );
 
-    if (ballsAfterLastWicket.length > 0) {
-      const batsmenMap: Map<string, Batsman> = new Map();
-      const batsmenOrder: string[] = [];
+    const batsmenMap: Map<string, Batsman> = new Map();
+    const batsmenOrder: string[] = [];
 
-      for (const ball of ballsAfterLastWicket) {
-        const isWide = ball.extra?.type === 'wide';
-        const batterId = ball.batter.id;
-        const batterName = ball.batter.name;
+    // Add current striker and non-striker to ensure they show up even with 0 balls
+    const currentBatsmen = [selectedInnings.striker, selectedInnings.nonStriker];
+    for (const b of currentBatsmen) {
+      if (!batsmenMap.has(b.id)) {
+        batsmenMap.set(b.id, {
+          name: b.name,
+          id: b.id,
+          runs: 0,
+          balls: 0,
+        });
+        batsmenOrder.push(b.id);
+      }
+    }
 
-        if (!batsmenMap.has(batterId)) {
-          batsmenMap.set(batterId, {
-            name: batterName,
-            id: batterId,
-            runs: 0,
-            balls: 0,
-          });
-          batsmenOrder.push(batterId);
-        }
+    // Process any balls bowled in this partnership to get actual runs/balls
+    for (const ball of ballsAfterLastWicket) {
+      const isWide = ball.extra?.type === 'wide';
+      const batterId = ball.batter.id;
+      const batterName = ball.batter.name;
 
-        const batsman = batsmenMap.get(batterId)!;
-        batsman.runs += ball.runs.batter;
-        if (!isWide) {
-          batsman.balls++;
-        }
+      if (!batsmenMap.has(batterId)) {
+        batsmenMap.set(batterId, {
+          name: batterName,
+          id: batterId,
+          runs: 0,
+          balls: 0,
+        });
+        batsmenOrder.push(batterId);
       }
 
-      const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
-      const totalRuns = ballsAfterLastWicket.reduce((sum, ball) => sum + ball.runs.total, 0);
-      const totalBalls = ballsAfterLastWicket.filter(
-        (ball) => ball.extra?.type !== 'wide'
-      ).length;
-
-      partnerships.push({
-        wicketNumber: 0,
-        batsmen,
-        partnershipRuns: totalRuns,
-        partnershipBalls: totalBalls,
-      });
+      const batsman = batsmenMap.get(batterId)!;
+      batsman.runs += ball.runs.batter;
+      if (!isWide) {
+        batsman.balls++;
+      }
     }
+
+    const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+    const totalRuns = ballsAfterLastWicket.reduce((sum, ball) => sum + ball.runs.total, 0);
+    const totalBalls = ballsAfterLastWicket.filter(
+      (ball) => ball.extra?.type !== 'wide'
+    ).length;
+
+    partnerships.push({
+      wicketNumber: 0,
+      batsmen,
+      partnershipRuns: totalRuns,
+      partnershipBalls: totalBalls,
+    });
   }
 
   /**

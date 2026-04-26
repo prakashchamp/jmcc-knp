@@ -28,11 +28,12 @@ export const store = configureStore({
     }).concat((storeApi: any) => (next: any) => (action: any) => {
         const result = next(action);
 
-        // Auto-save scorer and match state to localStorage after every action
+        // Auto-save team, scorer and match state to localStorage after every action
         if (typeof window !== 'undefined') {
           try {
             const state = storeApi.getState();
             const persistedState = {
+              team: state.team,
               scorer: state.scorer,
               match: state.match,
             };
@@ -55,7 +56,7 @@ export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unk
  */
 const STORAGE_KEY = 'jmcc_match_state';
 
-export const saveStateToLocalStorage = (state: Pick<RootState, 'scorer' | 'match'>) => {
+export const saveStateToLocalStorage = (state: Pick<RootState, 'team' | 'scorer' | 'match'>) => {
   try {
     const serialized = JSON.stringify(state);
     localStorage.setItem(STORAGE_KEY, serialized);
@@ -64,11 +65,11 @@ export const saveStateToLocalStorage = (state: Pick<RootState, 'scorer' | 'match
   }
 };
 
-export const loadStateFromLocalStorage = (): Pick<RootState, 'scorer' | 'match'> | undefined => {
+export const loadStateFromLocalStorage = (): Pick<RootState, 'team' | 'scorer' | 'match'> | undefined => {
   try {
     const serialized = localStorage.getItem(STORAGE_KEY);
     if (!serialized) return undefined;
-    return JSON.parse(serialized) as Pick<RootState, 'scorer' | 'match'>;
+    return JSON.parse(serialized) as Pick<RootState, 'team' | 'scorer' | 'match'>;
   } catch (err) {
     console.warn('Failed to load Redux state from localStorage:', err);
     return undefined;
