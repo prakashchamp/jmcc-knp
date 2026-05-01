@@ -11,18 +11,28 @@ import { MatchResultScreen } from '@/app/components/pwa/MatchResultScreen';
 import { MatchSetupData, PWAMatch } from '@/app/lib/pwa-cricket-types';
 import { BatsmanScorecard, BowlerScorecard, InningsScorecard } from '@/app/lib/pwa-cricket-types';
 
-type ScreenType = 'match-setup' | 'innings-setup' | 'live-scoring' | 'end-of-innings' | 'match-result';
+type ScreenType = 'splash' | 'match-setup' | 'innings-setup' | 'live-scoring' | 'end-of-innings' | 'match-result';
 
 export default function PWAScorerPage() {
   const dispatch = useDispatch();
   const { team: abcTeam } = useSelector((state: RootState) => state.team);
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('match-setup');
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('splash');
   const [currentMatch, setCurrentMatch] = useState<PWAMatch | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentInningsData, setCurrentInningsData] = useState<InningsScorecard | null>(null);
 
   // Get team players
   const teamPlayers = abcTeam?.players || [];
+
+  // Splash screen timeout
+  useEffect(() => {
+    if (currentScreen === 'splash') {
+      const timer = setTimeout(() => {
+        setCurrentScreen('match-setup');
+      }, 2000); // 2 seconds splash
+      return () => clearTimeout(timer);
+    }
+  }, [currentScreen]);
 
   // Handle match setup form submission
   const handleMatchSetup = (setupData: MatchSetupData) => {
@@ -203,6 +213,22 @@ export default function PWAScorerPage() {
   };
 
   // Render screens based on current state
+  if (currentScreen === 'splash') {
+    return (
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <img
+            src="/jmcc.jpg"
+            alt="JMCC Spartans"
+            className="w-48 h-48 mx-auto mb-4 rounded-full object-cover"
+          />
+          <h1 className="text-white text-2xl font-bold">JMCC Spartans</h1>
+          <p className="text-gray-400 mt-2">Cricket Scorer</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!abcTeam) {
     return (
       <div className="h-screen bg-slate-900 text-white flex items-center justify-center p-4">

@@ -19,6 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "JMCC Spartans - Cricket Team Dashboard",
   description: "Cricket team statistics, player achievements, and match records for JMCC Spartans",
+  manifest: "/manifest.json",
+};
+
+export const viewport = {
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
