@@ -41,10 +41,7 @@ export function Header() {
     { label: 'Team Stats', value: 'team-stats' },
     { label: 'Player Stats', value: 'player' },
     { label: 'Review Stats', value: 'review-stats' },
-    // { label: 'Live Scorer', value: 'scorer' },
-    // { label: 'Team Setup', value: 'team-setup' },
-    // { label: 'Admin', value: 'admin' },
-    // { label: 'Manage Data', value: 'manage-data' },
+    { label: 'Admin', value: 'admin' },
   ];
 
   const handleMenuClick = (value: string) => {
@@ -71,6 +68,9 @@ export function Header() {
         break;
       case 'review-stats':
         router.push('/review-stats');
+        break;
+      case 'admin':
+        router.push('/admin');
         break;
       default:
         break;
