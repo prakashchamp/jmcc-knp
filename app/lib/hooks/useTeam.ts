@@ -19,18 +19,12 @@ export function useTeam(teamId?: string) {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(!!teamId);
   const [error, setError] = useState<Error | null>(null);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   /**
    * Fetch team by ID using Server Action
    */
   useEffect(() => {
     if (!teamId) {
-      setLoading(false);
-      return;
-    }
-
-    if (isManualFetchMode && fetchTrigger === 0) {
       setLoading(false);
       return;
     }
@@ -60,7 +54,7 @@ export function useTeam(teamId?: string) {
     };
 
     fetchTeam();
-  }, [teamId, fetchTrigger, isManualFetchMode]);
+  }, [teamId]);
 
   /**
    * Create a new team using Server Action
@@ -166,7 +160,6 @@ export function useAllTeams() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   const fetchTeams = useCallback(async () => {
     try {
@@ -191,18 +184,12 @@ export function useAllTeams() {
   }, []);
 
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      setLoading(false);
-      return;
-    }
-    
-    // Only fetch if we have a trigger or if we are not in manual mode and don't have teams yet
-    if (isManualFetchMode || teams.length === 0) {
+    if (teams.length === 0) {
       fetchTeams();
     } else {
       setLoading(false);
     }
-  }, [fetchTrigger, isManualFetchMode, fetchTeams, teams.length]);
+  }, [fetchTeams, teams.length]);
 
   return {
     teams,

@@ -16,6 +16,7 @@ import {
   secondaryButtonClass,
   dangerButtonClass
 } from '@/app/components/scorer/dialogs/dialogTheme';
+import { Header } from '@/app/components/Header';
 
 /**
  * Team Setup Page
@@ -165,7 +166,9 @@ export default function TeamSetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+      <Header />
+      <div className="p-4 sm:p-6">
       <div className="max-w-xl mx-auto">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
@@ -388,6 +391,7 @@ export default function TeamSetupPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

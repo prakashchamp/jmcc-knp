@@ -12,22 +12,21 @@ export default function AllTimeStatsPage() {
     <div className="min-h-screen bg-gray-900">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">All-Time Statistics</h1>
-          <p className="text-gray-400 mt-2">Complete career statistics for all players</p>
+      <main className="page-container">
+        <div className="page-header">
+          <h1 className="page-title text-white">All-Time Statistics</h1>
+          <p className="hint-text mt-1 sm:mt-2">Complete career statistics for all players</p>
         </div>
 
         {error && (
-          <div className="bg-red-900 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-900 border border-red-700 text-red-200 px-3 py-2 sm:px-4 sm:py-3 rounded-lg mb-4 sm:mb-6 text-sm">
             <p className="font-semibold">Error loading stats</p>
             <p>{error}</p>
           </div>
         )}
 
         {/* Batting Stats Table */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           <AllTimeBattingStatsTable players={players} loading={loading} />
         </div>
 

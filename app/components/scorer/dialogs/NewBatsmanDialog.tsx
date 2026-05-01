@@ -85,19 +85,19 @@ export function NewBatsmanDialog() {
           <h2 className={modalTitleClass}>Change Batter</h2>
         </div>
 
-        <div className="mb-4 flex gap-2">
+        <div className="mb-6 flex gap-3">
           <button
             onClick={() => {
               setDismissedBatsmanRole('striker');
               setSelectedBatter(null);
             }}
-            className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
+            className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
               dismissedBatsmanRole === 'striker'
-                ? 'border-blue-500 bg-blue-900/40 text-white'
-                : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
             }`}
           >
-            <span className="mb-1 block text-xs text-slate-300">Replace</span>
+            <span className="mb-0.5 block text-[10px] uppercase tracking-widest opacity-60">Replace</span>
             {currentInnings.striker?.name || 'Striker'}
           </button>
           <button
@@ -105,35 +105,34 @@ export function NewBatsmanDialog() {
               setDismissedBatsmanRole('non-striker');
               setSelectedBatter(null);
             }}
-            className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold transition-all ${
+            className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
               dismissedBatsmanRole === 'non-striker'
-                ? 'border-blue-500 bg-blue-900/40 text-white'
-                : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
             }`}
           >
-            <span className="mb-1 block text-xs text-slate-300">Replace</span>
+            <span className="mb-0.5 block text-[10px] uppercase tracking-widest opacity-60">Replace</span>
             {currentInnings.nonStriker?.name || 'Non-Striker'}
           </button>
         </div>
 
-        {availableBatsmen.length === 0 ? (
-          <p className="py-4 text-center text-slate-400">No available batsmen</p>
-        ) : (
-          <div className="mb-4">
-            <BatterDropdownSelect
-              label="Select Replacement Batsman:"
-              placeholder="Choose batsman"
-              selectedBatter={selectedBatter}
-              batters={availableBatsmen}
-              excludeIds={excludeIds}
-              onSelect={handleSelectBatsman}
-              allowNew={currentInnings.battingTeam === 'Us'}
-              newPlayerName={newPlayerName}
-              onNewPlayerNameChange={setNewPlayerName}
-              onCreateNew={handleCreateNewBatsman}
-            />
-          </div>
-        )}
+        <div className="mb-4">
+          <BatterDropdownSelect
+            label="Select Replacement Batsman:"
+            placeholder="Choose batsman"
+            selectedBatter={selectedBatter}
+            batters={availableBatsmen}
+            excludeIds={excludeIds}
+            onSelect={handleSelectBatsman}
+            allowNew={true}
+            newPlayerName={newPlayerName}
+            onNewPlayerNameChange={setNewPlayerName}
+            onCreateNew={handleCreateNewBatsman}
+          />
+          {availableBatsmen.length === 0 && !newPlayerName && (
+            <p className="mt-3 text-center text-sm font-bold opacity-40">No other batsmen in squad</p>
+          )}
+        </div>
 
         <button
           onClick={() => dispatch(closeDialog())}

@@ -243,7 +243,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
             <span>{strikerOpen ? '▼' : '▶'}</span>
           </button>
           {strikerOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-700 border border-slate-600 rounded-lg z-10 shadow-lg max-h-48 overflow-y-auto">
+            <div className="mt-1 bg-slate-700 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               {/* Existing team players */}
               {strikerOptions.map((player) => (
                 <button
@@ -301,7 +301,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
             <span>{nonStrikerOpen ? '▼' : '▶'}</span>
           </button>
           {nonStrikerOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-700 border border-slate-600 rounded-lg z-10 shadow-lg max-h-48 overflow-y-auto">
+            <div className="mt-1 bg-slate-700 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               {/* Existing team players (excluding striker) */}
               {nonStrikerOptions.map((player) => (
                 <button
@@ -359,7 +359,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
             <span>{bowlerOpen ? '▼' : '▶'}</span>
           </button>
           {bowlerOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-slate-700 border border-slate-600 rounded-lg z-10 shadow-lg max-h-48 overflow-y-auto">
+            <div className="mt-1 bg-slate-700 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               {/* Opponent players */}
               {OPPONENT_PLAYERS.map((player) => (
                 <button

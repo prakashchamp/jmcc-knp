@@ -231,3 +231,92 @@ export async function getAllMatchesAction() {
     throw error;
   }
 }
+
+/**
+ * Helper to map firestore stats doc to PlayerBattingStats and PlayerBowlingStats
+ */
+function mapToPlayerStatsFormat(data: any) {
+  const playerId = data.player_id;
+  const playerName = data.player_name || 'Unknown';
+  const totalMatches = data.matches || 0;
+
+  const battingStats = {
+    playerId,
+    playerName,
+    totalMatches,
+    totalInnings: data.bat_innings || 0,
+    notOuts: data.bat_not_out || 0,
+    totalRuns: data.bat_runs || 0,
+    bestScore: data.bat_highest || 0,
+    average: data.bat_average || 0,
+    totalBalls: data.bat_balls || 0,
+    strikeRate: data.bat_strike_rate || 0,
+    totalFours: data.bat_fours || 0,
+    totalSixes: data.bat_sixes || 0,
+    thirties: data.bat_thirties || 0,
+    fifties: data.bat_fifties || 0,
+    hundreds: data.bat_hundreds || 0,
+    ducks: data.bat_ducks || 0,
+  };
+
+  const bowlingStats = {
+    playerId,
+    playerName,
+    totalMatches,
+    totalInnings: data.bowl_innings || 0,
+    totalWickets: data.bowl_wickets || 0,
+    bestHaul: data.bowl_best_wickets || 0,
+    totalRuns: data.bowl_runs || 0,
+    totalBalls: data.bowl_balls || 0,
+    totalOvers: data.bowl_overs || 0,
+    average: data.bowl_average || 0,
+    strikeRate: data.bowl_strike_rate || 0,
+    economy: data.bowl_economy || 0,
+    threeWickets: data.bowl_three_fers || 0,
+    fiveWickets: data.bowl_five_fers || 0,
+  };
+
+  return { playerId, playerName, battingStats, bowlingStats, totalMatches };
+}
+
+/**
+ * Server Action to fetch monthly stats from player_stats_monthly
+ */
+export async function getMonthlyPlayerStatsAction(month: string) {
+  try {
+    const db = getFirebaseAdmin();
+    const querySnapshot = await db.collection('player_stats_monthly').where('month', '==', month).get();
+    return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
+  } catch (error) {
+    console.error('getMonthlyPlayerStatsAction Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Server Action to fetch yearly stats from player_stats_yearly
+ */
+export async function getYearlyPlayerStatsAction(year: string) {
+  try {
+    const db = getFirebaseAdmin();
+    const querySnapshot = await db.collection('player_stats_yearly').where('year', '==', year).get();
+    return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
+  } catch (error) {
+    console.error('getYearlyPlayerStatsAction Error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Server Action to fetch all-time stats from player_stats_alltime
+ */
+export async function getAllTimePlayerStatsAction() {
+  try {
+    const db = getFirebaseAdmin();
+    const querySnapshot = await db.collection('player_stats_alltime').get();
+    return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
+  } catch (error) {
+    console.error('getAllTimePlayerStatsAction Error:', error);
+    throw error;
+  }
+}

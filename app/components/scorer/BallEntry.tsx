@@ -108,12 +108,12 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
+    <div className="bg-card rounded-lg p-6 border border-border">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold">
           Over {overCount}.{ballCount} {ballCount === 6 ? '(Complete)' : ''}
         </h3>
-        <span className="text-sm text-slate-400">Total balls: {ballHistory.length}</span>
+        <span className="text-sm opacity-60">Total balls: {ballHistory.length}</span>
       </div>
 
       <div className="space-y-4">
@@ -124,7 +124,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
             <select
               value={batter}
               onChange={(e) => setBatter(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-blue-500"
             >
               <option value="">Select Batter</option>
               {teamPlayers.map((p) => (
@@ -142,7 +142,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
               value={bowler}
               onChange={(e) => setBowler(e.target.value)}
               placeholder="e.g., Bowler 1"
-              className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:opacity-40 focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
@@ -158,7 +158,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                 className={`p-2 rounded-lg font-semibold transition-colors ${
                   runs === r.toString()
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    : 'bg-background border border-border text-foreground hover:bg-blue-600/10'
                 }`}
               >
                 {r}
@@ -168,7 +168,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
         </div>
 
         {/* Extras */}
-        <div className="border-t border-slate-700 pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-center gap-2 mb-2">
             <input
               type="checkbox"
@@ -183,13 +183,13 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           </div>
 
           {hasExtra && (
-            <div className="grid grid-cols-2 gap-4 bg-slate-700 p-3 rounded-lg">
+            <div className="grid grid-cols-2 gap-4 bg-background/50 p-3 rounded-lg border border-border">
               <div>
                 <label className="block text-xs font-semibold mb-1">Extra Type</label>
                 <select
                   value={extraType}
                   onChange={(e) => setExtraType(e.target.value as ExtraType)}
-                  className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
                 >
                   <option value="wide">Wide</option>
                   <option value="no-ball">No Ball</option>
@@ -205,7 +205,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                   min="0"
                   value={extraRuns}
                   onChange={(e) => setExtraRuns(e.target.value)}
-                  className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
@@ -213,7 +213,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
         </div>
 
         {/* Wicket */}
-        <div className="border-t border-slate-700 pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-center gap-2 mb-2">
             <input
               type="checkbox"
@@ -228,13 +228,13 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           </div>
 
           {hasWicket && (
-            <div className="space-y-3 bg-slate-700 p-3 rounded-lg">
+            <div className="space-y-3 bg-background/50 p-3 rounded-lg border border-border">
               <div>
                 <label className="block text-xs font-semibold mb-1">Player Out</label>
                 <select
                   value={wicketPlayer}
                   onChange={(e) => setWicketPlayer(e.target.value)}
-                  className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
                 >
                   {teamPlayers.map((p) => (
                     <option key={p.id} value={p.name}>
@@ -249,7 +249,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                 <select
                   value={dismissalMode}
                   onChange={(e) => setDismissalMode(e.target.value as DismissalMode)}
-                  className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
                 >
                   <option value="bowled">Bowled</option>
                   <option value="lbw">LBW</option>
@@ -269,7 +269,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                     value={wicketFielder}
                     onChange={(e) => setWicketFielder(e.target.value)}
                     placeholder="e.g., Fielder 1"
-                    className="w-full px-2 py-1 bg-slate-600 border border-slate-500 rounded text-white placeholder-slate-400 text-xs focus:outline-none focus:border-blue-500"
+                    className="w-full px-2 py-1 bg-background border border-border rounded text-foreground placeholder:opacity-40 text-xs focus:outline-none focus:border-blue-500"
                   />
                 </div>
               ) : null}
@@ -278,7 +278,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-slate-700">
+        <div className="flex gap-3 pt-4 border-t border-border">
           <button
             onClick={handleAddBall}
             className="flex-1 p-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition-colors"
@@ -289,7 +289,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           <button
             onClick={handleUndo}
             disabled={ballHistory.length === 0}
-            className="px-4 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-slate-600 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors"
+            className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-background disabled:border-border disabled:text-foreground/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors text-white"
           >
             Undo
           </button>

@@ -64,39 +64,39 @@ export function BattingScorecard() {
 
     return (
       <div>
-        <div className="overflow-hidden border border-gray-600 rounded-lg">
+        <div className="overflow-hidden border-2 border-border rounded-lg shadow-sm">
           <table className="w-full text-xs">
-            <thead className="bg-blue-800 text-white">
+            <thead className="bg-blue-600 text-white">
               <tr>
-                <th className="px-2 py-2 text-left font-semibold">Batsman</th>
-                <th className="px-2 py-2 text-center font-semibold">R</th>
-                <th className="px-2 py-2 text-center font-semibold">B</th>
-                <th className="px-2 py-2 text-center font-semibold">0s</th>
-                <th className="px-2 py-2 text-center font-semibold">4s</th>
-                <th className="px-2 py-2 text-center font-semibold">6s</th>
-                <th className="px-2 py-2 text-center font-semibold">SR</th>
+                <th className="px-2 py-2.5 text-left font-black uppercase tracking-wider">Batsman</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">R</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">B</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">0s</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">4s</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">6s</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">SR</th>
               </tr>
             </thead>
             <tbody>
               {allBatsmen.map((batsman) => (
                 <tr
                   key={batsman.id}
-                  className={`${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-blue-900/40 ring-1 ring-inset ring-blue-600' : 'bg-gray-900'}`}
+                  className={`border-b border-border/50 ${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-blue-500/10' : 'bg-background'}`}
                 >
-                  <td className="px-2 py-2">
-                    <div className="font-semibold text-white text-xs">{batsman.name}</div>
-                    <span className="text-xs text-gray-300 mt-0.5 inline-block">
+                  <td className="px-2 py-2.5">
+                    <div className="font-black text-foreground text-xs">{batsman.name}</div>
+                    <span className="text-[10px] font-bold opacity-60 mt-0.5 inline-block uppercase tracking-tight">
                       {formatDismissal(batsman)}
                     </span>
                   </td>
-                  <td className="px-2 py-2 text-center font-bold text-white">
+                  <td className="px-2 py-2.5 text-center font-black text-foreground">
                     {batsman.runs}
                   </td>
-                  <td className="px-2 py-2 text-center text-white text-xs">{batsman.balls}</td>
-                  <td className="px-2 py-2 text-center text-white text-xs">{batsman.zeros}</td>
-                  <td className="px-2 py-2 text-center text-white text-xs">{batsman.fours}</td>
-                  <td className="px-2 py-2 text-center text-white text-xs">{batsman.sixes}</td>
-                  <td className="px-2 py-2 text-center text-white text-xs">
+                  <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80">{batsman.balls}</td>
+                  <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80">{batsman.zeros}</td>
+                  <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80">{batsman.fours}</td>
+                  <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80">{batsman.sixes}</td>
+                  <td className="px-2 py-2.5 text-center text-foreground font-black opacity-90">
                     {batsman.balls > 0
                       ? ((batsman.runs / batsman.balls) * 100).toFixed(1)
                       : '0.0'}

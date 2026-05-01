@@ -6,7 +6,7 @@ import { ScorecardUpload } from '@/app/components/admin/ScorecardUpload';
 import { MatchDataForm } from '@/app/components/admin/MatchDataForm';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 
-type AdminStep = 'upload' | 'review';
+type AdminStep = 'entry' | 'review';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -14,7 +14,7 @@ interface ParsedData {
 }
 
 export default function AdminPage() {
-  const [step, setStep] = useState<AdminStep>('upload');
+  const [step, setStep] = useState<AdminStep>('entry');
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
 
   const handleDataParsed = (data: ParsedData) => {
@@ -23,7 +23,7 @@ export default function AdminPage() {
   };
 
   const handleFormSubmit = () => {
-    setStep('upload');
+    setStep('entry');
     setParsedData(null);
   };
 
@@ -31,45 +31,48 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-900">
       <Header />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="page-container">
         {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">Admin Panel</h1>
-          <p className="text-gray-400 mt-2">Upload and parse match scorecards</p>
+        <div className="page-header">
+          <h1 className="page-title text-white">Admin Panel</h1>
+          <p className="hint-text mt-1 sm:mt-2">Enter match data manually or via screenshot</p>
         </div>
 
         {/* Steps */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4">
+        <div className="mb-4 sm:mb-8">
+          <div className="flex items-center gap-2 sm:gap-4">
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${
-                step === 'upload' || step === 'review'
+              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
+                step === 'entry' || step === 'review'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-700 text-gray-400'
               }`}
             >
               1
             </div>
-            <span className="text-white font-semibold">Upload Scorecards</span>
+            <span className="text-white text-sm sm:text-base font-semibold">Enter Data</span>
 
             {/* Arrow */}
-            <div className="flex-1 h-1 bg-gradient-to-r from-blue-600 to-gray-700 mx-4"></div>
+            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-blue-600 to-gray-700 mx-1 sm:mx-4"></div>
 
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${
+              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
                 step === 'review' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
               }`}
             >
               2
             </div>
-            <span className={`font-semibold ${step === 'review' ? 'text-white' : 'text-gray-400'}`}>
+            <span className={`text-sm sm:text-base font-semibold ${step === 'review' ? 'text-white' : 'text-gray-400'}`}>
               Review & Save
             </span>
           </div>
         </div>
 
         {/* Content */}
-        {step === 'upload' && <ScorecardUpload onDataParsed={handleDataParsed} />}
+        {step === 'entry' && (
+          <ScorecardUpload onDataParsed={handleDataParsed} />
+        )}
+        
         {step === 'review' && parsedData && (
           <MatchDataForm matchData={parsedData} onSuccess={handleFormSubmit} />
         )}

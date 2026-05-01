@@ -168,10 +168,10 @@ export function InitialBattersDialog() {
 
         {batter1 && batter2 && bowler && (
           <div className={`mb-4 ${infoCardClass}`}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-300">Selected Players</p>
-            <p className="text-sm text-white">🏏 Striker: <span className="font-bold">{batter1.name}</span></p>
-            <p className="text-sm text-white">🏏 Non-Striker: <span className="font-bold">{batter2.name}</span></p>
-            <p className="text-sm text-white">🎯 Bowler: <span className="font-bold">{bowler.name}</span></p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide opacity-60">Selected Players</p>
+            <p className="text-sm">🏏 Striker: <span className="font-bold">{batter1.name}</span></p>
+            <p className="text-sm">🏏 Non-Striker: <span className="font-bold">{batter2.name}</span></p>
+            <p className="text-sm">🎯 Bowler: <span className="font-bold">{bowler.name}</span></p>
           </div>
         )}
 
@@ -181,7 +181,7 @@ export function InitialBattersDialog() {
           className={`w-full px-4 py-2.5 ${
             isValid
               ? primaryButtonClass
-              : 'cursor-not-allowed rounded-lg border border-slate-700 bg-slate-800 text-slate-500 opacity-50'
+              : 'cursor-not-allowed rounded-lg border border-border bg-background text-foreground/30'
           }`}
         >
           Start Match

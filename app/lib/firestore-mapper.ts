@@ -23,6 +23,8 @@ export function mapMatchToFirestore(match: LiveMatch) {
     win_margin: match.winMargin || '',
     match_format: match.format || 'Custom',
     total_overs: match.totalOvers,
+    first_innings_team: (match as any).firstInningsTeam || '',
+    first_innings_score: (match as any).firstInningsScore || 0,
     created_at: match.createdAt || new Date().toISOString(),
   };
 }
@@ -72,7 +74,52 @@ export function mapPerformanceToFirestore(perf: Performance) {
 }
 
 /**
+ * Maps Firestore 'performances' collection schema back to Redux Performance
+ */
+export function mapFirestoreToPerformance(data: any): Performance {
+  return {
+    id: data.id || `${data.match_id}_${data.player_id}`,
+    matchId: data.match_id || '',
+    playerId: data.player_id || '',
+    playerName: data.player_name || '',
+    date: data.date || '',
+    year: data.year || '',
+    month: data.month || '',
+    opponent: data.opponent || '',
+    createdAt: data.created_at || new Date().toISOString(),
+    batting: {
+      didBat: data.bat_did_bat || false,
+      innings: data.bat_innings || 0,
+      runs: data.bat_runs || 0,
+      balls: data.bat_balls || 0,
+      fours: data.bat_fours || 0,
+      sixes: data.bat_sixes || 0,
+      dismissed: data.bat_dismissed || false,
+      isDuck: data.bat_is_duck || false,
+      isThirty: data.bat_is_thirty || false,
+      isFifty: data.bat_is_fifty || false,
+      isHundred: data.bat_is_hundred || false,
+      strikeRate: data.bat_strike_rate || 0,
+    },
+    bowling: {
+      didBowl: data.bowl_did_bowl || false,
+      innings: data.bowl_innings || 0,
+      overs: data.bowl_overs || 0,
+      balls: data.bowl_balls || 0,
+      runs: data.bowl_runs || 0,
+      wickets: data.bowl_wickets || 0,
+      maidens: data.bowl_maidens || 0,
+      isThreeFer: data.bowl_is_three_fer || false,
+      isFourFer: data.bowl_is_four_fer || false,
+      isFiveFer: data.bowl_is_five_fer || false,
+      economy: data.bowl_economy || 0,
+    }
+  };
+}
+
+/**
  * Finds the best batter from a list of performances
+
  */
 export function findBestBatter(performances: Performance[]) {
   if (performances.length === 0) return null;

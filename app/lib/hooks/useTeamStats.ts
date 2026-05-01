@@ -12,13 +12,8 @@ export function useTeamStats(): { data: TeamStats | null; loading: boolean; erro
   const [data, setData] = useState<TeamStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      setLoading(false);
-      return;
-    }
     const fetchStats = async () => {
       try {
         setLoading(true);
@@ -62,7 +57,7 @@ export function useTeamStats(): { data: TeamStats | null; loading: boolean; erro
     };
 
     fetchStats();
-  }, [fetchTrigger, isManualFetchMode]);
+  }, []);
 
   return { data, loading, error };
 }

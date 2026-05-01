@@ -97,53 +97,57 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
   };
 
   return (
-    <div>
-      <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Recent Matches Results</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <section>
+      <h3 className="section-title text-white mb-4 sm:mb-6">Recent Match Results</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
         {matches.map((match) => {
           const resultStyle = getResultStyle(match.result);
           return (
             <div
               key={match.id}
               onClick={() => router.push(`/stats/team-stats/${match.id}`)}
-              className={`${resultStyle.bgColor} border ${resultStyle.borderColor} rounded-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer hover:scale-105 transform transition-transform`}
+              className={`${resultStyle.bgColor} border ${resultStyle.borderColor} rounded-xl overflow-hidden hover:shadow-2xl transition-all cursor-pointer hover:scale-[1.02] transform group`}
             >
               {/* Colored Header */}
-              <div className={`${resultStyle.headerBg} px-4 sm:px-6 py-2 sm:py-3`}>
-                <p className="text-white font-bold text-base sm:text-lg">{getResultLabel(match.result)}</p>
-                <p className="text-white/80 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{formatDate(match.date)}</p>
+              <div className={`${resultStyle.headerBg} px-4 py-2.5 sm:py-3.5 flex justify-between items-center`}>
+                <div>
+                  <p className="text-white font-bold text-sm sm:text-base">{getResultLabel(match.result)}</p>
+                  <p className="text-white/80 text-[10px] sm:text-xs font-medium">{formatDate(match.date)}</p>
+                </div>
+                {match.winMargin && (
+                  <div className="bg-white/20 backdrop-blur-md px-2 py-1 rounded text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider">
+                    {match.winMargin}
+                  </div>
+                )}
               </div>
 
               {/* Card Content */}
-              <div className="p-3 sm:p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-gray-300 text-xs sm:text-sm font-medium">vs {match.opponent}</p>
-                    <p className="text-gray-400 text-[10px] sm:text-xs mt-0.5 sm:mt-1">Venue: {match.venue}</p>
+              <div className="p-3 sm:p-5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-300 text-xs sm:text-sm font-semibold truncate">vs {match.opponent}</p>
+                    <p className="text-gray-500 text-[10px] sm:text-xs mt-0.5 sm:mt-1 flex items-center gap-1">
+                      <span className="opacity-50">📍</span> {match.venue}
+                    </p>
                   </div>
-                  {match.winMargin && (
-                    <div className="text-right">
-                      <p className={`text-xs sm:text-sm font-semibold ${resultStyle.textColor}`}>{match.winMargin}</p>
-                    </div>
-                  )}
                 </div>
 
                 {/* Best Performers */}
                 {(match.bestBatterName || match.bestBowlerName) && (
-                  <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20">
-                    <div className="grid grid-cols-2 gap-2 sm:gap-3 text-[10px] sm:text-xs">
+                  <div className="mt-3 pt-3 border-t border-white/10">
+                    <div className="grid grid-cols-2 gap-3">
                       {match.bestBatterName && (
-                        <div>
-                          <p className="text-gray-400">Best Batter</p>
-                          <p className="text-white font-semibold truncate">{match.bestBatterName}</p>
-                          <p className="text-gray-500">{match.bestBatterRuns}({match.bestBatterBalls})</p>
+                        <div className="min-w-0">
+                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-0.5">Top Batter</p>
+                          <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBatterName}</p>
+                          <p className="text-blue-400 text-[10px] sm:text-xs font-medium">{match.bestBatterRuns} <span className="text-gray-500 text-[9px]">({match.bestBatterBalls})</span></p>
                         </div>
                       )}
                       {match.bestBowlerName && (
-                        <div>
-                          <p className="text-gray-400">Best Bowler</p>
-                          <p className="text-white font-semibold truncate">{match.bestBowlerName}</p>
-                          <p className="text-gray-500">{match.bestBowlerWickets}w/{match.bestBowlerRuns}r</p>
+                        <div className="min-w-0">
+                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-0.5">Top Bowler</p>
+                          <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBowlerName}</p>
+                          <p className="text-red-400 text-[10px] sm:text-xs font-medium">{match.bestBowlerWickets} <span className="text-gray-500 text-[9px]">Wkts</span></p>
                         </div>
                       )}
                     </div>
@@ -154,6 +158,6 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }

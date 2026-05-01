@@ -29,19 +29,19 @@ export function PlayersList({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5 sm:space-y-2">
       {players.map((player) => (
         <button
           key={player.playerId}
           onClick={() => onSelectPlayer(player.playerId)}
-          className={`w-full p-4 rounded-lg transition-all text-left ${
+          className={`w-full px-3 py-3 sm:p-4 rounded-lg transition-all text-left ${
             selectedPlayerId === player.playerId
               ? 'bg-blue-600 text-white shadow-lg'
               : 'bg-slate-700 text-gray-100 hover:bg-blue-600 border border-blue-500'
           }`}
         >
-          <div className="font-semibold">{player.playerName}</div>
-          <div className={`text-sm ${selectedPlayerId === player.playerId ? 'text-blue-100' : 'text-gray-500'}`}>
+          <div className="text-sm sm:text-base font-semibold">{player.playerName}</div>
+          <div className={`text-xs sm:text-sm ${selectedPlayerId === player.playerId ? 'text-blue-100' : 'text-gray-500'}`}>
             {player.totalMatches} matches
           </div>
         </button>

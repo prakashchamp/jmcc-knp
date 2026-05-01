@@ -16,13 +16,8 @@ export function useTopBowlers(): {
   const [data, setData] = useState<PlayerBowlingStats[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      setLoading(false);
-      return;
-    }
     const fetchTopBowlers = async () => {
       try {
         setLoading(true);
@@ -39,7 +34,7 @@ export function useTopBowlers(): {
     };
 
     fetchTopBowlers();
-  }, [fetchTrigger, isManualFetchMode]);
+  }, []);
 
   return { data, loading, error };
 }

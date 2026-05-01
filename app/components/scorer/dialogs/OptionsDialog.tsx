@@ -135,10 +135,10 @@ export function OptionsDialog() {
               key={option.action}
               onClick={() => handleOptionClick(option.action, option.enabled)}
               disabled={!option.enabled}
-              className={`w-full rounded-xl border px-4 py-3 text-left text-sm font-semibold transition-all ${
+              className={`w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-black transition-all ${
                 option.enabled
-                  ? 'border-slate-700 bg-slate-800 text-white hover:border-slate-500 hover:bg-slate-700'
-                  : 'cursor-not-allowed border-slate-800 bg-slate-900 text-slate-500 opacity-60'
+                  ? 'border-border bg-background text-foreground hover:border-blue-500 hover:bg-blue-600/5 hover:scale-[1.01] active:scale-[0.98]'
+                  : 'cursor-not-allowed border-border/50 bg-background/50 text-foreground/30 opacity-40'
               }`}
             >
               <div>{option.label}</div>

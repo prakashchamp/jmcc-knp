@@ -304,68 +304,86 @@ export function LiveScorerUI({
     setDismissalType(null);
     setShowNewBatsmanModal(true);
   };
+  
+  // Over End Popup Trigger
+  useEffect(() => {
+    if (ballsInCurrentOver === 0 && innings.totalBalls > 0 && totalOvers > lastOverShown) {
+      const prevOverBalls = innings.ballHistory.filter(b => b.over === totalOvers - 1);
+      const prevOverRuns = prevOverBalls.reduce((sum, b) => sum + b.runs.total, 0);
+      const prevOverWickets = prevOverBalls.filter(b => b.isWicket).length;
+
+      setOverEndData({
+        overNumber: totalOvers,
+        currentScore: innings.totalRuns,
+        totalRunsInOver: prevOverRuns,
+        wicketsInOver: prevOverWickets,
+      });
+      setShowOverEndPopup(true);
+      setLastOverShown(totalOvers);
+    }
+  }, [innings.totalBalls, totalOvers, ballsInCurrentOver, lastOverShown, innings.ballHistory, innings.totalRuns]);
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-2">
-      <div className="w-full max-w-md bg-white">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-2">
+      <div className="w-full max-w-md bg-card border border-border rounded-xl shadow-lg p-4">
         {/* Header - Compact */}
-        <div className="flex justify-between items-start mb-4 px-4 py-3">
+        <div className="flex justify-between items-start mb-4 py-1">
           <div>
-            <h1 className="text-base font-semibold text-gray-800">
+            <h1 className="text-base font-semibold">
               {matchInfo.opponent}, {matchInfo.inningNumber === 1 ? '1st' : '2nd'} inning
             </h1>
           </div>
         </div>
 
         {/* Main Score Display - Compact */}
-        <div className="bg-white border-2 border-gray-300 rounded-lg p-2 mb-2 flex items-center justify-between">
+        <div className="bg-background border border-border rounded-lg p-2 mb-2 flex items-center justify-between">
           <div>
-            <p className="text-3xl font-bold text-gray-800">
+            <p className="text-3xl font-bold">
               {innings.totalRuns}-{innings.totalWickets}
-              <span className="text-sm text-gray-600"> ({totalOvers}.{ballsInCurrentOver})</span>
+              <span className="text-sm opacity-60"> ({totalOvers}.{ballsInCurrentOver})</span>
             </p>
           </div>
         </div>
 
         {/* Batsmen Table - Compact */}
-        <div className="border-2 border-gray-300 rounded-lg mb-2 overflow-hidden">
+        <div className="border border-border rounded-lg mb-2 overflow-hidden">
           <table className="w-full text-xs">
             <thead>
-              <tr className="bg-gray-100 border-b-2 border-gray-300">
-                <th className="text-left px-2 py-1 font-semibold text-gray-700">Batsman</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-6">R</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-6">B</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-6">0s</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-6">4s</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-6">6s</th>
-                <th className="text-center px-1 py-1 font-semibold text-gray-700 w-8">SR</th>
+              <tr className="bg-background border-b border-border">
+                <th className="text-left px-2 py-1 font-semibold opacity-80">Batsman</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-6">R</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-6">B</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-6">0s</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-6">4s</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-6">6s</th>
+                <th className="text-center px-1 py-1 font-semibold opacity-80 w-8">SR</th>
               </tr>
             </thead>
             <tbody>
               {innings.striker && (
-                <tr className="border-b border-gray-200">
-                  <td className="px-2 py-1 font-medium text-gray-800 text-xs">
+                <tr className="border-b border-border">
+                  <td className="px-2 py-1 font-medium text-xs">
                     {innings.striker.name}*
                   </td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.striker.runs}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.striker.balls}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{calculateZeros(innings.striker.id)}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.striker.fours}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.striker.sixes}</td>
-                  <td className="text-center px-1 py-1 text-gray-700 text-xs">{innings.striker.strikeRate.toFixed(1)}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.striker.runs}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.striker.balls}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{calculateZeros(innings.striker.id)}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.striker.fours}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.striker.sixes}</td>
+                  <td className="text-center px-1 py-1 text-xs opacity-80">{innings.striker.strikeRate.toFixed(1)}</td>
                 </tr>
               )}
               {innings.nonStriker && (
-                <tr className="border-b border-gray-200">
-                  <td className="px-2 py-1 font-medium text-gray-800 text-xs">
+                <tr className="border-b border-border">
+                  <td className="px-2 py-1 font-medium text-xs">
                     {innings.nonStriker.name}
                   </td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.nonStriker.runs}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.nonStriker.balls}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{calculateZeros(innings.nonStriker.id)}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.nonStriker.fours}</td>
-                  <td className="text-center px-1 py-1 text-gray-700">{innings.nonStriker.sixes}</td>
-                  <td className="text-center px-1 py-1 text-gray-700 text-xs">{innings.nonStriker.strikeRate.toFixed(1)}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.nonStriker.runs}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.nonStriker.balls}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{calculateZeros(innings.nonStriker.id)}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.nonStriker.fours}</td>
+                  <td className="text-center px-1 py-1 opacity-80">{innings.nonStriker.sixes}</td>
+                  <td className="text-center px-1 py-1 text-xs opacity-80">{innings.nonStriker.strikeRate.toFixed(1)}</td>
                 </tr>
               )}
             </tbody>
@@ -374,7 +392,7 @@ export function LiveScorerUI({
 
         {/* This Over - Compact */}
         <div className="mb-2">
-          <p className="text-xs font-semibold text-gray-600 mb-1">This over: {runsThisOver}</p>
+          <p className="text-xs font-semibold opacity-60 mb-1">This over: {runsThisOver}</p>
           <div className="flex gap-1">
             {Array.from({ length: 6 }).map((_, i) => {
               const ball = currentOverBalls.find((b) => b.ball === i);
@@ -385,7 +403,7 @@ export function LiveScorerUI({
                   className={`flex-1 h-6 rounded flex items-center justify-center font-bold text-xs transition-colors ${
                     isShown && ball
                       ? getBallColor(ball as any)
-                      : 'bg-gray-100 text-gray-400 border border-gray-300'
+                      : 'bg-background opacity-40 border border-border'
                   }`}
                 >
                   {isShown && ball ? formatBallDisplay(ball as any) : '-'}
@@ -451,7 +469,7 @@ export function LiveScorerUI({
         </div>
 
         {/* Number Pad - Compact */}
-        <div className="border-2 border-gray-300 rounded-lg p-2">
+        <div className="border border-border bg-background/50 rounded-lg p-2">
           {/* Row 1 */}
           <div className="grid grid-cols-4 gap-1 mb-1">
             {[0, 1, 2, 3].map((num) => (
@@ -465,7 +483,7 @@ export function LiveScorerUI({
             ))}
             <button 
               onClick={() => setShowCustomScore(true)}
-              className="h-8 rounded-full border-2 border-gray-400 text-gray-400 font-bold text-sm hover:bg-gray-100"
+              className="h-8 rounded-full border border-border bg-background text-foreground/60 font-bold text-sm hover:bg-blue-500/10"
             >
               ...
             </button>
@@ -587,9 +605,9 @@ interface ExtraRunsDialogProps {
 
 function ExtraRunsDialog({ title, options, onSelect, onClose }: ExtraRunsDialogProps) {
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">{title}</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">{title}</h2>
         <div className="grid grid-cols-3 gap-2 mb-4">
           {options.map((num) => (
             <button
@@ -598,7 +616,7 @@ function ExtraRunsDialog({ title, options, onSelect, onClose }: ExtraRunsDialogP
                 onSelect(num);
                 onClose();
               }}
-              className="h-12 bg-green-700 hover:bg-green-800 text-white font-bold text-lg rounded transition-colors"
+              className="h-12 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded transition-colors"
             >
               {num}
             </button>
@@ -606,7 +624,7 @@ function ExtraRunsDialog({ title, options, onSelect, onClose }: ExtraRunsDialogP
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
         >
           Cancel
         </button>
@@ -632,9 +650,9 @@ function WicketMenu({ onSelect, onClose }: WicketMenuProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">How Out?</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">How Out?</h2>
         <div className="space-y-2 mb-4">
           {dismissalModes.map((mode) => (
             <button
@@ -651,7 +669,7 @@ function WicketMenu({ onSelect, onClose }: WicketMenuProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
         >
           Cancel
         </button>
@@ -669,14 +687,14 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
   const [value, setValue] = useState('');
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Enter Runs</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Enter Runs</h2>
         <input
           type="number"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full px-4 py-2 border-2 border-gray-300 rounded mb-4 text-lg font-semibold"
+          className="w-full px-4 py-2 bg-background border border-border rounded mb-4 text-lg font-semibold focus:outline-none focus:border-blue-500"
           placeholder="0"
           min="0"
         />
@@ -685,13 +703,13 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
             onClick={() => {
               if (value !== '') onSubmit(parseInt(value));
             }}
-            className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded font-semibold transition-colors"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold transition-colors"
           >
             OK
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold transition-colors"
+            className="px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold transition-colors"
           >
             Cancel
           </button>
@@ -717,9 +735,9 @@ function NewBatsmanModal({
   onClose,
 }: NewBatsmanModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Select New Batsman</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Select New Batsman</h2>
         <div className="space-y-2 max-h-60 overflow-y-auto">
           {teamPlayers
             .filter(
@@ -732,7 +750,7 @@ function NewBatsmanModal({
               <button
                 key={player.id}
                 onClick={onClose}
-                className="w-full px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded font-semibold text-sm transition-colors"
+                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold text-sm transition-colors"
               >
                 {player.name} ({player.jerseyNumber})
               </button>
@@ -740,7 +758,7 @@ function NewBatsmanModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold text-sm transition-colors"
+          className="w-full mt-4 px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -771,9 +789,9 @@ function ExtrasPanel({ innings, onClose }: ExtrasPanelProps) {
   const totalExtras = widesTotal + noBallsTotal + byesTotal + legByesTotal;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Extras Breakdown</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Extras Breakdown</h2>
         <div className="space-y-2 mb-4 text-sm">
           <div className="flex justify-between">
             <span>Wides:</span>
@@ -791,14 +809,14 @@ function ExtrasPanel({ innings, onClose }: ExtrasPanelProps) {
             <span>Leg Byes:</span>
             <span className="font-semibold">{legByesTotal}</span>
           </div>
-          <div className="border-t border-gray-300 pt-2 flex justify-between font-bold">
+          <div className="border-t border-border pt-2 flex justify-between font-bold">
             <span>Total Extras:</span>
             <span>{totalExtras}</span>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -814,26 +832,56 @@ interface PartnershipsPanelProps {
 
 function PartnershipsPanel({ innings, onClose }: PartnershipsPanelProps) {
   const partnerships: Array<{ batter1: string; batter2: string; runs: number }> = [];
+  
+  let currentP = { batter1: '', batter2: '', runs: 0 };
+  
+  innings.ballHistory.forEach(ball => {
+    const b1 = ball.batter.name;
+    const b2 = ball.nonStriker.name;
+    
+    if (currentP.batter1 === '') {
+      currentP = { batter1: b1, batter2: b2, runs: ball.runs.total };
+    } else if ((currentP.batter1 === b1 && currentP.batter2 === b2) || (currentP.batter1 === b2 && currentP.batter2 === b1)) {
+      currentP.runs += ball.runs.total;
+    } else {
+      // New partnership started (usually after a wicket)
+      partnerships.push({...currentP});
+      currentP = { batter1: b1, batter2: b2, runs: ball.runs.total };
+    }
+
+    if (ball.isWicket) {
+      partnerships.push({...currentP});
+      currentP = { batter1: '', batter2: '', runs: 0 };
+    }
+  });
+
+  // Add the active partnership if not already pushed
+  if (currentP.batter1 !== '') {
+    partnerships.push(currentP);
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg border-2 border-gray-300 p-4 max-w-sm w-full shadow-lg">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">Partnerships</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg border border-border p-4 max-w-sm w-full shadow-lg">
+        <h2 className="text-lg font-bold mb-4">Partnerships</h2>
         <div className="space-y-2 mb-4 text-sm max-h-60 overflow-y-auto">
           {partnerships.length === 0 ? (
-            <p className="text-gray-600">No partnerships to display yet.</p>
+            <p className="opacity-60">No partnerships to display yet.</p>
           ) : (
             partnerships.map((p, i) => (
-              <div key={i} className="flex justify-between">
-                <span>{p.batter1} & {p.batter2}</span>
-                <span className="font-semibold">{p.runs}</span>
+              <div key={i} className="flex justify-between border-b border-border/50 pb-1">
+                <div className="flex flex-col">
+                  <span className="font-medium text-xs">{p.batter1} &</span>
+                  <span className="font-medium text-xs">{p.batter2}</span>
+                </div>
+                <span className="font-bold text-base flex items-center">{p.runs}</span>
               </div>
             ))
           )}
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -855,7 +903,7 @@ function CheckboxButton({ label, onClick, fullWidth }: CheckboxButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`h-8 rounded border-2 border-orange-500 bg-white text-orange-500 font-semibold text-xs hover:bg-orange-50 transition-colors ${
+      className={`h-8 rounded border border-blue-500/50 bg-blue-500/10 text-blue-600 font-semibold text-xs hover:bg-blue-500/20 transition-colors ${
         fullWidth ? 'w-full' : ''
       }`}
     >
@@ -881,8 +929,8 @@ function GreenButton({ label, onClick, disabled = false, fullWidth = false }: Gr
       disabled={disabled}
       className={`h-8 rounded font-semibold text-xs transition-colors ${
         disabled
-          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          : 'bg-green-700 hover:bg-green-800 text-white'
+          ? 'bg-background border border-border text-foreground/30 cursor-not-allowed'
+          : 'bg-green-600 hover:bg-green-700 text-white'
       } ${fullWidth ? 'w-full' : ''}`}
     >
       {label}
@@ -902,7 +950,7 @@ function NumberButton({ value, onClick }: NumberButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="h-8 rounded-full bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold text-sm transition-colors"
+      className="h-8 rounded-full bg-background border border-border hover:bg-blue-500/10 text-foreground font-bold text-sm transition-colors"
     >
       {value}
     </button>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
-import { formLabelClass, inputClass, primaryButtonClass, selectSurfaceClass } from './dialogTheme';
+import { formLabelClass, inputClass, primaryButtonClass, selectItemClass, selectItemSelectedClass, selectSurfaceClass } from './dialogTheme';
 
 interface BowlerDropdownSelectProps {
   label?: string;
@@ -54,17 +54,17 @@ export function BowlerDropdownSelect({
           aria-expanded={isOpen}
           aria-label={placeholder}
         >
-          <span className={selectedBowler ? 'text-white' : 'text-slate-400'}>
+          <span className={selectedBowler ? 'text-foreground' : 'text-foreground/40'}>
             {selectedBowler?.name || placeholder}
           </span>
-          <span className="text-xs text-slate-300">{isOpen ? '▲' : '▼'}</span>
+          <span className="text-xs opacity-60">{isOpen ? '▲' : '▼'}</span>
         </button>
 
         {isOpen && (
-          <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
-            <div className={`${selectSurfaceClass} max-h-60 rounded-none border-0 bg-transparent p-2 shadow-none`}>
+          <div className="mt-2 overflow-visible rounded-2xl border-2 border-border bg-card shadow-2xl shadow-black/20 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className={selectSurfaceClass}>
               {availableBowlers.length === 0 ? (
-                <div className="px-4 py-3 text-center text-sm text-gray-400">No bowlers available</div>
+                <div className="px-4 py-3 text-center text-sm opacity-40">No bowlers available</div>
               ) : (
                 availableBowlers.map((bowler) => {
                   const isSelected = selectedBowler?.id === bowler.id;
@@ -77,11 +77,7 @@ export function BowlerDropdownSelect({
                         onSelect(bowler);
                         setIsOpen(false);
                       }}
-                      className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm transition-all ${
-                        isSelected
-                          ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                          : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
-                      }`}
+                      className={`${selectItemClass} ${isSelected ? selectItemSelectedClass : ''}`}
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
@@ -90,12 +86,12 @@ export function BowlerDropdownSelect({
 
                         <div className="flex shrink-0 items-center gap-2">
                           {bowler.jerseyNumber && (
-                            <span className="rounded-full border border-slate-500 px-2 py-0.5 text-[11px] text-slate-200">
+                            <span className="rounded-full border border-border px-2 py-0.5 text-[11px] opacity-60">
                               #{bowler.jerseyNumber}
                             </span>
                           )}
                           {isSelected && (
-                            <span className="rounded-full border border-blue-400/60 bg-blue-500/15 px-2 py-0.5 text-[11px] font-semibold text-blue-100">
+                            <span className="rounded-full border border-blue-500/50 bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
                               Selected
                             </span>
                           )}
@@ -108,7 +104,7 @@ export function BowlerDropdownSelect({
             </div>
 
             {allowNew && onCreateNew && onNewPlayerNameChange && (
-              <div className="border-t border-slate-600 bg-slate-800 p-2 space-y-2">
+              <div className="border-t border-border bg-background/50 p-2 space-y-2">
                 <input
                   type="text"
                   value={newPlayerName}

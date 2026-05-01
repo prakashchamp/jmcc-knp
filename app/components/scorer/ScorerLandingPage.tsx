@@ -9,6 +9,7 @@ import { TeamPlayer, LiveMatch } from '@/app/lib/cricket-scorer-types';
 import { validateAndClearCorruptedState } from '@/app/lib/redux/store';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { inputClass, primaryButtonClass, secondaryButtonClass } from './dialogs/dialogTheme';
+import { useTheme } from '../ThemeProvider';
 
 // Constant opponent player list
 const OPPONENT_PLAYERS: TeamPlayer[] = Array.from({ length: 11 }, (_, i) => ({
@@ -93,7 +94,7 @@ function DropdownInputField({
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-300">{label}</label>
+      <label className="mb-2 block text-sm font-semibold opacity-90">{label}</label>
       <div className="relative">
         <input
           type="text"
@@ -125,18 +126,18 @@ function DropdownInputField({
           type="button"
           disabled={disabled}
           onClick={() => !disabled && onOpenChange(!isOpen)}
-          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-300 disabled:cursor-not-allowed disabled:text-slate-500"
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
           aria-label={`Toggle ${label} options`}
         >
           <span className="text-xs">{isOpen ? '▲' : '▼'}</span>
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
+          <div className="mt-2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/60">
             <div className="max-h-60 space-y-2 overflow-y-auto p-2">
               {allowCreate && !readOnly && (
-                <div className="rounded-lg border border-slate-700 bg-slate-800/80 p-2">
-                  <p className="mb-2 text-xs font-medium text-slate-300">Custom {label}</p>
+                <div className="rounded-lg border border-border bg-background/80 p-2">
+                  <p className="mb-2 text-xs font-medium opacity-60">Custom {label}</p>
                   <input
                     type="text"
                     value={value}
@@ -163,8 +164,8 @@ function DropdownInputField({
                     }}
                     className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                        : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                        ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+                        : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
                     }`}
                   >
                     {option.label}
@@ -186,7 +187,7 @@ function DropdownInputField({
               )}
 
               {filteredOptions.length === 0 && !showCreate && (
-                <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-300">
+                <div className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm opacity-60">
                   {emptyText}
                 </div>
               )}
@@ -209,6 +210,7 @@ export function ScorerLandingPage({
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const teamName = useTeamName();
+  const { theme, toggleTheme } = useTheme();
   // Navigation states: 'landing' | 'match' | 'players'
   const [step, setStep] = useState<'landing' | 'match' | 'players'>('landing');
   
@@ -382,7 +384,26 @@ export function ScorerLandingPage({
   // Landing page
   if (step === 'landing') {
     return (
-      <div className="h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+      <div className="h-screen bg-background text-foreground flex items-center justify-center p-4">
+        {/* Theme Toggle - Absolute Top Right */}
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={toggleTheme}
+            className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center shadow-lg transition-all active:scale-90"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            )}
+          </button>
+        </div>
+
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-12">Cricket Live Scorer</h1>
 
@@ -441,7 +462,7 @@ export function ScorerLandingPage({
             {/* Back to Home Button */}
             <button
               onClick={() => router.push('/')}
-              className="w-full px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-lg font-bold rounded-lg transition-colors border border-slate-700"
+              className="w-full px-6 py-4 bg-card hover:bg-blue-600/10 text-foreground text-lg font-bold rounded-lg transition-colors border border-border"
             >
               Back to Home
             </button>
@@ -454,12 +475,12 @@ export function ScorerLandingPage({
   // Match setup form
   if (step === 'match') {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 overflow-y-auto">
-        <div className="w-full max-w-xl my-8 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60 backdrop-blur-sm sm:p-8">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
             <div className="mt-2">
-              <h1 className="text-2xl font-bold text-white">Match Details</h1>
+              <h1 className="text-2xl font-bold">Match Details</h1>
             </div>
           </div>
 
@@ -530,11 +551,11 @@ export function ScorerLandingPage({
             </div>
 
             {/* Start from 2nd Innings Toggle */}
-            <div className={`rounded-xl border p-4 transition-colors ${startFromSecondInnings ? 'border-amber-500/40 bg-amber-500/10' : 'border-slate-700 bg-slate-800/50'} ${!isOpponentEntered ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`rounded-xl border p-4 transition-colors ${startFromSecondInnings ? 'border-amber-500/40 bg-amber-500/10' : 'border-border bg-background/50'} ${!isOpponentEntered ? 'opacity-50 pointer-events-none' : ''}`}>
               <label className="flex items-center justify-between cursor-pointer">
                 <div>
-                  <p className="text-sm font-semibold text-slate-200">Start from 2nd Innings</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Skip 1st innings, enter score directly</p>
+                  <p className="text-sm font-semibold">Start from 2nd Innings</p>
+                  <p className="text-xs opacity-60 mt-0.5">Skip 1st innings, enter score directly</p>
                 </div>
                 <button
                   type="button"
@@ -543,7 +564,7 @@ export function ScorerLandingPage({
                   disabled={!isOpponentEntered}
                   onClick={() => setStartFromSecondInnings(!startFromSecondInnings)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    startFromSecondInnings ? 'bg-amber-500' : 'bg-slate-600'
+                    startFromSecondInnings ? 'bg-amber-500' : 'bg-gray-400'
                   }`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -554,7 +575,7 @@ export function ScorerLandingPage({
 
               {startFromSecondInnings && (
                 <div className="mt-4">
-                  <label className="mb-2 block text-sm font-semibold text-amber-200">1st Innings Score</label>
+                  <label className="mb-2 block text-sm font-semibold text-amber-600">1st Innings Score</label>
                   <input
                     type="number"
                     value={firstInningsScore}
@@ -611,33 +632,33 @@ export function ScorerLandingPage({
     const bowlerOptions = jmccBatting ? OPPONENT_PLAYERS : teamPlayers;
 
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 overflow-y-auto">
-        <div className="w-full max-w-xl my-8 rounded-2xl border border-slate-700 bg-slate-900/95 p-6 shadow-2xl shadow-slate-950/60 backdrop-blur-sm sm:p-8">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
             <div className="mt-2">
-              <h1 className="text-2xl font-bold text-white">Player Selection</h1>
+              <h1 className="text-2xl font-bold">Player Selection</h1>
             </div>
           </div>
 
           <form onSubmit={handlePlayerSelection} className="space-y-5">
             <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-100/80">Batting Team</p>
-              <p className="mt-1 text-lg font-semibold text-white">🏏 {battingTeamName}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500 opacity-80">Batting Team</p>
+              <p className="mt-1 text-lg font-semibold">🏏 {battingTeamName}</p>
             </div>
 
             <div className="relative">
-              <label className="mb-2 block text-sm font-semibold text-slate-300">Striker</label>
+              <label className="mb-2 block text-sm font-semibold opacity-80">Striker</label>
               <button
                 type="button"
                 onClick={() => setStrikerOpen(!strikerOpen)}
                 className={`${inputClass} flex items-center justify-between text-left`}
               >
                 <span>{striker ? striker.name : 'Select Striker'}</span>
-                <span className="text-xs text-slate-300">{strikerOpen ? '▲' : '▼'}</span>
+                <span className="text-xs opacity-60">{strikerOpen ? '▲' : '▼'}</span>
               </button>
               {strikerOpen && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-2xl shadow-black/60">
                   <div className="space-y-2 p-2">
                     {strikerOptions.map((player) => (
                       <button
@@ -649,8 +670,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           striker?.id === player.id
-                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                            : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-blue-500/50'
                         }`}
                       >
                         {player.name}
@@ -659,7 +680,7 @@ export function ScorerLandingPage({
                   </div>
 
                   {jmccBatting && (
-                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                    <div className="border-t border-border bg-card/70 p-3">
                       <input
                         type="text"
                         value={newStrikerName}
@@ -683,17 +704,17 @@ export function ScorerLandingPage({
             </div>
 
             <div className="relative">
-              <label className="mb-2 block text-sm font-semibold text-slate-300">Non-Striker</label>
+              <label className="mb-2 block text-sm font-semibold opacity-80">Non-Striker</label>
               <button
                 type="button"
                 onClick={() => setNonStrikerOpen(!nonStrikerOpen)}
                 className={`${inputClass} flex items-center justify-between text-left`}
               >
                 <span>{nonStriker ? nonStriker.name : 'Select Non-Striker'}</span>
-                <span className="text-xs text-slate-300">{nonStrikerOpen ? '▲' : '▼'}</span>
+                <span className="text-xs opacity-60">{nonStrikerOpen ? '▲' : '▼'}</span>
               </button>
               {nonStrikerOpen && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-2xl shadow-black/60">
                   <div className="space-y-2 p-2">
                     {nonStrikerOptions.map((player) => (
                       <button
@@ -705,8 +726,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           nonStriker?.id === player.id
-                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                            : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
                         }`}
                       >
                         {player.name}
@@ -715,7 +736,7 @@ export function ScorerLandingPage({
                   </div>
 
                   {jmccBatting && (
-                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                    <div className="border-t border-border bg-card/70 p-3">
                       <input
                         type="text"
                         value={newNonStrikerName}
@@ -738,23 +759,23 @@ export function ScorerLandingPage({
               )}
             </div>
 
-            <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-300">Bowling Team</p>
-              <p className="mt-1 text-lg font-semibold text-white">🎯 {bowlingTeamName}</p>
+            <div className="rounded-xl border border-border bg-background/70 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide opacity-60">Bowling Team</p>
+              <p className="mt-1 text-lg font-semibold">🎯 {bowlingTeamName}</p>
             </div>
 
             <div className="relative">
-              <label className="mb-2 block text-sm font-semibold text-slate-300">Opening Bowler</label>
+              <label className="mb-2 block text-sm font-semibold opacity-80">Opening Bowler</label>
               <button
                 type="button"
                 onClick={() => setBowlerOpen(!bowlerOpen)}
                 className={`${inputClass} flex items-center justify-between text-left`}
               >
                 <span>{bowler ? bowler.name : 'Select Bowler'}</span>
-                <span className="text-xs text-slate-300">{bowlerOpen ? '▲' : '▼'}</span>
+                <span className="text-xs opacity-60">{bowlerOpen ? '▲' : '▼'}</span>
               </button>
               {bowlerOpen && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
+                <div className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-2xl shadow-black/60">
                   <div className="space-y-2 p-2">
                     {bowlerOptions.map((player) => (
                       <button
@@ -766,8 +787,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           bowler?.id === player.id
-                            ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                            : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
                         }`}
                       >
                         {player.name}
@@ -776,7 +797,7 @@ export function ScorerLandingPage({
                   </div>
 
                   {!jmccBatting && (
-                    <div className="border-t border-slate-700 bg-slate-800/70 p-3">
+                    <div className="border-t border-border bg-card/70 p-3">
                       <input
                         type="text"
                         value={newBowlerName}

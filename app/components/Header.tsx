@@ -3,9 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/app/lib/redux/store';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
+import { useTheme } from './ThemeProvider';
 
 /**
  * Header Component
@@ -16,8 +15,9 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const teamName = useTeamName();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -44,6 +44,7 @@ export function Header() {
     { label: 'Live Scorer', value: 'scorer' },
     { label: 'Team Setup', value: 'team-setup' },
     { label: 'Admin', value: 'admin' },
+    { label: 'Manage Data', value: 'manage-data' },
   ];
 
   const handleMenuClick = (value: string) => {
@@ -80,6 +81,9 @@ export function Header() {
       case 'admin':
         router.push('/admin');
         break;
+      case 'manage-data':
+        router.push('/admin/manage-data');
+        break;
       default:
         break;
     }
@@ -107,86 +111,113 @@ export function Header() {
   return (
     <header className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg">
       {/* Top Header Section */}
-      <div className="flex items-center justify-between px-6 py-4 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between px-3 sm:px-6 py-3 max-w-7xl mx-auto">
         {/* Logo */}
         <div className="flex-shrink-0">
           <Image
             src="/jmcc.jpg"
             alt="JMCC Spartans Logo"
-            width={48}
-            height={48}
-            className="rounded-full object-cover shadow-md aspect-square"
+            width={38}
+            height={38}
+            className="sm:w-12 sm:h-12 rounded-full object-cover shadow-md aspect-square"
             priority
           />
         </div>
 
         {/* Team Name - Centered */}
         <div className="flex-1 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">{teamName}</h1>
-          <p className="text-blue-100 text-sm mt-1">Cricket Team</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">{teamName}</h1>
+          <p className="text-blue-100 text-xs sm:text-sm mt-0.5">Cricket Team</p>
         </div>
 
         {/* Hamburger Menu - Mobile Only */}
-        <div className="flex-shrink-0 relative md:hidden" ref={menuRef}>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="w-12 h-12 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
-            aria-label="Open menu"
-          >
-            <svg
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        <div className="flex items-center md:hidden">
+          {(pathname.startsWith('/scorer') || pathname.startsWith('/pwa-scorer')) && (
+            <button
+              onClick={toggleTheme}
+              className="w-10 h-10 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors mr-1"
+              aria-label="Toggle theme"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-
-          {/* Dropdown Menu */}
-          {isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-gray-800 text-white rounded-lg shadow-xl z-50 overflow-hidden">
-              {menuItems.map((item) => (
-                <button
-                  key={item.value}
-                  onClick={() => handleMenuClick(item.value)}
-                  className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-gray-700 font-medium text-sm ${
-                    isActive(item.value)
-                      ? 'bg-blue-600 text-white border-l-4 border-l-blue-300 pl-3'
-                      : 'hover:bg-gray-700 text-gray-100'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
+              {theme === 'dark' ? (
+                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
           )}
+          
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="w-10 h-10 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Open menu"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-card text-foreground rounded-lg shadow-xl z-50 overflow-hidden border border-border">
+                {menuItems.map((item) => (
+                  <button
+                    key={item.value}
+                    onClick={() => handleMenuClick(item.value)}
+                    className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-border font-medium text-sm ${
+                      isActive(item.value)
+                        ? 'bg-blue-600 text-white border-l-4 border-l-blue-300 pl-3'
+                        : 'hover:bg-blue-600/10'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Navbar - Desktop Only */}
       <nav className="hidden md:block bg-blue-800/50 border-t border-blue-700">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center space-x-8">
+        <div className="max-w-7xl mx-auto px-6 flex items-center h-12">
+          <div className="flex space-x-1 h-full">
             {menuItems.map((item) => (
               <button
                 key={item.value}
                 onClick={() => handleMenuClick(item.value)}
-                className={`py-3 px-1 text-sm font-medium transition-all border-b-2 ${
+                className={`px-3 h-full flex items-center transition-colors text-sm font-medium border-b-2 ${
                   isActive(item.value)
-                    ? 'text-white border-b-2 border-blue-300'
-                    : 'text-blue-100 border-b-2 border-transparent hover:text-white hover:border-b-blue-400'
+                    ? 'border-blue-300 bg-white/10 text-white'
+                    : 'border-transparent text-blue-100 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {item.label}
               </button>
             ))}
           </div>
+
+          {(pathname.startsWith('/scorer') || pathname.startsWith('/pwa-scorer')) && (
+            <button
+              onClick={toggleTheme}
+              className="ml-auto w-10 h-10 rounded-lg hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+              )}
+            </button>
+          )}
         </div>
       </nav>
     </header>

@@ -4,48 +4,26 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
 import { YearlyBattingStatsTable } from '@/app/components/YearlyBattingStatsTable';
 import { YearlyBowlingStatsTable } from '@/app/components/YearlyBowlingStatsTable';
+import { CustomSelect } from '@/app/components/CustomSelect';
 import { useYearlyStats } from '@/app/lib/hooks/useYearlyStats';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/app/lib/redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/app/lib/redux/store';
+import { fetchAllMatches } from '@/app/lib/redux/slices/statsSlice';
 
 export default function YearlyStatsPage() {
   const [selectedYear, setSelectedYear] = useState<string>('');
-  const [availableYears, setAvailableYears] = useState<{ value: string; label: string }[]>([]);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
+  const dispatch = useDispatch<AppDispatch>();
+  const { availableYears } = useSelector((state: RootState) => state.stats);
 
-  // Extract unique years from Firestore matches
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      return;
+    dispatch(fetchAllMatches(false));
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (availableYears.length > 0 && !selectedYear) {
+      setSelectedYear(availableYears[0].value);
     }
-    const fetchAvailableYears = async () => {
-      try {
-        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
-        const matches = await getAllMatchesAction();
-        
-        const yearsSet = new Set<string>();
-        matches.forEach(match => {
-          const date = new Date(match.createdAt);
-          const yearKey = date.getFullYear().toString();
-          yearsSet.add(yearKey);
-        });
-
-        const sortedYears = Array.from(yearsSet).sort().reverse().map(year => ({
-          value: year,
-          label: year
-        }));
-
-        setAvailableYears(sortedYears);
-        if (sortedYears.length > 0 && !selectedYear) {
-          setSelectedYear(sortedYears[0].value);
-        }
-      } catch (err) {
-        console.error('Error fetching years:', err);
-      }
-    };
-
-    fetchAvailableYears();
-  }, [fetchTrigger, isManualFetchMode, selectedYear]);
+  }, [availableYears, selectedYear]);
 
   const { players, loading, error } = useYearlyStats(selectedYear);
 
@@ -53,43 +31,34 @@ export default function YearlyStatsPage() {
     <div className="min-h-screen bg-gray-900">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Title */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white">Yearly Statistics</h1>
-          <p className="text-gray-400 mt-2">Detailed player statistics by year</p>
+      <main className="page-container">
+        <div className="page-header">
+          <h1 className="page-title text-white">Yearly Statistics</h1>
+          <p className="hint-text mt-1 sm:mt-2">Detailed player statistics by year</p>
         </div>
 
         {/* Year Dropdown */}
-        <div className="mb-8">
-          <div className="max-w-xs">
-            <label htmlFor="year-select" className="block text-sm font-medium text-gray-300 mb-2">
-              Select Year
-            </label>
-            <select
+        <div className="mb-4 sm:mb-8">
+          <div className="w-full max-w-xs">
+            <CustomSelect
               id="year-select"
+              label="Select Year"
+              options={availableYears}
               value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {availableYears.map((year) => (
-                <option key={year.value} value={year.value}>
-                  {year.label}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedYear}
+            />
           </div>
         </div>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-900 border border-red-700 text-red-200 px-3 py-2 sm:px-4 sm:py-3 rounded-lg mb-4 sm:mb-6 text-sm">
             <p className="font-semibold">Error loading stats</p>
             <p>{error}</p>
           </div>
         )}
 
         {/* Batting Stats Table */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           <YearlyBattingStatsTable players={players} loading={loading} />
         </div>
 

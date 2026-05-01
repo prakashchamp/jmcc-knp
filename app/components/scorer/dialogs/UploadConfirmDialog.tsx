@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from '@/app/lib/redux/store';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import { closeDialog } from '@/app/lib/redux/slices/scorerSlice';
 import { uploadMatchToFirestore } from '@/app/lib/redux/thunks/matchUpload';
 import {
@@ -19,15 +19,41 @@ import { useTeamName } from '@/app/lib/hooks/useTeamName';
 export function UploadConfirmDialog() {
   const dispatch = useDispatch<AppDispatch>();
   const teamName = useTeamName();
+  
+  const liveMatch = useSelector((state: RootState) => state.scorer.liveMatch);
+  
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Form states for overrides
+  const [date, setDate] = useState(liveMatch?.completedAt || new Date().toISOString());
+  const [opponent, setOpponent] = useState(liveMatch?.opponent || '');
+  const [tossWonBy, setTossWonBy] = useState(liveMatch?.tossWonBy || 'Us');
+  const [winMargin, setWinMargin] = useState(liveMatch?.winMargin || '');
+  
+  // Calculate first innings defaults
+  const firstInnings = liveMatch?.innings.find(i => i.inningsNumber === 1);
+  const defaultFirstInningsTeam = firstInnings?.battingTeam === 'Us' ? teamName : opponent;
+  const defaultFirstInningsScore = firstInnings?.totalRuns || 0;
+  
+  const [firstInningsTeam, setFirstInningsTeam] = useState(defaultFirstInningsTeam);
+  const [firstInningsScore, setFirstInningsScore] = useState(defaultFirstInningsScore);
 
   const handleConfirm = async () => {
     setIsUploading(true);
     setError(null);
     try {
-      const resultAction = await dispatch(uploadMatchToFirestore());
+      const overrides = {
+        date,
+        opponent,
+        tossWonBy,
+        winMargin,
+        firstInningsTeam,
+        firstInningsScore
+      };
+
+      const resultAction = await dispatch(uploadMatchToFirestore(overrides));
       if (uploadMatchToFirestore.fulfilled.match(resultAction)) {
         setSuccess(true);
         setTimeout(() => {
@@ -51,18 +77,87 @@ export function UploadConfirmDialog() {
 
   return (
     <div className={modalOverlayClass}>
-      <div className={`${modalPanelClass} w-full max-w-sm p-5 sm:p-6`}>
+      <div className={`${modalPanelClass} w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto`}>
         <div className={modalHeaderClass}>
           <p className={modalEyebrowClass}>Cloud Sync</p>
           <h2 className={modalTitleClass}>Upload to Firestore?</h2>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 space-y-4">
           <p className="text-sm text-slate-400">
             {success 
               ? `Successfully uploaded match data and ${teamName} player performances.` 
-              : `This will save the match results and ${teamName} player statistics to the cloud database.`}
+              : `Review and confirm match details before uploading.`}
           </p>
+
+          {!success && (
+            <div className="space-y-3 bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Match Date</label>
+                <input
+                  type="date"
+                  value={date.split('T')[0]}
+                  onChange={(e) => setDate(new Date(e.target.value).toISOString())}
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Opponent</label>
+                  <input
+                    type="text"
+                    value={opponent}
+                    onChange={(e) => setOpponent(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">Toss Won By</label>
+                  <select
+                    value={tossWonBy}
+                    onChange={(e) => setTossWonBy(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  >
+                    <option value="Us">Us</option>
+                    <option value="Them">Them</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">1st Innings Team</label>
+                  <input
+                    type="text"
+                    value={firstInningsTeam}
+                    onChange={(e) => setFirstInningsTeam(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-400 mb-1">1st Innings Score</label>
+                  <input
+                    type="number"
+                    value={firstInningsScore}
+                    onChange={(e) => setFirstInningsScore(parseInt(e.target.value) || 0)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1">Win Margin</label>
+                <input
+                  type="text"
+                  value={winMargin}
+                  onChange={(e) => setWinMargin(e.target.value)}
+                  placeholder="e.g. 24 runs, 5 wickets"
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
           
           {error && (
             <p className="mt-3 text-sm text-red-400 bg-red-950/30 p-2 rounded border border-red-500/20">
@@ -71,7 +166,7 @@ export function UploadConfirmDialog() {
           )}
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 mt-4">
           {!success && (
             <>
               <button

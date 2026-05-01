@@ -4,67 +4,38 @@ import { useState, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
 import { TeamMatchCard } from '@/app/components/TeamMatchCard';
 import { Match } from '@/app/lib/cricket-schema';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/app/lib/redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '@/app/lib/redux/store';
+import { fetchAllMatches } from '@/app/lib/redux/slices/statsSlice';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 export default function TeamStatsPage() {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
+  const dispatch = useDispatch<AppDispatch>();
+  const { matches, availableMonths, availableYears, status, error: statsError } = useSelector((state: RootState) => state.stats);
+  const loading = status === 'loading' || status === 'idle';
   const [selectedResult, setSelectedResult] = useState<string>('all');
   const [activeView, setActiveView] = useState<'month' | 'year'>('month');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
-  const [availableMonths, setAvailableMonths] = useState<{ value: string; label: string }[]>([]);
-  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [selectedYear, setSelectedYear] = useState<string>('');
   const [currentYearPage, setCurrentYearPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
-  // Load matches from Firestore
+  // Load matches from Firestore via Redux
   useEffect(() => {
-    const fetchMatches = async () => {
-      setLoading(true);
-      try {
-        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
-        const fetchedMatches = await getAllMatchesAction();
-        
-        setMatches(fetchedMatches);
+    dispatch(fetchAllMatches(false));
+  }, [dispatch]);
 
-        // Extract unique months
-        const monthsMap = new Map<string, string>();
-        fetchedMatches.forEach(match => {
-          const date = new Date(match.createdAt);
-          const monthKey = date.toLocaleString('default', { month: 'long' });
-          const yearKey = date.getFullYear().toString();
-          const value = monthKey; // Or whatever key is used for filtering
-          const label = `${monthKey} ${yearKey}`;
-          monthsMap.set(value, label);
-        });
-        
-        const sortedMonths = Array.from(monthsMap.entries()).map(([value, label]) => ({
-          value,
-          label
-        }));
-        
-        setAvailableMonths(sortedMonths);
-        if (sortedMonths.length > 0) {
-          setSelectedMonth(sortedMonths[0].value);
-        }
+  useEffect(() => {
+    if (availableMonths.length > 0 && !selectedMonth) {
+      setSelectedMonth(availableMonths[0].value);
+    }
+  }, [availableMonths, selectedMonth]);
 
-        // Extract unique years
-        const years = Array.from(new Set(fetchedMatches.map((m) => {
-          const date = new Date(m.createdAt);
-          return date.getFullYear().toString();
-        }))).sort().reverse();
-        setAvailableYears(years);
-      } catch (err) {
-        console.error('Error fetching matches:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
-  }, [fetchTrigger, isManualFetchMode]);
+  useEffect(() => {
+    if (availableYears.length > 0 && !selectedYear) {
+      setSelectedYear(availableYears[0].value);
+    }
+  }, [availableYears, selectedYear]);
 
   // Filter matches based on selected result
   const getFilteredMatches = (matchesToFilter: Match[]) => {
@@ -75,9 +46,7 @@ export default function TeamStatsPage() {
 
   // Month view - filter by selected month
   const monthMatches = matches.filter(m => {
-    const date = (m as any).createdAt?.toDate?.() || new Date((m as any).createdAt);
-    const monthKey = date.toLocaleString('default', { month: 'long' });
-    return monthKey === selectedMonth;
+    return m.month === selectedMonth;
   });
   const filteredMonthMatches = getFilteredMatches(monthMatches);
 
@@ -113,10 +82,10 @@ export default function TeamStatsPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <Header />
 
-      <div className="max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
+      <div className="page-container">
         {/* Title and View Toggle */}
-        <div className="mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-4 sm:mb-6">Team Statistics</h1>
+        <div className="page-header">
+          <h1 className="page-title text-white mb-3 sm:mb-6">Team Statistics</h1>
 
           {/* View Toggle Tabs */}
           <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
@@ -144,22 +113,18 @@ export default function TeamStatsPage() {
 
           {/* Month Selector for Month View */}
           {activeView === 'month' && availableMonths.length > 0 && (
-            <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-              <label htmlFor="month-select" className="text-xs sm:text-sm font-medium text-gray-300">
+            <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 w-64">
+              <label htmlFor="month-select" className="text-xs sm:text-sm font-medium text-gray-300 shrink-0">
                 Select Month:
               </label>
-              <select
-                id="month-select"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-2 py-1 sm:px-4 sm:py-2 border border-gray-600 rounded-lg bg-gray-800 text-white text-xs sm:text-sm font-medium hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {availableMonths.map((month) => (
-                  <option key={month.value} value={month.value}>
-                    {month.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex-1">
+                <CustomSelect
+                  id="month-select"
+                  options={availableMonths}
+                  value={selectedMonth}
+                  onChange={setSelectedMonth}
+                />
+              </div>
             </div>
           )}
 
@@ -189,57 +154,22 @@ export default function TeamStatsPage() {
         </div>
 
         {/* Filter buttons */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setSelectedResult('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedResult === 'all'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'
-              }`}
-            >
-              All Matches ({stats.total})
+        <div className="mb-4 sm:mb-8">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setSelectedResult('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'}`}>
+              All ({stats.total})
             </button>
-            <button
-              onClick={() => setSelectedResult('won')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedResult === 'won'
-                  ? 'bg-green-600 text-white shadow-md'
-                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
-              }`}
-            >
+            <button onClick={() => setSelectedResult('won')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'won' ? 'bg-green-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Wins ({stats.won})
             </button>
-            <button
-              onClick={() => setSelectedResult('lost')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedResult === 'lost'
-                  ? 'bg-red-600 text-white shadow-md'
-                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
-              }`}
-            >
+            <button onClick={() => setSelectedResult('lost')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'lost' ? 'bg-red-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Losses ({stats.lost})
             </button>
-            <button
-              onClick={() => setSelectedResult('tie')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedResult === 'tie'
-                  ? 'bg-yellow-600 text-white shadow-md'
-                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
-              }`}
-            >
+            <button onClick={() => setSelectedResult('tie')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'tie' ? 'bg-yellow-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Ties ({stats.tied})
             </button>
-            <button
-              onClick={() => setSelectedResult('no_result')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                selectedResult === 'no_result'
-                  ? 'bg-gray-600 text-white shadow-md'
-                  : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
-              }`}
-            >
-              No Result ({stats.noResult})
+            <button onClick={() => setSelectedResult('no_result')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'no_result' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+              NR ({stats.noResult})
             </button>
           </div>
         </div>
@@ -288,20 +218,20 @@ export default function TeamStatsPage() {
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-3 mt-8">
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-6 sm:mt-8">
                     <button
                       onClick={() => setCurrentYearPage(Math.max(0, currentYearPage - 1))}
                       disabled={currentYearPage === 0}
-                      className="px-4 py-2 rounded-lg border border-gray-600 font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-gray-600 font-medium text-xs sm:text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      Previous
+                      ← Prev
                     </button>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {Array.from({ length: totalPages }).map((_, idx) => (
                         <button
                           key={idx}
                           onClick={() => setCurrentYearPage(idx)}
-                          className={`px-3 py-2 rounded-lg font-medium transition-colors ${
+                          className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                             currentYearPage === idx
                               ? 'bg-green-600 text-white shadow-md'
                               : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-green-900'
@@ -314,13 +244,13 @@ export default function TeamStatsPage() {
                     <button
                       onClick={() => setCurrentYearPage(Math.min(totalPages - 1, currentYearPage + 1))}
                       disabled={currentYearPage === totalPages - 1}
-                      className="px-4 py-2 rounded-lg border border-gray-600 font-medium text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-gray-600 font-medium text-xs sm:text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      Next
+                      Next →
                     </button>
-                    <div className="text-gray-400 ml-4">
+                    <span className="hint-text w-full text-center sm:w-auto sm:ml-2">
                       Page {currentYearPage + 1} of {totalPages} ({filteredYearMatches.length} total)
-                    </div>
+                    </span>
                   </div>
                 )}
               </>

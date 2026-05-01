@@ -135,56 +135,56 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-2xl font-bold text-white p-6 pb-4">Recent Matches Batting Stats</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
-            <tr>
+    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <h3 className="section-title text-white p-4 sm:p-6 border-b border-gray-700">Recent Matches Batting Stats</h3>
+      <div className="table-scroll">
+        <table className="w-full text-xs sm:text-sm">
+          <thead className="bg-gray-700/50">
+            <tr className="text-gray-400">
               <th
-                className="px-4 py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('playerName')}
               >
                 Player
                 {renderSortIndicator('playerName')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('matches')}
               >
-                Matches
+                Mat
                 {renderSortIndicator('matches')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('runs')}
               >
                 Runs
                 {renderSortIndicator('runs')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('balls')}
               >
                 Balls
                 {renderSortIndicator('balls')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('fours')}
               >
                 4s
                 {renderSortIndicator('fours')}
               </th>
               <th
-                className="px-4 py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('sixes')}
               >
                 6s
                 {renderSortIndicator('sixes')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('strikeRate')}
               >
                 SR
@@ -192,21 +192,19 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
               </th>
             </tr>
           </thead>
-          <tbody>
-            {sortedStats.map((stats, idx) => (
+          <tbody className="divide-y divide-gray-700">
+            {sortedStats.map((stats) => (
               <tr
                 key={stats.playerName}
-                className={
-                  idx % 2 === 0 ? 'bg-gray-800 text-gray-100' : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                }
+                className="hover:bg-gray-700/30 transition-colors"
               >
-                <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white">{stats.playerName}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.matches}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{stats.runs}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.balls}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fours}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.sixes}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
+                <td className="px-4 py-3 font-bold text-white truncate max-w-[120px] sm:max-w-none">{stats.playerName}</td>
+                <td className="px-3 py-3 text-center text-gray-400 font-medium">{stats.matches}</td>
+                <td className="px-3 py-3 text-center font-bold text-blue-400">{stats.runs}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.balls}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.fours}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.sixes}</td>
+                <td className="px-3 py-3 text-center text-orange-400 font-bold">
                   {stats.strikeRate > 0 ? stats.strikeRate.toFixed(1) : '-'}
                 </td>
               </tr>

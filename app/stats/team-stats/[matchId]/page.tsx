@@ -11,17 +11,12 @@ export default function MatchDetailPage() {
   const params = useParams();
   const router = useRouter();
   const matchId = params.matchId as string;
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
 
   const [match, setMatch] = useState<Match | null>(null);
   const [matchPerformances, setMatchPerformances] = useState<Performance[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      setLoading(false);
-      return;
-    }
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -30,33 +25,7 @@ export default function MatchDetailPage() {
         
         if (data) {
           setMatch(data.match);
-          
-          const perfs = data.performances.map((perf: any) => {
-            return {
-              id: perf.id,
-              playerId: perf.player_id || perf.playerId,
-              playerName: perf.player_name || perf.playerName,
-              matchId: perf.match_id || perf.matchId,
-              batting: {
-                didBat: perf.bat_did_bat,
-                innings: perf.bat_innings || 0,
-                runs: perf.bat_runs || 0,
-                balls: perf.bat_balls || 0,
-                fours: perf.bat_fours || 0,
-                sixes: perf.bat_sixes || 0,
-                strikeRate: perf.bat_balls > 0 ? (perf.bat_runs / perf.bat_balls) * 100 : 0,
-              },
-              bowling: {
-                didBowl: perf.bowl_did_bowl,
-                innings: perf.bowl_innings || 0,
-                overs: perf.bowl_overs || 0,
-                runs: perf.bowl_runs || 0,
-                wickets: perf.bowl_wickets || 0,
-                economy: perf.bowl_overs > 0 ? perf.bowl_runs / perf.bowl_overs : 0,
-              }
-            } as unknown as Performance;
-          });
-          setMatchPerformances(perfs);
+          setMatchPerformances(data.performances);
         }
       } catch (err) {
         console.error('Error fetching match details:', err);
@@ -66,10 +35,10 @@ export default function MatchDetailPage() {
     };
 
     fetchData();
-  }, [matchId, fetchTrigger, isManualFetchMode]);
+  }, [matchId]);
 
-  const battingPerformances = matchPerformances.filter(p => p.batting.didBat && p.batting.innings > 0);
-  const bowlingPerformances = matchPerformances.filter(p => p.bowling.didBowl && p.bowling.innings > 0);
+  const battingPerformances = matchPerformances.filter(p => p.batting.didBat || (p.batting.balls > 0 || p.batting.runs > 0));
+  const bowlingPerformances = matchPerformances.filter(p => p.bowling.didBowl || (p.bowling.overs > 0 || p.bowling.runs > 0));
 
   // Sort state
   const [battingSortField, setBattingSortField] = useState<'playerName' | 'runs' | 'balls' | 'fours' | 'sixes' | 'strikeRate'>('runs');

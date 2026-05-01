@@ -76,20 +76,20 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
     <div className="mb-3 grid grid-cols-2 gap-2">
       <button
         onClick={() => onSelect('Us')}
-        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+        className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
           selectedTeam === 'Us'
-            ? 'border-blue-500 bg-blue-700 text-white'
-            : 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
+            ? 'border-transparent bg-blue-600 text-white'
+            : 'border-border bg-background text-foreground hover:bg-blue-600/5'
         }`}
       >
         {teamName}
       </button>
       <button
         onClick={() => onSelect('Them')}
-        className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+        className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
           selectedTeam === 'Them'
-            ? 'border-blue-500 bg-blue-700 text-white'
-            : 'border-slate-600 bg-slate-800 text-slate-200 hover:bg-slate-700'
+            ? 'border-transparent bg-blue-600 text-white'
+            : 'border-border bg-background text-foreground hover:border-blue-600/5'
         }`}
       >
         {getTeamDisplayName('Them', opponentName)}

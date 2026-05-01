@@ -1,13 +1,32 @@
 @import "tailwindcss";
 
 :root {
+  --background: #fdfbf7; /* Off-white / Cream */
+  --foreground: #1a1c1e;
+  --card-bg: #ffffff;
+  --card-border: #d1d5db;
+  --input-bg: #ffffff;
+  --input-border: #9ca3af;
+  --hint-text: #475569;
+  --btn-border: #1a1c1e;
+}
+
+.dark {
   --background: #111827;
   --foreground: #f3f4f6;
+  --card-bg: #1f2937;
+  --card-border: #374151;
+  --input-bg: #374151;
+  --input-border: #4b5563;
+  --hint-text: #9ca3af;
+  --btn-border: transparent;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card-bg);
+  --color-border: var(--card-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -15,7 +34,65 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-size: 14px;
+}
+
+/* ===== SHARED RESPONSIVE TYPOGRAPHY SCALE ===== */
+.page-title    { @apply text-2xl sm:text-3xl lg:text-4xl font-bold; }
+.section-title { @apply text-lg sm:text-xl lg:text-2xl font-bold; }
+.card-title    { @apply text-base sm:text-lg font-semibold; }
+.body-text     { @apply text-sm sm:text-base; }
+.hint-text     { color: var(--hint-text); @apply text-xs sm:text-sm; }
+.label-text    { @apply text-xs sm:text-sm font-medium opacity-80; }
+
+/* ===== SHARED FORM ELEMENT STYLES ===== */
+.input-base {
+  background-color: var(--input-bg);
+  border: 2px solid var(--input-border);
+  @apply w-full px-3 py-2.5 sm:px-4 sm:py-3
+         text-foreground text-sm sm:text-base rounded-xl
+         focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
+         transition-all;
+}
+.select-base {
+  background-color: var(--input-bg);
+  border: 2px solid var(--input-border);
+  @apply w-full px-3 py-2.5 sm:px-4 sm:py-3
+         text-foreground text-sm sm:text-base rounded-xl
+         focus:outline-none focus:border-blue-500
+         appearance-none cursor-pointer transition-all;
+}
+.btn-primary {
+  @apply px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700
+         text-white text-sm sm:text-base font-bold rounded-lg
+         shadow-lg shadow-blue-500/20 active:scale-95
+         transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+}
+.btn-secondary {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  @apply px-4 py-2.5 sm:px-6 sm:py-3 hover:bg-foreground/5
+         text-foreground text-sm sm:text-base font-bold rounded-lg 
+         active:scale-95 transition-all;
+}
+.btn-danger {
+  @apply px-4 py-2.5 sm:px-6 sm:py-3 bg-red-600 hover:bg-red-700
+         text-white text-sm sm:text-base font-bold rounded-lg 
+         active:scale-95 transition-all;
+}
+
+/* ===== SHARED PAGE CONTAINER ===== */
+.page-container {
+  @apply max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8;
+}
+.page-header {
+  @apply mb-4 sm:mb-8;
+}
+
+/* Stat tables horizontal scroll on mobile */
+.table-scroll { 
+  @apply w-full overflow-x-auto;
 }
 
 /* Hide scrollbar while maintaining scroll functionality */

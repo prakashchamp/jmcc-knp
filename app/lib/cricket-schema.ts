@@ -46,6 +46,9 @@ export interface Match {
   tossDecision: 'bat' | 'field';
   result: 'won' | 'lost' | 'tie' | 'no_result' | 'abandoned';
   winMargin: string; // "24 runs", "5 wickets", ""
+  
+  firstInningsTeam?: string;
+  firstInningsScore?: number;
 
   bestBatterId: string;
   bestBatterName: string;

@@ -449,7 +449,14 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
             Export Match Info PDF
           </button>
           <button
-            onClick={() => dispatch(openDialog({ dialog: 'uploadConfirm' }))}
+            onClick={() => {
+              const hasBowlingStats = liveMatch.innings.some(i => i.battingTeam === 'Them' && i.bowlerStats && i.bowlerStats.length > 0);
+              if (!hasBowlingStats) {
+                dispatch(openDialog({ dialog: 'manualBowling' }));
+              } else {
+                dispatch(openDialog({ dialog: 'uploadConfirm' }));
+              }
+            }}
             className="rounded-lg border border-emerald-500/60 bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

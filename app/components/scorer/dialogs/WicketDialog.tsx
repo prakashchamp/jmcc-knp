@@ -111,7 +111,7 @@ export function WicketDialog() {
   return (
     <div className={modalOverlayClass}>
       <div className={`${modalPanelClass} flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden`}>
-        <div className="border-b border-slate-700 px-5 py-3 sm:px-6">
+        <div className="border-b border-border px-5 py-3 sm:px-6">
           <div className="mb-2">
             <p className={modalEyebrowClass}>Live Scorer</p>
             <h3 className={modalTitleClass}>Wicket</h3>
@@ -141,7 +141,7 @@ export function WicketDialog() {
                 <button
                   key={item.mode}
                   onClick={() => handleOtherDismissal(item.mode, item.needsSpecialFlow)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-left text-sm font-semibold text-white transition-all hover:border-slate-500 hover:bg-slate-700"
+                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-left text-sm font-black text-foreground transition-all hover:border-blue-500 hover:bg-blue-600/5 active:scale-[0.98]"
                 >
                   {item.label}
                 </button>
@@ -150,7 +150,7 @@ export function WicketDialog() {
           </div>
         </div>
 
-        <div className="border-t border-slate-700 px-5 py-4 sm:px-6">
+        <div className="border-t border-border px-5 py-4 sm:px-6">
           <button
             onClick={() => dispatch(closeDialog())}
             className={`w-full py-3 ${secondaryButtonClass}`}

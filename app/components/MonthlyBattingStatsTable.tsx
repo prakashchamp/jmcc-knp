@@ -85,7 +85,7 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
   if (loading) {
     return (
       <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
-        <h3 className="text-lg sm:text-2xl font-bold text-white mb-4 sm:mb-6">Batting Statistics</h3>
+        <h3 className="section-title text-white mb-4 sm:mb-6">Batting Statistics</h3>
         <div className="h-64 bg-slate-700 rounded animate-pulse" />
       </div>
     );
@@ -102,8 +102,8 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
 
   return (
     <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
-      <div className="overflow-x-auto">
+      <h3 className="section-title text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
+      <div className="table-scroll">
         <table className="w-full text-xs">
           <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
             <tr>

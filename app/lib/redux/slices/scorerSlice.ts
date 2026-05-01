@@ -7,7 +7,7 @@ import { LiveMatch, Ball, InningsState, CurrentBatsman, CurrentBowler, TeamPlaye
  * Dialog state for modals
  */
 export interface DialogState {
-  activeDialog: 'extra' | 'wicket' | 'stumped' | 'runOut' | 'batsmanSelect' | 'finishInnings' | 'options' | 'newBatsman' | 'newBowler' | 'bowlerRetired' | 'batsmanRetired' | 'matchDetails' | 'initialBatters' | 'startNewMatchConfirm' | 'overEnd' | 'sixPlus' | 'uploadConfirm' | null;
+  activeDialog: 'extra' | 'wicket' | 'stumped' | 'runOut' | 'batsmanSelect' | 'finishInnings' | 'options' | 'newBatsman' | 'newBowler' | 'bowlerRetired' | 'batsmanRetired' | 'matchDetails' | 'initialBatters' | 'startNewMatchConfirm' | 'overEnd' | 'sixPlus' | 'uploadConfirm' | 'manualBowling' | null;
   dialogData?: {
     extraType?: ExtraType;
     hasWicket?: boolean;
@@ -77,6 +77,7 @@ function createEmptyInnings(inningsNumber: 1 | 2, teamPlayers: TeamPlayer[]): In
     currentBowler: undefined,
     dismissedBatsmen: [],
     batsmanStats: [],
+    bowlerStats: [],
   };
 }
 
@@ -214,7 +215,21 @@ function updateBatsmanStats(innings: InningsState) {
   }
 }
 
-const mergeInningsIntoMatch = (match: LiveMatch, currentInnings: InningsState | null): LiveMatch => {
+/**
+ * Helper: Update bowlerStats array to keep it in sync with current bowler stats
+ */
+function updateBowlerStats(innings: InningsState) {
+  if (!innings.currentBowler) return;
+
+  const index = innings.bowlerStats.findIndex(b => b.id === innings.currentBowler?.id);
+  if (index >= 0) {
+    innings.bowlerStats[index] = { ...innings.currentBowler };
+  } else {
+    innings.bowlerStats.push({ ...innings.currentBowler });
+  }
+}
+
+export const mergeInningsIntoMatch = (match: LiveMatch, currentInnings: InningsState | null): LiveMatch => {
   if (!currentInnings) return match;
   const newMatch = JSON.parse(JSON.stringify(match));
   const existingIdx = newMatch.innings.findIndex((i: any) => i.inningsNumber === currentInnings.inningsNumber);
@@ -415,6 +430,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
     },
 
     /**
@@ -504,6 +520,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
     },
 
     /**
@@ -593,6 +610,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
     },
 
     /**
@@ -747,6 +765,7 @@ export const scorerSlice = createSlice({
       }
 
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
     },
 
     /**
@@ -889,6 +908,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array (single source of truth)
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
 
       // Auto-open batsman selection dialog for replacement, unless innings is all-out.
       if (shouldPromptForReplacement(innings)) {
@@ -1538,6 +1558,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array (single source of truth)
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
 
       // Partnership resets when new batsman comes in (they will have 0 runs/0 balls)
 
@@ -1848,6 +1869,7 @@ export const scorerSlice = createSlice({
 
       // Sync batsman stats to batsmanStats array
       updateBatsmanStats(innings);
+      updateBowlerStats(innings);
     },
 
     /**
@@ -1975,6 +1997,7 @@ export const scorerSlice = createSlice({
           matchToSave.status = 'complete';
           matchToSave.result = 'abandoned';
           matchToSave.winMargin = 'Match manually completed';
+          matchToSave.completedAt = matchToSave.completedAt || new Date().toISOString();
           state.lastCompletedMatch = matchToSave;
         } else {
           // If already complete, just ensure it's in the lastCompletedMatch slot
@@ -2064,6 +2087,7 @@ export const scorerSlice = createSlice({
       match.result = 'no_result';
       match.winMargin = 'Match completed after 1st innings';
       match.status = 'complete';
+      match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
       state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
@@ -2103,6 +2127,7 @@ export const scorerSlice = createSlice({
       }
 
       match.status = 'complete';
+      match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
       state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
@@ -2130,6 +2155,7 @@ export const scorerSlice = createSlice({
       match.result = winner === 'Us' ? 'won' : 'lost';
       match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
       match.status = 'complete';
+      match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
       state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
       state.undoStack = [];
@@ -2214,6 +2240,26 @@ export const scorerSlice = createSlice({
     },
 
     /**
+     * Add manual bowling stats to the innings where opponent bats
+     */
+    addManualBowlingStats: (state, action: PayloadAction<CurrentBowler[]>) => {
+      if (!state.liveMatch) return;
+      
+      // Find the innings where 'Them' bat
+      let themInnings = state.liveMatch.innings.find(i => i.battingTeam === 'Them');
+      
+      if (!themInnings) {
+        // If not found, create it (e.g. if only 1st innings was recorded)
+        themInnings = createEmptyInnings(2, state.liveMatch.teamPlayers);
+        themInnings.battingTeam = 'Them';
+        state.liveMatch.innings.push(themInnings);
+      }
+      
+      themInnings.bowlerStats = action.payload;
+      state.liveMatch.updatedAt = new Date().toISOString();
+    },
+
+    /**
      * Rehydrate scorer state from persisted storage
      */
     rehydrateScorer: (state, action: PayloadAction<ScorerState>) => {
@@ -2270,6 +2316,7 @@ export const {
   addNewTeamPlayer,
   rehydrateScorer,
   viewCompletedMatch,
+  addManualBowlingStats,
 } = scorerSlice.actions;
 
 export default scorerSlice.reducer;

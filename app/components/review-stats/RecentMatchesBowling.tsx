@@ -143,83 +143,83 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-      <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Bowling Statistics</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-yellow-700">
-            <tr>
+    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <h3 className="section-title text-white p-4 sm:p-6 border-b border-gray-700">Recent Matches Bowling Stats</h3>
+      <div className="table-scroll">
+        <table className="w-full text-xs sm:text-sm">
+          <thead className="bg-gray-700/50">
+            <tr className="text-gray-400">
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('playerName')}
               >
                 Player
                 {renderSortIndicator('playerName')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('matchesPlayed')}
               >
                 Mat
                 {renderSortIndicator('matchesPlayed')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('totalOvers')}
               >
                 Overs
                 {renderSortIndicator('totalOvers')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('totalWickets')}
               >
                 Wkts
                 {renderSortIndicator('totalWickets')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('totalRuns')}
               >
                 Runs
                 {renderSortIndicator('totalRuns')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('economy')}
               >
                 Econ
                 {renderSortIndicator('economy')}
               </th>
               <th
-                className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-yellow-100 cursor-pointer hover:bg-yellow-600"
+                className="px-3 py-3 text-center font-semibold cursor-pointer hover:bg-gray-700 transition-colors"
                 onClick={() => handleSort('totalMaidens')}
               >
-                Mdls
+                Mdn
                 {renderSortIndicator('totalMaidens')}
               </th>
             </tr>
           </thead>
-          <tbody>
-            {sortedStats.map((stats, idx) => (
+          <tbody className="divide-y divide-gray-700">
+            {sortedStats.map((stats) => (
               <tr
                 key={stats.playerName}
-                className='bg-gray-800 text-gray-100'
+                className="hover:bg-gray-700/30 transition-colors"
               >
                 <td 
-                  className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-yellow-400 cursor-pointer hover:text-yellow-300 transition-colors truncate max-w-[100px] sm:max-w-none"
+                  className="px-4 py-3 font-bold text-white cursor-pointer hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none"
                   onClick={() => handlePlayerClick(stats.playerId)}
                 >
                   {stats.playerName}
                 </td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.matchesPlayed}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalOvers}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalRuns}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
+                <td className="px-3 py-3 text-center text-gray-400 font-medium">{stats.matchesPlayed}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.totalOvers}</td>
+                <td className="px-3 py-3 text-center font-bold text-red-400">{stats.totalWickets}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.totalRuns}</td>
+                <td className="px-3 py-3 text-center text-green-400 font-bold">
                   {stats.economy > 0 ? stats.economy.toFixed(1) : '-'}
                 </td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalMaidens}</td>
+                <td className="px-3 py-3 text-center text-gray-500">{stats.totalMaidens}</td>
               </tr>
             ))}
           </tbody>

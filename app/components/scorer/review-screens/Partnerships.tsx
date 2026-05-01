@@ -219,26 +219,29 @@ export function Partnerships() {
           return (
             <div
               key={idx}
-              className={`${partnership.wicketNumber === 0 ? 'bg-blue-900/40 border-blue-600 ring-1 ring-inset ring-blue-600' : 'bg-gray-800 border-gray-600'} border rounded-lg p-2 space-y-2`}
+              className={`border-2 rounded-xl p-3 space-y-3 shadow-sm ${partnership.wicketNumber === 0 ? 'bg-blue-500/10 border-blue-500 shadow-blue-500/5' : 'bg-background border-border'}`}
             >
               <div className="flex justify-between items-center">
-                <h4 className="font-bold text-blue-300 text-xs">{partnershipLabel}</h4>
-                <span className="text-xs font-bold text-white">
-                  {partnership.partnershipRuns}({partnership.partnershipBalls})
+                <h4 className={`font-black text-[10px] uppercase tracking-widest ${partnership.wicketNumber === 0 ? 'text-blue-600' : 'opacity-60 text-foreground'}`}>
+                  {partnershipLabel}
+                </h4>
+                <span className="text-sm font-black text-foreground">
+                  {partnership.partnershipRuns}
+                  <span className="text-xs opacity-60 ml-1 font-bold">({partnership.partnershipBalls})</span>
                 </span>
               </div>
 
-              <div className={`grid ${gridColsClass} gap-2`}>
+              <div className={`grid ${gridColsClass} gap-3`}>
                 {partnership.batsmen.map((batsman) => (
-                  <div key={batsman.id} className="bg-gray-700 border border-gray-600 p-2 rounded">
-                    <p className="font-semibold text-white text-xs">
+                  <div key={batsman.id} className="bg-background/50 border-2 border-border/40 p-2.5 rounded-lg">
+                    <p className="font-black text-foreground text-xs truncate">
                       {batsman.name}
                     </p>
-                    <p className="text-xs text-white mt-0.5">
-                      <span className="font-bold text-white">
+                    <p className="text-xs text-foreground mt-1 flex items-baseline gap-1">
+                      <span className="font-black text-sm">
                         {batsman.runs}
                       </span>
-                      <span className="text-gray-300">({batsman.balls})</span>
+                      <span className="text-[10px] font-bold opacity-60">({batsman.balls})</span>
                     </p>
                   </div>
                 ))}

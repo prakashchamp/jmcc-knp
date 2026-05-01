@@ -139,6 +139,7 @@ export interface InningsState {
   currentBowler?: CurrentBowler;
   dismissedBatsmen: CurrentBatsman[];
   batsmanStats: CurrentBatsman[]; // All batsmen in order (1-11 based on batsmanOrder)
+  bowlerStats: CurrentBowler[]; // All bowlers who bowled in this innings
   target?: number;
   requiredRunRate?: number;
   requiredBalls?: number;
@@ -177,6 +178,7 @@ export interface LiveMatch {
   // Timestamps
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
 }
 
 // ============================================================================

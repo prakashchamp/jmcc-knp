@@ -2,14 +2,14 @@ import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import teamReducer from './slices/teamSlice';
 import scorerReducer from './slices/scorerSlice';
 import matchReducer from './slices/matchSlice';
-import devReducer from './slices/devSlice';
+import statsReducer from './slices/statsSlice';
 
 export const store = configureStore({
   reducer: {
     team: teamReducer,
     scorer: scorerReducer,
     match: matchReducer,
-    dev: devReducer,
+    stats: statsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

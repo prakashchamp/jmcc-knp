@@ -34,14 +34,13 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
 
       {/* Menu Drawer */}
       <div
-        className={`fixed left-0 top-0 h-full w-64 bg-gray-800 text-white transform transition-transform duration-300 z-50 ${
+        className={`fixed left-0 top-0 h-full w-64 bg-card text-foreground transform transition-transform duration-300 z-50 border-r border-border ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Menu Header */}
-        <div className="bg-gray-900 p-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold">Menu</h2>
-          <p className="text-xs text-gray-400 mt-1">{liveMatch?.opponent}</p>
+        <div className="bg-background p-4 border-b border-border">
+          <h2 className="text-lg font-black uppercase tracking-tight">Menu</h2>
         </div>
 
         {/* Menu Items */}
@@ -53,10 +52,10 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
                 onViewChange(item.id);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-semibold flex items-center gap-3 ${
+              className={`w-full text-left px-4 py-3 rounded-xl transition-all font-black flex items-center gap-3 border-2 shadow-sm active:scale-95 ${
                 currentView === item.id
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-gray-700 text-gray-100 hover:bg-gray-600'
+                  ? 'bg-blue-600 text-white border-transparent'
+                  : 'bg-background text-foreground border-border hover:bg-blue-600/5'
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -68,10 +67,10 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 text-white hover:bg-gray-700 p-2 rounded transition-colors"
+          className="absolute top-4 right-4 text-foreground hover:bg-blue-600/10 p-2 rounded transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
@@ -79,12 +78,12 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600 bg-slate-700 text-white transition-colors hover:bg-slate-600"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-500/10 text-blue-600 transition-all hover:bg-blue-500/20 active:scale-90"
         title="Menu"
         aria-label="Menu"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
     </>

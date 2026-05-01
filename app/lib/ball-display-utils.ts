@@ -89,18 +89,18 @@ export function formatBallDisplay(ball: Ball): string {
 export function getBallColor(ball: Ball): string {
   // Wickets have priority - use same shade as wicket button
   if (ball.isWicket) {
-    return 'bg-red-800 border border-red-700';
+    return 'bg-red-600 border border-red-500';
   }
 
   // No-balls (including NB + bye / leg-bye)
   if (ball.extra?.type === 'no-ball' || ball.extra?.isNoBall) {
     if (ball.runs.total === 7) {
-      return 'bg-green-800 border border-green-700';
+      return 'bg-green-600 border border-green-500';
     }
     if (ball.runs.total === 5) {
-      return 'bg-blue-800 border border-blue-700';
+      return 'bg-blue-600 border border-blue-500';
     }
-    return 'bg-amber-700 border border-amber-600';
+    return 'bg-amber-600 border border-amber-500';
   }
 
   // Byes, Leg-byes, and Wides
@@ -110,15 +110,15 @@ export function getBallColor(ball: Ball): string {
 
   // Regular runs (no extras)
   if (ball.runs.total > 6) {
-    return 'bg-violet-800 border border-violet-700';
+    return 'bg-violet-600 border border-violet-500';
   }
   if (ball.runs.total === 6) {
-    return 'bg-green-800 border border-green-700';
+    return 'bg-green-600 border border-green-500';
   }
   if (ball.runs.total === 4) {
-    return 'bg-blue-800 border border-blue-700';
+    return 'bg-blue-600 border border-blue-500';
   }
 
   // 0-3 runs
-  return 'bg-gray-700 border border-gray-600';
+  return 'bg-gray-500 border border-gray-400';
 }

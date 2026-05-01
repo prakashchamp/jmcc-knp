@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
-import { batchWriteServerAction } from '@/app/lib/actions/firebase-actions';
+import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -39,7 +39,6 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
   const handleAddPerformance = () => {
     setPerformances((prev) => [
-      ...prev,
       {
         matchId: '',
         playerId: '',
@@ -72,6 +71,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           economy: 0,
         },
       },
+      ...prev,
     ]);
   };
 
@@ -89,13 +89,11 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
   const handleSubmit = async () => {
     if (!validateData()) return;
+    setLoading(true);
+    setError('');
+    setSuccessMessage('');
 
     try {
-      setLoading(true);
-      setError('');
-      setSuccessMessage('');
-
-      // Generate IDs and timestamps
       const matchId = `match_${Date.now()}`;
       const now = new Date().toISOString();
       const dateObj = new Date(match.date || now);
@@ -119,27 +117,20 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         bestBowlerName: match.bestBowlerName || '',
         bestBowlerWickets: match.bestBowlerWickets || 0,
         bestBowlerRuns: match.bestBowlerRuns || 0,
+        firstInningsTeam: match.firstInningsTeam || '',
+        firstInningsScore: match.firstInningsScore || 0,
         createdAt: now,
       };
 
-      const operations = [];
+      const finalPerformances: Performance[] = [];
 
-      // Add match operation
-      operations.push({
-        type: 'set' as const,
-        collection: 'matches',
-        id: matchId,
-        data: completeMatch,
-      });
-
-      // Add performance operations
       for (const perf of performances) {
         if (perf.playerName) {
-          const performanceId = `${matchId}_${perf.playerId || perf.playerName}`;
+          const performanceId = `${matchId}_${perf.playerId || perf.playerName.replace(/\s+/g, '_')}`;
           const completePerf: Performance = {
             id: performanceId,
             matchId,
-            playerId: perf.playerId || `player_${perf.playerName}`,
+            playerId: perf.playerId || `player_${perf.playerName.replace(/\s+/g, '_')}`,
             playerName: perf.playerName || '',
             date: completeMatch.date,
             year: completeMatch.year,
@@ -174,23 +165,17 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             },
             createdAt: now,
           };
-
-          operations.push({
-            type: 'set' as const,
-            collection: 'performances',
-            id: performanceId,
-            data: completePerf,
-          });
+          finalPerformances.push(completePerf);
         }
       }
 
-      const result = await batchWriteServerAction(operations);
+      const result = await uploadManualMatchAction(completeMatch, finalPerformances);
       
       if (!result.success) {
         throw new Error(result.error || 'Failed to save match data');
       }
 
-      setSuccessMessage('Match data saved successfully!');
+      setSuccessMessage('Match data saved and stats updated successfully!');
       setTimeout(() => {
         onSuccess();
       }, 2000);
@@ -216,36 +201,36 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       )}
 
       {/* Match Details */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <h3 className="text-2xl font-semibold text-white mb-6">Match Details</h3>
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
+        <h3 className="section-title text-white mb-4 sm:mb-6">Match Details</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Match Date</label>
+            <label className="label-text mb-1.5 block">Match Date</label>
             <input
               type="date"
               value={match.date ? new Date(match.date).toISOString().split('T')[0] : ''}
               onChange={(e) => handleMatchChange('date', new Date(e.target.value).toISOString())}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              className="input-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Opponent</label>
+            <label className="label-text mb-1.5 block">Opponent</label>
             <input
               type="text"
               value={match.opponent || ''}
               onChange={(e) => handleMatchChange('opponent', e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              className="input-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Venue</label>
+            <label className="label-text mb-1.5 block">Venue</label>
             <select
               value={match.venue || 'Home'}
               onChange={(e) => handleMatchChange('venue', e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              className="input-base max-w-full truncate"
             >
               <option value="Home">Home</option>
               <option value="Away">Away</option>
@@ -254,11 +239,11 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Result</label>
+            <label className="label-text mb-1.5 block">Result</label>
             <select
               value={match.result || 'won'}
               onChange={(e) => handleMatchChange('result', e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              className="input-base max-w-full truncate"
             >
               <option value="won">Won</option>
               <option value="lost">Lost</option>
@@ -268,65 +253,58 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Best Batter</label>
+            <label className="label-text mb-1.5 block">Toss Won By</label>
+            <select
+              value={match.tossWonBy || 'Us'}
+              onChange={(e) => handleMatchChange('tossWonBy', e.target.value)}
+              className="input-base max-w-full truncate"
+            >
+              <option value="Us">Us</option>
+              <option value="Them">Them</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="label-text mb-1.5 block">First Innings Team</label>
             <input
               type="text"
-              value={match.bestBatterName || ''}
-              onChange={(e) => handleMatchChange('bestBatterName', e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              value={match.firstInningsTeam || ''}
+              onChange={(e) => handleMatchChange('firstInningsTeam', e.target.value)}
+              placeholder="e.g. Us"
+              className="input-base"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Best Bowler</label>
-            <input
-              type="text"
-              value={match.bestBowlerName || ''}
-              onChange={(e) => handleMatchChange('bestBowlerName', e.target.value)}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Best Batter Runs</label>
+            <label className="label-text mb-1.5 block">First Innings Score</label>
             <input
               type="number"
-              value={match.bestBatterRuns || 0}
-              onChange={(e) => handleMatchChange('bestBatterRuns', parseInt(e.target.value))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              value={match.firstInningsScore || 0}
+              onChange={(e) => handleMatchChange('firstInningsScore', parseInt(e.target.value))}
+              className="input-base"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Best Bowler Wickets</label>
-            <input
-              type="number"
-              value={match.bestBowlerWickets || 0}
-              onChange={(e) => handleMatchChange('bestBowlerWickets', parseInt(e.target.value))}
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Win Margin</label>
+          <div className="sm:col-span-2">
+            <label className="label-text mb-1.5 block">Win Margin</label>
             <input
               type="text"
               value={match.winMargin || ''}
               onChange={(e) => handleMatchChange('winMargin', e.target.value)}
               placeholder="e.g., 24 runs, 5 wickets"
-              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-white rounded-lg focus:outline-none focus:border-blue-500"
+              className="input-base"
             />
           </div>
         </div>
       </div>
 
       {/* Player Performances */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-semibold text-white">Player Performances</h3>
+      <div className="bg-card rounded-lg border border-border p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h3 className="section-title">Player Performances</h3>
           <button
             onClick={handleAddPerformance}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            className="px-3 py-2 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm sm:text-base transition-colors"
           >
             + Add Player
           </button>
@@ -334,97 +312,61 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
         <div className="space-y-4">
           {performances.map((perf, idx) => (
-            <div key={idx} className="bg-gray-700 rounded-lg p-4 border border-gray-600">
-              <div className="flex justify-between items-center mb-4">
-                <h4 className="text-lg font-semibold text-white">Player {idx + 1}</h4>
+          <div key={idx} className="bg-background rounded-lg p-3 sm:p-4 border border-border">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm sm:text-base font-semibold">Player {idx + 1}</h4>
                 <button
                   onClick={() => handleRemovePerformance(idx)}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-sm"
+                  className="px-2 py-1 sm:px-3 sm:py-1 bg-red-600 hover:bg-red-700 text-white rounded font-medium text-xs sm:text-sm"
                 >
                   Remove
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Player Name</label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+                <div className="col-span-2 sm:col-span-3 lg:col-span-4">
+                  <label className="label-text mb-1 block">Player Name</label>
                   <input
                     type="text"
                     value={perf.playerName || ''}
                     onChange={(e) => handlePerformanceChange(idx, 'playerName', e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
+                    className="input-base py-2 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
-                  <input
-                    type="number"
-                    value={perf.batting?.runs || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, runs: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">Runs</label>
+                  <input type="number" value={perf.batting?.runs === 0 ? '' : perf.batting?.runs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, runs: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Balls</label>
-                  <input
-                    type="number"
-                    value={perf.batting?.balls || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, balls: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">Balls</label>
+                  <input type="number" value={perf.batting?.balls === 0 ? '' : perf.batting?.balls} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, balls: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Fours</label>
-                  <input
-                    type="number"
-                    value={perf.batting?.fours || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, fours: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">4s</label>
+                  <input type="number" value={perf.batting?.fours === 0 ? '' : perf.batting?.fours} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, fours: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Sixes</label>
-                  <input
-                    type="number"
-                    value={perf.batting?.sixes || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, sixes: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">6s</label>
+                  <input type="number" value={perf.batting?.sixes === 0 ? '' : perf.batting?.sixes} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, sixes: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Wickets</label>
-                  <input
-                    type="number"
-                    value={perf.bowling?.wickets || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, wickets: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">Wkts</label>
+                  <input type="number" value={perf.bowling?.wickets === 0 ? '' : perf.bowling?.wickets} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, wickets: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Overs</label>
-                  <input
-                    type="text"
-                    value={perf.bowling?.overs || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, overs: parseFloat(e.target.value) })}
-                    placeholder="e.g., 4 or 4.2"
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">Overs</label>
+                  <input type="text" value={perf.bowling?.overs === 0 ? '' : perf.bowling?.overs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, overs: e.target.value === '' ? 0 : parseFloat(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-300 mb-1">Runs Conceded</label>
-                  <input
-                    type="number"
-                    value={perf.bowling?.runs || 0}
-                    onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, runs: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white text-sm rounded focus:outline-none focus:border-blue-500"
-                  />
+                  <label className="label-text mb-1 block">Runs Conceded</label>
+                  <input type="number" value={perf.bowling?.runs === 0 ? '' : perf.bowling?.runs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, runs: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
                 </div>
               </div>
             </div>
@@ -433,17 +375,17 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end gap-4">
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
         <button
           onClick={onSuccess}
-          className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-semibold transition-colors"
+          className="btn-secondary w-full sm:w-auto"
         >
           Cancel
         </button>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition-colors"
+          className="btn-primary w-full sm:w-auto"
         >
           {loading ? 'Saving...' : 'Save Match Data'}
         </button>

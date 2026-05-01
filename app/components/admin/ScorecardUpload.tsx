@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import Tesseract from 'tesseract.js';
+import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -14,15 +15,38 @@ interface ScorecardUploadProps {
   onDataParsed: (data: ParsedData) => void;
 }
 
+interface BattingRow {
+  playerName: string;
+  runs: number | '';
+  balls: number | '';
+  fours: number | '';
+  sixes: number | '';
+  dismissed: boolean;
+}
+
+interface BowlingRow {
+  playerName: string;
+  overs: string;
+  runs: number | '';
+  maidens: number | '';
+  wickets: number | '';
+}
+
 export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
+  const { players } = useAllPlayers();
+
   const [battingImage, setBattingImage] = useState<File | null>(null);
   const [bowlingImage, setBowlingImage] = useState<File | null>(null);
   const [battingPreview, setBattingPreview] = useState<string>('');
   const [bowlingPreview, setBowlingPreview] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const [isParsingBatting, setIsParsingBatting] = useState(false);
+  const [isParsingBowling, setIsParsingBowling] = useState(false);
   const [error, setError] = useState('');
-  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
-  const [editedData, setEditedData] = useState<ParsedData | null>(null);
+
+  const [battingRows, setBattingRows] = useState<BattingRow[]>([{ playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }]);
+  const [bowlingRows, setBowlingRows] = useState<BowlingRow[]>([{ playerName: '', overs: '', runs: '', maidens: '', wickets: '' }]);
+
+
   const battingInputRef = useRef<HTMLInputElement>(null);
   const bowlingInputRef = useRef<HTMLInputElement>(null);
 
@@ -62,55 +86,40 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           try {
             setError('Enhancing image quality...');
             
-            // Create canvas for preprocessing
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
             const ctx = canvas.getContext('2d');
             
-            if (!ctx) {
-              throw new Error('Failed to get canvas context');
-            }
+            if (!ctx) throw new Error('Failed to get canvas context');
 
-            // Draw original image
             ctx.drawImage(img, 0, 0);
 
-            // Get image data
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imageData.data;
 
-            // Convert to grayscale and enhance contrast
             for (let i = 0; i < data.length; i += 4) {
               const r = data[i];
               const g = data[i + 1];
               const b = data[i + 2];
 
-              // Grayscale conversion (luminosity method)
               const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-              
-              // Increase contrast (multiply difference from middle gray by factor)
               const contrast = 1.8;
               const adjusted = Math.round(128 + (gray - 128) * contrast);
               const clamped = Math.max(0, Math.min(255, adjusted));
 
-              // Apply to all RGB channels
               data[i] = clamped;
               data[i + 1] = clamped;
               data[i + 2] = clamped;
-              // Keep alpha unchanged
             }
 
-            // Put enhanced image data back
             ctx.putImageData(imageData, 0, 0);
 
-            // Convert canvas to blob and return as data URL
             canvas.toBlob(
               (blob) => {
                 if (blob) {
                   const reader = new FileReader();
-                  reader.onload = (e) => {
-                    resolve(e.target?.result as string);
-                  };
+                  reader.onload = (e) => resolve(e.target?.result as string);
                   reader.onerror = () => reject(new Error('Failed to convert canvas to data URL'));
                   reader.readAsDataURL(blob);
                 } else {
@@ -131,58 +140,42 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
     });
   };
 
-  const extractTextFromImage = async (file: File): Promise<string> => {
+  const extractTextFromImage = async (file: File, type: 'batting' | 'bowling'): Promise<string> => {
     try {
-      setError(`Processing ${file.name}... Please wait (may take 30-60 seconds on first use).`);
+      setError(`Processing ${file.name}... Please wait.`);
       
-      // Preprocess image to improve OCR accuracy
       let imageSource: File | string = file;
       try {
         const preprocessedDataUrl = await preprocessImage(file);
         imageSource = preprocessedDataUrl;
-        console.log('Image preprocessing completed');
       } catch (err) {
         console.warn('Image preprocessing failed, using original:', err);
-        // Fall back to original image if preprocessing fails
       }
       
-      // Use Tesseract.js for client-side OCR (completely free, no API keys needed)
       const result = await Tesseract.recognize(imageSource, 'eng', {
         logger: (m: any) => {
-          console.log('Tesseract progress:', m);
           if (m.status === 'recognizing text') {
-            setError(`Processing ${file.name}... ${Math.round(m.progress * 100)}%`);
+            setError(`Processing ${type} image... ${Math.round(m.progress * 100)}%`);
           }
         },
       });
       
-      const text = result.data.text || '';
-      console.log(`Extracted text from ${file.name}:`, text);
-      return text;
+      return result.data.text || '';
     } catch (err) {
       console.error('OCR Error:', err);
-      throw new Error('Failed to parse scorecard image. Please try with a clearer image (good lighting, straight angle, high contrast).');
+      throw new Error(`Failed to parse ${type} image. Please try with a clearer image.`);
     }
   };
 
-  const parseBattingScorecard = (text: string): Partial<Performance>[] => {
-    const performances: Partial<Performance>[] = [];
+  const parseBattingScorecard = (text: string): BattingRow[] => {
+    const rows: BattingRow[] = [];
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
 
-    console.log('Parsing batting scorecard with', lines.length, 'lines');
-
     for (const line of lines) {
-      // Skip headers and info lines
       if (line.match(/^(Batsman|Player|R\s+B|EXTRAS|Jmcc|Overs|Second|Innings|BATTING|Name|---|===|Second Innings)/i)) continue;
       if (line.length < 3) continue;
 
-      // Split by single or multiple spaces
       let parts = line.split(/\s+/);
-      
-      console.log('Processing line:', line);
-      console.log('  Parts:', parts);
-      
-      // POSITIONAL READ: Find first numeric part, then assume next 6 values are: R B 0s 4s 6s SR
       let firstNumericIdx = -1;
       
       for (let i = 0; i < parts.length; i++) {
@@ -191,90 +184,41 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           break;
         }
       }
-      
-      console.log('  First numeric index:', firstNumericIdx);
 
-      // Need at least 6 numeric values after first numeric found
       if (firstNumericIdx > 0 && firstNumericIdx + 6 <= parts.length) {
-        // Name is first part
         const playerName = parts[0];
-        
-        // Everything between name and numeric data is dismissal
         const dismissalPart = parts.slice(1, firstNumericIdx).join(' ').toLowerCase();
         
-        // Extract exactly 6 numeric columns in positional order: R B 0s 4s 6s SR
         const runs = parseFloat(parts[firstNumericIdx]) || 0;
         const balls = parseFloat(parts[firstNumericIdx + 1]) || 0;
-        const dots = parseFloat(parts[firstNumericIdx + 2]) || 0;
         const fours = parseFloat(parts[firstNumericIdx + 3]) || 0;
         const sixes = parseFloat(parts[firstNumericIdx + 4]) || 0;
-        const strikeRate = parseFloat(parts[firstNumericIdx + 5]) || 0;
         
-        console.log('  Player:', playerName);
-        console.log('  Dismissal:', dismissalPart);
-        console.log('  Positional values - R:', runs, 'B:', balls, '0s:', dots, '4s:', fours, '6s:', sixes, 'SR:', strikeRate);
-
-        // Dismissal status detection
         const isNotOut = dismissalPart.includes('not out') || dismissalPart === '' || dismissalPart === 'no';
-        const isDismissed = !isNotOut;
 
-        // Validation
         const hasValidName = playerName && playerName.length > 0 && !/^\d+$/.test(playerName);
         const hasValidStats = !isNaN(runs) && !isNaN(balls) && balls >= 1 && runs >= 0;
         
         if (hasValidName && hasValidStats) {
-          performances.push({
+          rows.push({
             playerName,
-            playerId: '',
-            batting: {
-              didBat: true,
-              innings: 1,
-              runs,
-              balls,
-              fours: !isNaN(fours) ? fours : 0,
-              sixes: !isNaN(sixes) ? sixes : 0,
-              strikeRate: !isNaN(strikeRate) ? strikeRate : 0,
-              dismissed: isDismissed,
-              isDuck: runs === 0 && balls > 0,
-              isFifty: runs >= 50 && runs < 100,
-              isHundred: runs >= 100,
-              isThirty: runs >= 30 && runs < 50,
-            },
-            bowling: {
-              didBowl: false,
-              innings: 0,
-              overs: 0,
-              balls: 0,
-              runs: 0,
-              wickets: 0,
-              maidens: 0,
-              isThreeFer: false,
-              isFourFer: false,
-              isFiveFer: false,
-              economy: 0,
-            },
+            runs,
+            balls,
+            fours: !isNaN(fours) ? fours : 0,
+            sixes: !isNaN(sixes) ? sixes : 0,
+            dismissed: !isNotOut,
           });
-          console.log(`✓ Parsed: ${playerName} - ${runs}(${balls}) 0s:${dots} 4s:${fours} 6s:${sixes} SR:${strikeRate} Out:${isDismissed}`);
-        } else {
-          console.log(`✗ Invalid - Name:"${playerName}" R:${runs} B:${balls} Valid:${hasValidStats}`);
         }
-      } else {
-        console.log(`  ✗ Line has insufficient numeric columns at position ${firstNumericIdx}`);
       }
     }
-
-    console.log('Total batters parsed:', performances.length);
-    return performances;
+    return rows;
   };
 
-  const parseBowlingScorecard = (text: string): Partial<Performance>[] => {
-    const performances: Partial<Performance>[] = [];
+  const parseBowlingScorecard = (text: string): BowlingRow[] => {
+    const rows: BowlingRow[] = [];
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
 
-    console.log('Parsing bowling scorecard with', lines.length, 'lines');
-
     for (const line of lines) {
-      // Skip header lines
       if (line.match(/^(Bowler|Player|O\s+R|EXTRAS|Overs|Maiden|Economy|BOWLING|Name|W|---|M|ECO|WD|NB)/i)) continue;
       if (line.length < 2) continue;
 
@@ -282,9 +226,6 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
       let overs = 0, runs = 0, wickets = 0;
       let foundData = false;
 
-      console.log('Processing line:', line);
-      
-      // FORMAT 1: "Name - X ovr/ Y runs/ Z wkt"
       let match = line.match(/^([A-Za-z\s]+?)\s*-\s*(\d+\.?\d*)\s*ovr[s]?\s*\/\s*(\d+)\s*run[s]?\s*\/\s*(\d+)\s*w[ick]*/i);
       
       if (match) {
@@ -293,35 +234,115 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         runs = parseInt(match[3], 10);
         wickets = parseInt(match[4], 10);
         foundData = true;
-        
-        console.log('  ✓ Format 1 matched:', { playerName, overs, runs, wickets });
       }
 
-      // FORMAT 2: Table format - Name | Overs | Runs | Wickets (ignore rest)
       if (!foundData) {
         const parts = line.split(/\s+/);
-        
-        // Need at least 4 columns: Name O R W
         if (parts.length >= 4) {
-          // Check if parts[1], parts[2], parts[3] are all numeric (Overs, Runs, Wickets)
           const isFormat2 = /^[\d.]+$/.test(parts[1]) && /^[\d.]+$/.test(parts[2]) && /^[\d.]+$/.test(parts[3]);
-          
           if (isFormat2) {
             playerName = parts[0];
             overs = parseFloat(parts[1]);
             runs = parseInt(parts[2], 10);
             wickets = parseInt(parts[3], 10);
             foundData = true;
-            
-            console.log('  ✓ Format 2 (table) matched:', { playerName, overs, runs, wickets });
           }
         }
       }
 
       if (foundData && playerName && !playerName.match(/^(Bowler|Player|O|R|W|M|ECO)$/i) && overs > 0) {
-        performances.push({
+        rows.push({
           playerName,
-          playerId: '',
+          overs: overs.toString(),
+          runs,
+          wickets,
+          maidens: 0,
+        });
+      }
+    }
+    return rows;
+  };
+
+  const handleParseBatting = async () => {
+    if (!battingImage) return;
+    try {
+      setIsParsingBatting(true);
+      setError('');
+      const text = await extractTextFromImage(battingImage, 'batting');
+      const parsedRows = parseBattingScorecard(text);
+      if (parsedRows.length === 0) {
+        setError('No batters found in the image.');
+      } else {
+        setBattingRows(prev => [...parsedRows, ...prev]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse batting scorecard');
+    } finally {
+      setIsParsingBatting(false);
+      setError('');
+    }
+  };
+
+  const handleParseBowling = async () => {
+    if (!bowlingImage) return;
+    try {
+      setIsParsingBowling(true);
+      setError('');
+      const text = await extractTextFromImage(bowlingImage, 'bowling');
+      const parsedRows = parseBowlingScorecard(text);
+      if (parsedRows.length === 0) {
+        setError('No bowlers found in the image.');
+      } else {
+        setBowlingRows(prev => [...parsedRows, ...prev]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse bowling scorecard');
+    } finally {
+      setIsParsingBowling(false);
+      setError('');
+    }
+  };
+
+  // Row management logic
+  const addBattingRow = () => {
+    setBattingRows([{ playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }, ...battingRows]);
+  };
+
+  const removeBattingRow = (index: number) => {
+    setBattingRows(battingRows.filter((_, i) => i !== index));
+  };
+
+  const updateBattingRow = (index: number, field: keyof BattingRow, value: any) => {
+    const newRows = [...battingRows];
+    newRows[index] = { ...newRows[index], [field]: value };
+    setBattingRows(newRows);
+  };
+
+  const addBowlingRow = () => {
+    setBowlingRows([{ playerName: '', overs: '', runs: '', maidens: '', wickets: '' }, ...bowlingRows]);
+  };
+
+  const removeBowlingRow = (index: number) => {
+    setBowlingRows(bowlingRows.filter((_, i) => i !== index));
+  };
+
+  const updateBowlingRow = (index: number, field: keyof BowlingRow, value: any) => {
+    const newRows = [...bowlingRows];
+    newRows[index] = { ...newRows[index], [field]: value };
+    setBowlingRows(newRows);
+  };
+
+  const handleCombineAndSubmit = () => {
+    const performances: Partial<Performance>[] = [];
+
+    const perfMap = new Map<string, Partial<Performance>>();
+
+    const getOrCreatePerf = (name: string) => {
+      const trimmedName = name.trim();
+      if (!perfMap.has(trimmedName)) {
+        perfMap.set(trimmedName, {
+          playerName: trimmedName,
+          playerId: `player_${trimmedName}`,
           batting: {
             didBat: false,
             innings: 0,
@@ -329,151 +350,125 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
             balls: 0,
             fours: 0,
             sixes: 0,
-            strikeRate: 0,
             dismissed: false,
             isDuck: false,
+            isThirty: false,
             isFifty: false,
             isHundred: false,
-            isThirty: false,
+            strikeRate: 0,
           },
           bowling: {
-            didBowl: true,
-            innings: 1,
-            overs,
+            didBowl: false,
+            innings: 0,
+            overs: 0,
             balls: 0,
-            runs,
-            wickets,
+            runs: 0,
+            wickets: 0,
             maidens: 0,
-            isThreeFer: wickets >= 3,
-            isFourFer: wickets >= 4,
-            isFiveFer: wickets >= 5,
-            economy: overs > 0 ? runs / overs : 0,
-          },
+            isThreeFer: false,
+            isFourFer: false,
+            isFiveFer: false,
+            economy: 0,
+          }
         });
-        console.log(`✓ Parsed bowler: ${playerName} - ${overs}ov/${runs}runs/${wickets}wkt`);
-      } else if (!foundData) {
-        console.log(`  ✗ Line did not match any bowling format`);
       }
-    }
+      return perfMap.get(trimmedName)!;
+    };
 
-    console.log('Total bowlers parsed:', performances.length);
-    return performances;
-  };
+    battingRows.forEach(row => {
+      if (!row.playerName.trim()) return;
+      const perf = getOrCreatePerf(row.playerName);
+      
+      const runs = typeof row.runs === 'number' ? row.runs : 0;
+      const balls = typeof row.balls === 'number' ? row.balls : 0;
+      const fours = typeof row.fours === 'number' ? row.fours : 0;
+      const sixes = typeof row.sixes === 'number' ? row.sixes : 0;
+      const sr = balls > 0 ? (runs / balls) * 100 : 0;
+      
+      perf.batting = {
+        didBat: true,
+        innings: 1,
+        runs: runs,
+        balls: balls,
+        fours: fours,
+        sixes: sixes,
+        dismissed: row.dismissed,
+        isDuck: runs === 0 && balls > 0,
+        isThirty: runs >= 30 && runs < 50,
+        isFifty: runs >= 50 && runs < 100,
+        isHundred: runs >= 100,
+        strikeRate: Number(sr.toFixed(2)),
+      };
+    });
 
-  const parseMatchData = (battingText: string, bowlingText: string): ParsedData => {
-    // Parse batting and bowling performances
-    const battingPerformances = parseBattingScorecard(battingText);
-    const bowlingPerformances = parseBowlingScorecard(bowlingText);
+    bowlingRows.forEach(row => {
+      if (!row.playerName.trim()) return;
+      const perf = getOrCreatePerf(row.playerName);
+      
+      const overs = parseFloat(row.overs) || 0;
+      const runs = typeof row.runs === 'number' ? row.runs : 0;
+      const wickets = typeof row.wickets === 'number' ? row.wickets : 0;
+      const maidens = typeof row.maidens === 'number' ? row.maidens : 0;
+      
+      const completeOvers = Math.floor(overs);
+      const partialBalls = Math.round((overs - completeOvers) * 10);
+      const totalBalls = (completeOvers * 6) + partialBalls;
+      const validOvers = totalBalls / 6;
+      const economy = validOvers > 0 ? runs / validOvers : 0;
 
-    // Combine performances
-    const allPerformances = [...battingPerformances, ...bowlingPerformances];
+      perf.bowling = {
+        didBowl: true,
+        innings: 1,
+        overs: overs,
+        balls: totalBalls,
+        runs: runs,
+        wickets: wickets,
+        maidens: maidens,
+        isThreeFer: wickets >= 3 && wickets < 4,
+        isFourFer: wickets >= 4 && wickets < 5,
+        isFiveFer: wickets >= 5,
+        economy: Number(economy.toFixed(2)),
+      };
+    });
 
-    // Find best batter (highest runs)
-    const bestBatter = battingPerformances.reduce((prev, current) => 
+
+    performances.push(...Array.from(perfMap.values()));
+
+    const bestBatter = performances.reduce((prev, current) => 
       (prev.batting?.runs || 0) > (current.batting?.runs || 0) ? prev : current, 
-      battingPerformances[0] || {}
+      performances[0] || {}
     );
 
-    // Find best bowler (most wickets)
-    const bestBowler = bowlingPerformances.reduce((prev, current) => 
+    const bestBowler = performances.reduce((prev, current) => 
       (prev.bowling?.wickets || 0) > (current.bowling?.wickets || 0) ? prev : current, 
-      bowlingPerformances[0] || {}
+      performances[0] || {}
     );
 
     const matchData: Partial<Match> = {
       date: new Date().toISOString(),
-      opponent: 'TBD',
+      opponent: '',
       venue: 'Home',
       tossWonBy: 'Us',
       tossDecision: 'bat',
       result: 'won',
-      bestBatterId: '',
+      bestBatterId: bestBatter.playerId || '',
       bestBatterName: bestBatter.playerName || '',
       bestBatterRuns: bestBatter.batting?.runs || 0,
       bestBatterBalls: bestBatter.batting?.balls || 0,
-      bestBowlerId: '',
+      bestBowlerId: bestBowler.playerId || '',
       bestBowlerName: bestBowler.playerName || '',
       bestBowlerWickets: bestBowler.bowling?.wickets || 0,
       bestBowlerRuns: bestBowler.bowling?.runs || 0,
     };
 
-    return {
+    onDataParsed({
       match: matchData,
-      performances: allPerformances,
-    };
+      performances
+    });
   };
 
-  const handleParse = async () => {
-    if (!battingImage) {
-      setError('Please upload a batting scorecard image');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-
-      console.log('Starting scorecard parsing...');
-      
-      const battingText = await extractTextFromImage(battingImage);
-      console.log('Batting text extracted, length:', battingText.length);
-      
-      let bowlingText = '';
-      if (bowlingImage) {
-        bowlingText = await extractTextFromImage(bowlingImage);
-        console.log('Bowling text extracted, length:', bowlingText.length);
-      }
-
-      const data = parseMatchData(battingText, bowlingText);
-      console.log('Match data parsed:', data);
-      
-      if (data.performances.length === 0) {
-        setError('No player data found in scorecard. Please ensure the image contains a clear scorecard with batting statistics. Try: better lighting, straight angle, or higher contrast.');
-        setParsedData(null);
-      } else {
-        setParsedData(data);
-        setEditedData(JSON.parse(JSON.stringify(data)));
-        setError('');
-      }
-    } catch (err) {
-      console.error('Parse error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to parse scorecard image');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (editedData) {
-      onDataParsed(editedData);
-      // Reset state after submission
-      setParsedData(null);
-      setEditedData(null);
-      setBattingImage(null);
-      setBowlingImage(null);
-      setBattingPreview('');
-      setBowlingPreview('');
-    }
-  };
-
-  const updatePerformanceField = (index: number, field: string, value: any) => {
-    if (!editedData) return;
-    
-    const updated = JSON.parse(JSON.stringify(editedData));
-    const perf = updated.performances[index];
-    
-    if (field.startsWith('batting.')) {
-      perf.batting[field.split('.')[1]] = isNaN(value) ? value : 
-        (field.includes('Rate') || field.includes('economy')) ? parseFloat(value) : parseInt(value, 10);
-    } else if (field.startsWith('bowling.')) {
-      perf.bowling[field.split('.')[1]] = isNaN(value) ? value : 
-        (field.includes('Rate') || field.includes('economy')) ? parseFloat(value) : parseInt(value, 10);
-    } else {
-      perf[field] = value;
-    }
-    
-    setEditedData(updated);
-  };
+  const hasData = battingRows.length > 0 || bowlingRows.length > 0;
+  const hasBoth = battingRows.length > 0 && bowlingRows.length > 0;
 
   return (
     <div className="space-y-6">
@@ -483,206 +478,253 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         </div>
       )}
 
-      {/* Scorecard Image Upload */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-6">
-        <h3 className="text-2xl font-semibold text-white mb-2">📸 Upload Cricket Scorecard</h3>
-        <p className="text-gray-400 text-sm mb-6">Upload clear, straight photos of the scorecard. The system will automatically extract and parse batting statistics.</p>
+      {/* Parse Images Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {/* Batting Image */}
+        <div className="bg-card rounded-lg border border-border p-4 sm:p-6 flex flex-col">
+          <h3 className="card-title mb-2">📸 Parse Batting Image</h3>
+          
+          <input ref={battingInputRef} type="file" accept="image/*" onChange={(e) => handleImageSelect(e, 'batting')} className="hidden" />
+          <button
+            onClick={() => battingInputRef.current?.click()}
+            className="w-full py-3 px-4 border-2 border-dashed border-blue-500 rounded-lg hover:bg-blue-900/20 transition-colors text-blue-300 hover:text-blue-200 font-medium text-sm"
+          >
+            {battingImage ? '✓ Change Batting Image' : '+ Upload Batting Image'}
+          </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Batting Image */}
-          <div>
-            <label className="block text-sm font-semibold text-white mb-3">Batting Scorecard (Required)</label>
-            <input
-              ref={battingInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageSelect(e, 'batting')}
-              className="hidden"
-            />
-            <button
-              onClick={() => battingInputRef.current?.click()}
-              className="w-full py-4 px-4 border-2 border-dashed border-blue-500 rounded-lg hover:bg-blue-900/20 transition-colors text-blue-300 hover:text-blue-200 font-medium text-sm"
-            >
-              {battingImage ? '✓ Batting Image Selected' : '+ Upload Batting Scorecard'}
+          {battingPreview && (
+            <div className="relative w-full h-28 sm:h-32 rounded-lg overflow-hidden bg-gray-900 mt-3 border border-gray-600">
+              <Image src={battingPreview} alt="Batting" fill className="object-cover" />
+            </div>
+          )}
+
+          {battingImage && (
+            <button onClick={handleParseBatting} disabled={isParsingBatting} className="mt-3 sm:mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
+              {isParsingBatting ? 'Parsing...' : 'Parse & Add Batters'}
             </button>
-
-            {battingPreview && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-900 mt-3 border border-gray-600">
-                <Image
-                  src={battingPreview}
-                  alt="Batting Scorecard"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Bowling Image */}
-          <div>
-            <label className="block text-sm font-semibold text-white mb-3">Bowling Scorecard (Optional)</label>
-            <input
-              ref={bowlingInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageSelect(e, 'bowling')}
-              className="hidden"
-            />
-            <button
-              onClick={() => bowlingInputRef.current?.click()}
-              className="w-full py-4 px-4 border-2 border-dashed border-gray-600 rounded-lg hover:border-blue-500 transition-colors text-gray-400 hover:text-blue-300 font-medium text-sm"
-            >
-              {bowlingImage ? '✓ Bowling Image Selected' : '+ Upload Bowling Scorecard'}
-            </button>
-
-            {bowlingPreview && (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-900 mt-3 border border-gray-600">
-                <Image
-                  src={bowlingPreview}
-                  alt="Bowling Scorecard"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
+        {/* Bowling Image */}
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 flex flex-col">
+          <h3 className="card-title text-white mb-2">📸 Parse Bowling Image</h3>
+          
+          <input ref={bowlingInputRef} type="file" accept="image/*" onChange={(e) => handleImageSelect(e, 'bowling')} className="hidden" />
+          <button
+            onClick={() => bowlingInputRef.current?.click()}
+            className="w-full py-3 px-4 border-2 border-dashed border-green-500 rounded-lg hover:bg-green-900/20 transition-colors text-green-300 hover:text-green-200 font-medium text-sm"
+          >
+            {bowlingImage ? '✓ Change Bowling Image' : '+ Upload Bowling Image'}
+          </button>
+
+          {bowlingPreview && (
+            <div className="relative w-full h-28 sm:h-32 rounded-lg overflow-hidden bg-gray-900 mt-3 border border-gray-600">
+              <Image src={bowlingPreview} alt="Bowling" fill className="object-cover" />
+            </div>
+          )}
+
+          {bowlingImage && (
+            <button onClick={handleParseBowling} disabled={isParsingBowling} className="mt-3 sm:mt-4 w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
+              {isParsingBowling ? 'Parsing...' : 'Parse & Add Bowlers'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <datalist id="players-list">
+        {players.map(p => (
+          <option key={p.playerId} value={p.playerName} />
+        ))}
+      </datalist>
+
+      {/* Batting Performances */}
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h4 className="card-title text-blue-400">Batting Performances</h4>
+          <button 
+            onClick={addBattingRow} 
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
+          >
+            + Add Batter
+          </button>
+        </div>
+
+        <div className="space-y-2 max-h-96 overflow-y-auto pr-1 scrollbar-hide">
+          {battingRows.length === 0 && (
+            <p className="text-gray-500 text-sm italic text-center py-4">No batters added yet.</p>
+          )}
+          {battingRows.map((row, idx) => (
+            <div key={idx} className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-end bg-background p-3 rounded-lg border border-border">
+              <div className="col-span-2 sm:w-44 sm:flex-shrink-0">
+                <label className="label-text mb-1 block">Player</label>
+                <input 
+                  type="text" 
+                  value={row.playerName} 
+                  onChange={(e) => updateBattingRow(idx, 'playerName', e.target.value)} 
+                  list="players-list" 
+                  placeholder="Player name" 
+                  className="input-base py-1.5 text-xs" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Runs</label>
+                <input 
+                  type="number" 
+                  value={row.runs} 
+                  placeholder="0"
+                  onChange={(e) => updateBattingRow(idx, 'runs', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Balls</label>
+                <input 
+                  type="number" 
+                  value={row.balls} 
+                  placeholder="0"
+                  onChange={(e) => updateBattingRow(idx, 'balls', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">4s</label>
+                <input 
+                  type="number" 
+                  value={row.fours} 
+                  placeholder="0"
+                  onChange={(e) => updateBattingRow(idx, 'fours', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">6s</label>
+                <input 
+                  type="number" 
+                  value={row.sixes} 
+                  placeholder="0"
+                  onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div className="flex items-center space-x-2 h-8 px-2 bg-gray-700/50 rounded border border-gray-600">
+                <input 
+                  type="checkbox" 
+                  id={`out-${idx}`} 
+                  checked={row.dismissed} 
+                  onChange={(e) => updateBattingRow(idx, 'dismissed', e.target.checked)} 
+                  className="rounded border-gray-400 text-blue-600 focus:ring-blue-500" 
+                />
+                <label htmlFor={`out-${idx}`} className="text-[10px] text-gray-300 font-medium">OUT</label>
+              </div>
+              <button 
+                onClick={() => removeBattingRow(idx)} 
+                className="h-8 px-2 flex items-center justify-center bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white rounded border border-red-500/20 transition-colors text-sm" 
+                title="Remove"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Bowling Performances */}
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h4 className="card-title text-green-400">Bowling Performances</h4>
+          <button 
+            onClick={addBowlingRow} 
+            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
+          >
+            + Add Bowler
+          </button>
+        </div>
+
+        <div className="space-y-2 max-h-96 overflow-y-auto pr-1 scrollbar-hide">
+          {bowlingRows.length === 0 && (
+            <p className="text-gray-500 text-sm italic text-center py-4">No bowlers added yet.</p>
+          )}
+          {bowlingRows.map((row, idx) => (
+            <div key={idx} className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-end bg-background p-3 rounded-lg border border-border">
+              <div className="col-span-2 sm:w-44 sm:flex-shrink-0">
+                <label className="label-text mb-1 block">Player</label>
+                <input 
+                  type="text" 
+                  value={row.playerName} 
+                  onChange={(e) => updateBowlingRow(idx, 'playerName', e.target.value)} 
+                  list="players-list" 
+                  placeholder="Player name" 
+                  className="input-base py-1.5 text-xs" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Overs</label>
+                <input 
+                  type="text" 
+                  value={row.overs || ''} 
+                  placeholder="0"
+                  onChange={(e) => updateBowlingRow(idx, 'overs', e.target.value)} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Runs</label>
+                <input 
+                  type="number" 
+                  value={row.runs === '' ? '' : row.runs} 
+                  placeholder="0"
+                  onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Mdns</label>
+                <input 
+                  type="number" 
+                  value={row.maidens === '' ? '' : row.maidens} 
+                  placeholder="0"
+                  onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <div>
+                <label className="label-text mb-1 block">Wkts</label>
+                <input 
+                  type="number" 
+                  value={row.wickets === '' ? '' : row.wickets} 
+                  placeholder="0"
+                  onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value === '' ? '' : parseInt(e.target.value))} 
+                  className="input-base py-1.5 text-xs text-center" 
+                />
+              </div>
+              <button 
+                onClick={() => removeBowlingRow(idx)} 
+                className="h-8 px-2 flex items-center justify-center bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white rounded border border-red-500/20 transition-colors text-sm" 
+                title="Remove"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Submit Section */}
+      <div className="bg-card rounded-lg border border-border p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <p className="hint-text">
+          {!hasBoth 
+            ? 'Add both batting and bowling data to proceed.' 
+            : 'Data ready. Proceed to final review.'}
+        </p>
         <button
-          onClick={handleParse}
-          disabled={!battingImage || loading}
-          className="w-full mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold transition-colors"
+          onClick={handleCombineAndSubmit}
+          disabled={!hasBoth}
+          className="btn-primary w-full sm:w-auto"
         >
-          {loading ? 'Parsing Scorecard...' : '→ Parse & Extract Data'}
+          Combine & Review Match Data
         </button>
       </div>
 
-      {/* Parsed Data Preview */}
-      {editedData && (
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-6 space-y-6">
-          <h3 className="text-xl font-semibold text-white">Parsed Data (Review & Edit)</h3>
-
-          {/* Batting Performances */}
-          {editedData.performances.some(p => p.batting?.didBat) && (
-            <div>
-              <h4 className="font-semibold text-white mb-3">Batting Performances</h4>
-              <div className="space-y-3">
-                {editedData.performances.filter(p => p.batting?.didBat).map((perf, idx) => {
-                  const perfIdx = editedData.performances.indexOf(perf);
-                  return (
-                    <div key={idx} className="bg-gray-700 rounded-lg p-4 space-y-3">
-                      <input
-                        type="text"
-                        value={perf.playerName || ''}
-                        onChange={(e) => updatePerformanceField(perfIdx, 'playerName', e.target.value)}
-                        placeholder="Player Name"
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      />
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-400">Runs</label>
-                          <input type="number" value={perf.batting?.runs || 0} onChange={(e) => updatePerformanceField(perfIdx, 'batting.runs', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">Balls</label>
-                          <input type="number" value={perf.batting?.balls || 0} onChange={(e) => updatePerformanceField(perfIdx, 'batting.balls', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">4s</label>
-                          <input type="number" value={perf.batting?.fours || 0} onChange={(e) => updatePerformanceField(perfIdx, 'batting.fours', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-400">6s</label>
-                          <input type="number" value={perf.batting?.sixes || 0} onChange={(e) => updatePerformanceField(perfIdx, 'batting.sixes', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">SR %</label>
-                          <input type="number" step="0.1" value={perf.batting?.strikeRate || 0} onChange={(e) => updatePerformanceField(perfIdx, 'batting.strikeRate', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">Dismissed</label>
-                          <select value={perf.batting?.dismissed ? 'yes' : 'no'} onChange={(e) => updatePerformanceField(perfIdx, 'batting.dismissed', e.target.value === 'yes')} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm">
-                            <option value="no">Not Out</option>
-                            <option value="yes">Dismissed</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Bowling Performances */}
-          {editedData.performances.some(p => p.bowling?.didBowl) && (
-            <div>
-              <h4 className="font-semibold text-white mb-3">Bowling Performances</h4>
-              <div className="space-y-3">
-                {editedData.performances.filter(p => p.bowling?.didBowl).map((perf, idx) => {
-                  const perfIdx = editedData.performances.indexOf(perf);
-                  return (
-                    <div key={idx} className="bg-gray-700 rounded-lg p-4 space-y-3">
-                      <input
-                        type="text"
-                        value={perf.playerName || ''}
-                        onChange={(e) => updatePerformanceField(perfIdx, 'playerName', e.target.value)}
-                        placeholder="Player Name"
-                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      />
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-400">Overs</label>
-                          <input type="number" value={perf.bowling?.overs || 0} onChange={(e) => updatePerformanceField(perfIdx, 'bowling.overs', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">Runs</label>
-                          <input type="number" value={perf.bowling?.runs || 0} onChange={(e) => updatePerformanceField(perfIdx, 'bowling.runs', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">Wickets</label>
-                          <input type="number" value={perf.bowling?.wickets || 0} onChange={(e) => updatePerformanceField(perfIdx, 'bowling.wickets', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-gray-400">Maidens</label>
-                          <input type="number" value={perf.bowling?.maidens || 0} onChange={(e) => updatePerformanceField(perfIdx, 'bowling.maidens', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs text-gray-400">Economy</label>
-                          <input type="number" step="0.01" value={(perf.bowling?.economy || 0).toFixed(2)} onChange={(e) => updatePerformanceField(perfIdx, 'bowling.economy', e.target.value)} className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm" />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-end pt-4">
-            <button
-              onClick={() => {
-                setParsedData(null);
-                setEditedData(null);
-              }}
-              className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
-            >
-              Reparse
-            </button>
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
-            >
-              Submit Match Data
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

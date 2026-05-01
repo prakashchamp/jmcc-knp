@@ -30,14 +30,9 @@ function ScorecardPageContent() {
   const team = useSelector((state: RootState) => state.team.team);
   const loading = useSelector((state: RootState) => state.team.loading);
 
-  const { isManualFetchMode, fetchTrigger } = useSelector((state: RootState) => state.dev);
-
   useEffect(() => {
-    if (isManualFetchMode && fetchTrigger === 0) {
-      return;
-    }
     dispatch(fetchTeam());
-  }, [dispatch, fetchTrigger, isManualFetchMode]);
+  }, [dispatch]);
 
   // Only show loading screen if we don't have a team yet (neither from storage nor from firestore)
   if (loading && !team) {
@@ -52,7 +47,7 @@ function ScorecardPageContent() {
   const teamPlayers = team?.players || JMCC_TEAM_PLAYERS;
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-900">
       <LiveScorer teamPlayers={teamPlayers} />
     </div>
   );

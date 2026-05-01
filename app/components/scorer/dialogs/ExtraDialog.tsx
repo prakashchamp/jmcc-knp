@@ -113,10 +113,10 @@ export function ExtraDialog() {
             {['leg-bye', 'bye', 'none'].map((type) => (
               <label
                 key={type}
-                className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
+                className={`flex cursor-pointer items-center rounded-xl border-2 px-3 py-3 transition-all ${
                   selectedRunType === type
-                    ? 'border-blue-500 bg-blue-900/40 text-white'
-                    : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                    ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                    : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
                 }`}
                 onClick={() => setSelectedRunType(type as 'leg-bye' | 'bye' | 'none')}
               >

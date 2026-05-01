@@ -69,7 +69,7 @@ function DropdownInputField({
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-semibold text-slate-300">{label}</label>
+      <label className="mb-2 block text-sm font-semibold opacity-90">{label}</label>
       <div className="relative">
         <input
           type="text"
@@ -101,14 +101,14 @@ function DropdownInputField({
           type="button"
           disabled={disabled}
           onClick={() => !disabled && onOpenChange(!isOpen)}
-          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-slate-300 disabled:cursor-not-allowed disabled:text-slate-500"
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center opacity-60 disabled:cursor-not-allowed disabled:opacity-30"
           aria-label={`Toggle ${label} options`}
         >
           <span className="text-xs">{isOpen ? '▲' : '▼'}</span>
         </button>
 
         {isOpen && !disabled && (
-          <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border border-slate-600 bg-slate-900 shadow-2xl shadow-black/60">
+          <div className="mt-2 overflow-hidden rounded-xl border border-border bg-card shadow-2xl shadow-black/60">
             <div className="max-h-52 space-y-2 overflow-y-auto p-2">
             {filteredOptions.map((option) => {
               const isSelected = (selectedValue ?? value) === option.value;
@@ -123,8 +123,8 @@ function DropdownInputField({
                   }}
                   className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-900/50 text-white shadow-sm'
-                      : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                      ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+                      : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
                   }`}
                 >
                   {option.label}
@@ -146,7 +146,7 @@ function DropdownInputField({
             )}
 
             {filteredOptions.length === 0 && !showCreate && (
-              <div className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-300">
+              <div className="rounded-lg border border-border bg-background px-3 py-2.5 text-sm opacity-60">
                 {emptyText}
               </div>
             )}
@@ -205,8 +205,8 @@ export function MatchDetailsDialog() {
     <div className={modalOverlayClass}>
       <div className={`${modalPanelClass} w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 sm:p-6`}>
         <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-300/80">Live Scorer</p>
-          <h2 className="mt-2 text-xl font-bold text-white">Change Match Details</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
+          <h2 className="mt-2 text-xl font-bold">Change Match Details</h2>
         </div>
 
         <div className="space-y-4">

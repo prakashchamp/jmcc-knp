@@ -96,33 +96,33 @@ export function OverEndPopup() {
 
   return (
     <div className={modalOverlayClass}>
-      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6 text-white`}>
+      <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6 text-foreground`}>
         <div className={modalHeaderClass}>
           <p className={modalEyebrowClass}>Live Scorer</p>
           <h2 className={modalTitleClass}>Next Over</h2>
         </div>
         
         <div className="mb-4 space-y-2">
-          <div className="flex items-center justify-between rounded-xl border border-blue-500/40 bg-blue-500/10 p-3">
-            <span className="font-semibold text-white">{currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent}</span>
-            <div className="text-center leading-tight text-white">
-              <div className="text-xl font-bold">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
-              <div className="text-sm">({Math.floor(currentInnings.totalBalls / 6)}.{currentInnings.totalBalls % 6}/{liveMatch.totalOvers}.0)</div>
+          <div className="flex items-center justify-between rounded-xl border-2 border-blue-500 bg-blue-500/10 p-3 shadow-sm">
+            <span className="font-black text-foreground">{currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent}</span>
+            <div className="text-center leading-tight text-foreground">
+              <div className="text-xl font-black">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
+              <div className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">({Math.floor(currentInnings.totalBalls / 6)}.{currentInnings.totalBalls % 6} / {liveMatch.totalOvers}.0)</div>
             </div>
           </div>
-          <div className={`${infoCardClass} flex items-center justify-between`}>
-            <span>Last Over Runs:</span>
-            <span className="font-bold">{totalRunsInPreviousOver}</span>
+          <div className={`${infoCardClass} flex items-center justify-between border-2`}>
+            <span className="font-bold opacity-70">Last Over Runs:</span>
+            <span className="font-black text-lg">{totalRunsInPreviousOver}</span>
           </div>
           {currentInnings.inningsNumber === 2 && (
-            <div className={`${infoCardClass} space-y-2`}>
-              <div className="flex justify-between">
-                <span>Runs Required:</span>
-                <span className="font-bold">{runsRequired}</span>
+            <div className={`${infoCardClass} space-y-2 border-2`}>
+              <div className="flex justify-between items-center">
+                <span className="font-bold opacity-70">Runs Required:</span>
+                <span className="font-black text-lg text-blue-600">{runsRequired}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Balls Remaining:</span>
-                <span className="font-bold">{ballsRemaining}</span>
+              <div className="flex justify-between items-center">
+                <span className="font-bold opacity-70">Balls Remaining:</span>
+                <span className="font-black text-lg">{ballsRemaining}</span>
               </div>
             </div>
           )}
