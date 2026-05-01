@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -20,6 +21,18 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [winMarginValue, setWinMarginValue] = useState<string>(() => {
+    const margin = (matchData.match.winMargin || '').trim();
+    const parsed = margin.match(/^(\d+)\s*(runs|wickets)$/i);
+    return parsed?.[1] ?? '';
+  });
+
+  const [winMarginUnit, setWinMarginUnit] = useState<'runs' | 'wickets'>(() => {
+    const margin = (matchData.match.winMargin || '').trim();
+    const parsed = margin.match(/^(\d+)\s*(runs|wickets)$/i);
+    return (parsed?.[2]?.toLowerCase() as 'runs' | 'wickets') || 'runs';
+  });
 
   const handleMatchChange = (field: keyof Match, value: any) => {
     setMatch((prev) => ({
@@ -108,7 +121,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         tossWonBy: (match.tossWonBy as any) || 'Us',
         tossDecision: (match.tossDecision as any) || 'bat',
         result: (match.result as any) || 'won',
-        winMargin: match.winMargin || '',
+        winMargin: winMarginValue ? `${winMarginValue} ${winMarginUnit}` : '',
         bestBatterId: match.bestBatterId || '',
         bestBatterName: match.bestBatterName || '',
         bestBatterRuns: match.bestBatterRuns || 0,
@@ -118,7 +131,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         bestBowlerWickets: match.bestBowlerWickets || 0,
         bestBowlerRuns: match.bestBowlerRuns || 0,
         firstInningsTeam: match.firstInningsTeam || '',
-        firstInningsScore: match.firstInningsScore || 0,
+        firstInningsScore: typeof match.firstInningsScore === 'number' ? match.firstInningsScore : 0,
         createdAt: now,
       };
 
@@ -201,11 +214,11 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       )}
 
       {/* Match Details */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 overflow-visible">
         <h3 className="section-title text-white mb-4 sm:mb-6">Match Details</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-          <div>
+          <div className="relative overflow-visible">
             <label className="label-text mb-1.5 block">Match Date</label>
             <input
               type="date"
@@ -226,42 +239,48 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           </div>
 
           <div>
-            <label className="label-text mb-1.5 block">Venue</label>
-            <select
+            <CustomSelect
+              id="venue-select"
+              label="Venue"
               value={match.venue || 'Home'}
-              onChange={(e) => handleMatchChange('venue', e.target.value)}
-              className="input-base max-w-full truncate"
-            >
-              <option value="Home">Home</option>
-              <option value="Away">Away</option>
-              <option value="Neutral">Neutral</option>
-            </select>
+              onChange={(value) => handleMatchChange('venue', value)}
+              options={[
+                { value: 'Home', label: 'Home' },
+                { value: 'Away', label: 'Away' },
+                { value: 'Neutral', label: 'Neutral' },
+              ]}
+              className="max-w-full"
+            />
           </div>
 
           <div>
-            <label className="label-text mb-1.5 block">Result</label>
-            <select
+            <CustomSelect
+              id="result-select"
+              label="Result"
               value={match.result || 'won'}
-              onChange={(e) => handleMatchChange('result', e.target.value)}
-              className="input-base max-w-full truncate"
-            >
-              <option value="won">Won</option>
-              <option value="lost">Lost</option>
-              <option value="tie">Tie</option>
-              <option value="no_result">No Result</option>
-            </select>
+              onChange={(value) => handleMatchChange('result', value)}
+              options={[
+                { value: 'won', label: 'Won' },
+                { value: 'lost', label: 'Lost' },
+                { value: 'tie', label: 'Tie' },
+                { value: 'no_result', label: 'No Result' },
+              ]}
+              className="max-w-full"
+            />
           </div>
 
           <div>
-            <label className="label-text mb-1.5 block">Toss Won By</label>
-            <select
+            <CustomSelect
+              id="toss-select"
+              label="Toss Won By"
               value={match.tossWonBy || 'Us'}
-              onChange={(e) => handleMatchChange('tossWonBy', e.target.value)}
-              className="input-base max-w-full truncate"
-            >
-              <option value="Us">Us</option>
-              <option value="Them">Them</option>
-            </select>
+              onChange={(value) => handleMatchChange('tossWonBy', value)}
+              options={[
+                { value: 'Us', label: 'Us' },
+                { value: 'Them', label: 'Them' },
+              ]}
+              className="max-w-full"
+            />
           </div>
 
           <div>
@@ -279,21 +298,47 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             <label className="label-text mb-1.5 block">First Innings Score</label>
             <input
               type="number"
-              value={match.firstInningsScore || 0}
-              onChange={(e) => handleMatchChange('firstInningsScore', parseInt(e.target.value))}
+              value={match.firstInningsScore === 0 ? '' : match.firstInningsScore ?? ''}
+              onClick={() => {
+                if (match.firstInningsScore === 0) {
+                  handleMatchChange('firstInningsScore', undefined);
+                }
+              }}
+              onFocus={() => {
+                if (match.firstInningsScore === 0) {
+                  handleMatchChange('firstInningsScore', undefined);
+                }
+              }}
+              onChange={(e) => handleMatchChange('firstInningsScore', e.target.value === '' ? undefined : parseInt(e.target.value, 10))}
               className="input-base"
             />
           </div>
 
-          <div className="sm:col-span-2">
-            <label className="label-text mb-1.5 block">Win Margin</label>
-            <input
-              type="text"
-              value={match.winMargin || ''}
-              onChange={(e) => handleMatchChange('winMargin', e.target.value)}
-              placeholder="e.g., 24 runs, 5 wickets"
-              className="input-base"
-            />
+          <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="label-text mb-1.5 block">Win Margin</label>
+              <input
+                type="number"
+                min={0}
+                value={winMarginValue}
+                onChange={(e) => setWinMarginValue(e.target.value.replace(/\D/g, ''))}
+                placeholder="0"
+                className="input-base"
+              />
+            </div>
+            <div>
+              <CustomSelect
+                id="margin-type-select"
+                label="Margin Type"
+                value={winMarginUnit}
+                onChange={(value) => setWinMarginUnit(value as 'runs' | 'wickets')}
+                options={[
+                  { value: 'runs', label: 'Runs' },
+                  { value: 'wickets', label: 'Wickets' },
+                ]}
+                className="max-w-full"
+              />
+            </div>
           </div>
         </div>
       </div>

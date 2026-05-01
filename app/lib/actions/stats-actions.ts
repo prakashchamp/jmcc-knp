@@ -7,6 +7,7 @@ import {
   Match, 
   Performance 
 } from '@/app/lib/cricket-schema';
+import { mapFirestoreToMatch, mapFirestoreToPerformance } from '@/app/lib/firestore-mapper';
 
 /**
  * Server Action to fetch top 3 all-time batters
@@ -158,20 +159,20 @@ export async function getRecentMatchesAction(limitCount: number = 5) {
   try {
     const db = getFirebaseAdmin();
     const matchesSnapshot = await db.collection('matches')
-      .orderBy('createdAt', 'desc')
+      .orderBy('created_at', 'desc')
       .limit(limitCount)
       .get();
 
     if (matchesSnapshot.empty) return [];
 
     const perfsSnapshot = await db.collection('performances').get();
-    const allPerfs = perfsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const allPerfs = perfsSnapshot.docs.map((doc) => mapFirestoreToPerformance({ id: doc.id, ...doc.data() }));
 
-    return matchesSnapshot.docs.map(doc => {
+    return matchesSnapshot.docs.map((doc) => {
       const matchId = doc.id;
       return {
-        match: { id: matchId, ...doc.data() } as Match,
-        performances: allPerfs.filter(p => (p as any).match_id === matchId) as Performance[],
+        match: mapFirestoreToMatch({ id: matchId, ...doc.data() }),
+        performances: allPerfs.filter((p) => p.matchId === matchId),
       };
     });
   } catch (error) {
@@ -195,8 +196,8 @@ export async function getMatchDetailsAction(matchId: string) {
       .get();
 
     return {
-      match: { id: matchId, ...matchDoc.data() } as Match,
-      performances: perfsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Performance[],
+      match: mapFirestoreToMatch({ id: matchId, ...matchDoc.data() }),
+      performances: perfsSnapshot.docs.map((doc) => mapFirestoreToPerformance({ id: doc.id, ...doc.data() })),
     };
   } catch (error) {
     console.error('getMatchDetailsAction Error:', error);
@@ -211,7 +212,7 @@ export async function getAllPerformancesAction() {
   try {
     const db = getFirebaseAdmin();
     const perfsSnapshot = await db.collection('performances').get();
-    return perfsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Performance[];
+    return perfsSnapshot.docs.map((doc) => mapFirestoreToPerformance({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('getAllPerformancesAction Error:', error);
     throw error;
@@ -224,8 +225,8 @@ export async function getAllPerformancesAction() {
 export async function getAllMatchesAction() {
   try {
     const db = getFirebaseAdmin();
-    const matchesSnapshot = await db.collection('matches').orderBy('createdAt', 'desc').get();
-    return matchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Match[];
+    const matchesSnapshot = await db.collection('matches').orderBy('created_at', 'desc').get();
+    return matchesSnapshot.docs.map((doc) => mapFirestoreToMatch({ id: doc.id, ...doc.data() }));
   } catch (error) {
     console.error('getAllMatchesAction Error:', error);
     throw error;

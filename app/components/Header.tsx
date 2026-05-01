@@ -41,10 +41,10 @@ export function Header() {
     { label: 'Team Stats', value: 'team-stats' },
     { label: 'Player Stats', value: 'player' },
     { label: 'Review Stats', value: 'review-stats' },
-    { label: 'Live Scorer', value: 'scorer' },
-    { label: 'Team Setup', value: 'team-setup' },
-    { label: 'Admin', value: 'admin' },
-    { label: 'Manage Data', value: 'manage-data' },
+    // { label: 'Live Scorer', value: 'scorer' },
+    // { label: 'Team Setup', value: 'team-setup' },
+    // { label: 'Admin', value: 'admin' },
+    // { label: 'Manage Data', value: 'manage-data' },
   ];
 
   const handleMenuClick = (value: string) => {
@@ -71,18 +71,6 @@ export function Header() {
         break;
       case 'review-stats':
         router.push('/review-stats');
-        break;
-      case 'scorer':
-        router.push('/scorer');
-        break;
-      case 'team-setup':
-        router.push('/admin/team-setup');
-        break;
-      case 'admin':
-        router.push('/admin');
-        break;
-      case 'manage-data':
-        router.push('/admin/manage-data');
         break;
       default:
         break;

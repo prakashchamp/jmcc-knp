@@ -18,7 +18,10 @@ import { CustomSelect } from '@/app/components/CustomSelect';
 export function ManualBowlingStatsDialog() {
   const dispatch = useDispatch<AppDispatch>();
   const teamPlayers = useSelector((state: RootState) => state.scorer.liveMatch?.teamPlayers || []);
-  
+  const hasExistingBowlingStats = useSelector((state: RootState) =>
+    state.scorer.liveMatch?.innings.some(i => i.battingTeam === 'Them' && i.bowlerStats && i.bowlerStats.length > 0)
+  );
+
   const [bowlers, setBowlers] = useState<Partial<CurrentBowler>[]>([
     { id: '', name: '', runs: 0, overs: 0, balls: 0, wickets: 0, maidens: 0, economy: 0 }
   ]);
@@ -33,9 +36,17 @@ export function ManualBowlingStatsDialog() {
 
   const updateBowler = (index: number, field: keyof CurrentBowler, value: any) => {
     const newBowlers = [...bowlers];
+    const normalizeNumber = (val: any) => {
+      if (val === '' || val === null || val === undefined) return 0;
+      const num = Number(val);
+      return Number.isNaN(num) ? 0 : num;
+    };
+
     if (field === 'id') {
       const player = teamPlayers.find(p => p.id === value);
       newBowlers[index] = { ...newBowlers[index], id: value, name: player?.name || '' };
+    } else if (['overs', 'balls', 'runs', 'wickets', 'maidens', 'economy'].includes(field)) {
+      newBowlers[index] = { ...newBowlers[index], [field]: normalizeNumber(value) };
     } else {
       newBowlers[index] = { ...newBowlers[index], [field]: value };
     }
@@ -59,6 +70,13 @@ export function ManualBowlingStatsDialog() {
     setBowlers(newBowlers);
   };
 
+  const handleFieldFocus = (index: number, field: keyof CurrentBowler) => {
+    const current = bowlers[index]?.[field];
+    if (current === 0) {
+      updateBowler(index, field, '');
+    }
+  };
+
   const handleSave = () => {
     // Filter out invalid bowlers (missing ID or name)
     const validBowlers = bowlers
@@ -74,12 +92,14 @@ export function ManualBowlingStatsDialog() {
         extras: 0,
       } as CurrentBowler));
 
-    if (validBowlers.length === 0) {
+    if (validBowlers.length === 0 && !hasExistingBowlingStats) {
       alert('Please add at least one bowler with a name.');
       return;
     }
 
-    dispatch(addManualBowlingStats(validBowlers));
+    if (validBowlers.length > 0) {
+      dispatch(addManualBowlingStats(validBowlers));
+    }
     dispatch(openDialog({ dialog: 'uploadConfirm' }));
   };
 
@@ -119,8 +139,9 @@ export function ManualBowlingStatsDialog() {
                     <input
                       type="number"
                       step="0.1"
-                      value={bowler.overs}
-                      onChange={(e) => updateBowler(index, 'overs', parseFloat(e.target.value))}
+                      value={bowler.overs ?? ''}
+                      onChange={(e) => updateBowler(index, 'overs', e.target.value)}
+                      onFocus={() => handleFieldFocus(index, 'overs')}
                       className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
                     />
                   </div>
@@ -128,8 +149,9 @@ export function ManualBowlingStatsDialog() {
                     <label className="text-[10px] font-semibold opacity-40 uppercase mb-1 block">Maidens</label>
                     <input
                       type="number"
-                      value={bowler.maidens}
-                      onChange={(e) => updateBowler(index, 'maidens', parseInt(e.target.value))}
+                      value={bowler.maidens ?? ''}
+                      onChange={(e) => updateBowler(index, 'maidens', e.target.value)}
+                      onFocus={() => handleFieldFocus(index, 'maidens')}
                       className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
                     />
                   </div>
@@ -137,8 +159,9 @@ export function ManualBowlingStatsDialog() {
                     <label className="text-[10px] font-semibold opacity-40 uppercase mb-1 block">Runs</label>
                     <input
                       type="number"
-                      value={bowler.runs}
-                      onChange={(e) => updateBowler(index, 'runs', parseInt(e.target.value))}
+                      value={bowler.runs ?? ''}
+                      onChange={(e) => updateBowler(index, 'runs', e.target.value)}
+                      onFocus={() => handleFieldFocus(index, 'runs')}
                       className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
                     />
                   </div>
@@ -146,8 +169,9 @@ export function ManualBowlingStatsDialog() {
                     <label className="text-[10px] font-semibold opacity-40 uppercase mb-1 block">Wickets</label>
                     <input
                       type="number"
-                      value={bowler.wickets}
-                      onChange={(e) => updateBowler(index, 'wickets', parseInt(e.target.value))}
+                      value={bowler.wickets ?? ''}
+                      onChange={(e) => updateBowler(index, 'wickets', e.target.value)}
+                      onFocus={() => handleFieldFocus(index, 'wickets')}
                       className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
                     />
                   </div>

@@ -1,80 +1,137 @@
 'use client';
 
-import { useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/app/components/Header';
-import { ScorecardUpload } from '@/app/components/admin/ScorecardUpload';
-import { MatchDataForm } from '@/app/components/admin/MatchDataForm';
-import { Match, Performance } from '@/app/lib/cricket-schema';
+import { validateAdminPassword } from '@/app/lib/actions/admin-actions';
 
-type AdminStep = 'entry' | 'review';
-
-interface ParsedData {
-  match: Partial<Match>;
-  performances: Partial<Performance>[];
-}
+const ADMIN_OPTIONS = [
+  {
+    label: 'Team Setup',
+    href: '/admin/team-setup',
+    description: 'Create and manage your team roster',
+  },
+  {
+    label: 'Manage Data',
+    href: '/admin/manage-data',
+    description: 'Review and delete match records',
+  },
+  {
+    label: 'Manual Entry',
+    href: '/admin/manual-entry',
+    description: 'Upload scorecard manually or via screenshot',
+  },
+  {
+    label: 'Live Scorer',
+    href: '/scorer',
+    description: 'Open the live scoring interface',
+  },
+];
 
 export default function AdminPage() {
-  const [step, setStep] = useState<AdminStep>('entry');
-  const [parsedData, setParsedData] = useState<ParsedData | null>(null);
+  const router = useRouter();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDataParsed = (data: ParsedData) => {
-    setParsedData(data);
-    setStep('review');
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const auth = window.sessionStorage.getItem('adminAuthenticated');
+    setIsAuthenticated(auth === 'true');
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
+
+    const isValid = await validateAdminPassword(password);
+    setIsSubmitting(false);
+
+    if (isValid) {
+      if (typeof window !== 'undefined') {
+        window.sessionStorage.setItem('adminAuthenticated', 'true');
+      }
+      setIsAuthenticated(true);
+      setPassword('');
+      return;
+    }
+
+    setError('Incorrect password.');
   };
 
-  const handleFormSubmit = () => {
-    setStep('entry');
-    setParsedData(null);
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('adminAuthenticated');
+    }
+    setIsAuthenticated(false);
+    router.refresh();
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-gray-900 text-white">
       <Header />
-
       <main className="page-container">
-        {/* Page Title */}
-        <div className="page-header">
-          <h1 className="page-title text-white">Admin Panel</h1>
-          <p className="hint-text mt-1 sm:mt-2">Enter match data manually or via screenshot</p>
+        <div className="page-header mb-8">
+          <h1 className="page-title text-white">Admin</h1>
+          <p className="hint-text mt-1 sm:mt-2">Password-protected access to admin tools.</p>
         </div>
 
-        {/* Steps */}
-        <div className="mb-4 sm:mb-8">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div
-              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
-                step === 'entry' || step === 'review'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-400'
-              }`}
-            >
-              1
+        {isAuthenticated ? (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Admin Dashboard</h2>
+                <p className="text-slate-400">Select a tool below.</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-500 transition-colors"
+              >
+                Logout
+              </button>
             </div>
-            <span className="text-white text-sm sm:text-base font-semibold">Enter Data</span>
 
-            {/* Arrow */}
-            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-blue-600 to-gray-700 mx-1 sm:mx-4"></div>
-
-            <div
-              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
-                step === 'review' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
-              }`}
-            >
-              2
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {ADMIN_OPTIONS.map((option) => (
+                <button
+                  key={option.href}
+                  onClick={() => router.push(option.href)}
+                  className="text-left rounded-3xl border border-slate-700 bg-slate-800/70 p-5 shadow-xl shadow-black/20 hover:border-blue-500 hover:bg-slate-700 transition-all"
+                >
+                  <h3 className="text-white text-lg font-semibold mb-2">{option.label}</h3>
+                  <p className="text-slate-400 text-sm">{option.description}</p>
+                </button>
+              ))}
             </div>
-            <span className={`text-sm sm:text-base font-semibold ${step === 'review' ? 'text-white' : 'text-gray-400'}`}>
-              Review & Save
-            </span>
           </div>
-        </div>
+        ) : (
+          <div className="max-w-md mx-auto bg-slate-800/80 border border-slate-700 rounded-3xl p-8 shadow-xl shadow-black/30">
+            <h2 className="text-xl font-semibold mb-2">Enter Admin Password</h2>
+            <p className="text-slate-400 mb-6">Access team setup, data manage, manual entry, and live scorer.</p>
 
-        {/* Content */}
-        {step === 'entry' && (
-          <ScorecardUpload onDataParsed={handleDataParsed} />
-        )}
-        
-        {step === 'review' && parsedData && (
-          <MatchDataForm matchData={parsedData} onSuccess={handleFormSubmit} />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <label className="block text-sm font-medium text-slate-200">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+              />
+
+              {error && <p className="text-sm text-red-400">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full rounded-2xl bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-500 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? 'Checking...' : 'Unlock Admin'}
+              </button>
+
+            </form>
+          </div>
         )}
       </main>
     </div>

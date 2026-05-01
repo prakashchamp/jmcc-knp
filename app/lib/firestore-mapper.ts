@@ -1,5 +1,5 @@
 import { LiveMatch } from './cricket-scorer-types';
-import { Performance } from './cricket-schema';
+import { Performance, Match } from './cricket-schema';
 
 /**
  * Maps Redux LiveMatch to Firestore 'matches' collection schema
@@ -26,6 +26,7 @@ export function mapMatchToFirestore(match: LiveMatch) {
     first_innings_team: (match as any).firstInningsTeam || '',
     first_innings_score: (match as any).firstInningsScore || 0,
     created_at: match.createdAt || new Date().toISOString(),
+    createdAt: match.createdAt || new Date().toISOString(),
   };
 }
 
@@ -70,6 +71,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     bowl_economy: perf.bowling.economy,
     
     created_at: perf.createdAt || new Date().toISOString(),
+    createdAt: perf.createdAt || new Date().toISOString(),
   };
 }
 
@@ -86,7 +88,7 @@ export function mapFirestoreToPerformance(data: any): Performance {
     year: data.year || '',
     month: data.month || '',
     opponent: data.opponent || '',
-    createdAt: data.created_at || new Date().toISOString(),
+    createdAt: data.created_at || data.createdAt || new Date().toISOString(),
     batting: {
       didBat: data.bat_did_bat || false,
       innings: data.bat_innings || 0,
@@ -114,6 +116,37 @@ export function mapFirestoreToPerformance(data: any): Performance {
       isFiveFer: data.bowl_is_five_fer || false,
       economy: data.bowl_economy || 0,
     }
+  };
+}
+
+export function mapFirestoreToMatch(data: any): Match {
+  return {
+    id: data.id || data.match_id || '',
+    date: data.date || data.created_at || data.createdAt || new Date().toISOString(),
+    year: data.year || (data.date ? new Date(data.date).getUTCFullYear().toString() : new Date().getUTCFullYear().toString()),
+    month: data.month || (data.date ? new Date(data.date).toISOString().slice(0, 7) : new Date().toISOString().slice(0, 7)),
+    opponent: data.opponent || '',
+    venue: data.venue || 'Home',
+    tossWonBy: data.tossWonBy || data.toss_won_by || 'Us',
+    tossDecision: data.tossDecision || data.toss_decision || 'bat',
+    result: data.result || 'no_result',
+    winMargin: data.winMargin || data.win_margin || '',
+    firstInningsTeam: data.firstInningsTeam || data.first_innings_team || '',
+    firstInningsScore: typeof data.firstInningsScore === 'number'
+      ? data.firstInningsScore
+      : data.first_innings_score || 0,
+    bestBatterId: data.bestBatterId || data.best_batter_id || '',
+    bestBatterName: data.bestBatterName || data.best_batter_name || '',
+    bestBatterRuns: data.bestBatterRuns || data.best_batter_runs || 0,
+    bestBatterBalls: data.bestBatterBalls || data.best_batter_balls || 0,
+    bestBowlerId: data.bestBowlerId || data.best_bowler_id || '',
+    bestBowlerName: data.bestBowlerName || data.best_bowler_name || '',
+    bestBowlerWickets: data.bestBowlerWickets || data.best_bowler_wickets || 0,
+    bestBowlerRuns: data.bestBowlerRuns || data.best_bowler_runs || 0,
+    createdAt: data.createdAt || data.created_at || new Date().toISOString(),
+    matchFormat: data.matchFormat || data.match_format || 'Custom',
+    totalOvers: data.totalOvers || data.total_overs,
+    scorerInitiatedFrom: data.scorerInitiatedFrom || data.scorer_initiated_from,
   };
 }
 
