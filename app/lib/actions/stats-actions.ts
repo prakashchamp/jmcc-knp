@@ -15,69 +15,32 @@ import { mapFirestoreToMatch, mapFirestoreToPerformance } from '@/app/lib/firest
 export async function getTopBattersAction(): Promise<PlayerBattingStats[]> {
   try {
     const db = getFirebaseAdmin();
-    const querySnapshot = await db.collection('performances').get();
-    const statsMap = new Map<string, PlayerBattingStats & { matchIds: Set<string>; notOuts: number }>();
+    const querySnapshot = await db.collection('player_stats_alltime')
+      .orderBy('bat_runs', 'desc')
+      .limit(3)
+      .get();
 
-    querySnapshot.forEach((doc) => {
-      const perf = doc.data();
-      if (!perf.bat_did_bat) return;
-
-      const playerId = perf.player_id;
-      if (!playerId) return;
-
-      if (!statsMap.has(playerId)) {
-        statsMap.set(playerId, {
-          playerId,
-          playerName: perf.player_name || 'Unknown',
-          totalMatches: 0,
-          totalInnings: 0,
-          notOuts: 0,
-          totalRuns: 0,
-          bestScore: 0,
-          average: 0,
-          totalBalls: 0,
-          strikeRate: 0,
-          totalFours: 0,
-          totalSixes: 0,
-          thirties: 0,
-          fifties: 0,
-          hundreds: 0,
-          ducks: 0,
-          matchIds: new Set(),
-        });
-      }
-
-      const stats = statsMap.get(playerId)!;
-      stats.totalInnings += (perf.bat_innings || 0);
-      stats.totalRuns += (perf.bat_runs || 0);
-      stats.totalBalls += (perf.bat_balls || 0);
-      stats.totalFours += (perf.bat_fours || 0);
-      stats.totalSixes += (perf.bat_sixes || 0);
-      
-      if (!perf.bat_dismissed) {
-        stats.notOuts += (perf.bat_innings || 0);
-      }
-      if (perf.bat_is_duck) stats.ducks += 1;
-      if (perf.bat_is_thirty) stats.thirties += 1;
-      if (perf.bat_is_fifty) stats.fifties += 1;
-      if (perf.bat_is_hundred) stats.hundreds += 1;
-      
-      stats.bestScore = Math.max(stats.bestScore, perf.bat_runs || 0);
-      if (perf.match_id) stats.matchIds.add(perf.match_id);
-    });
-
-    let batters = Array.from(statsMap.values()).map(({ matchIds, notOuts, ...stat }) => {
-      const dismissals = stat.totalInnings - notOuts;
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
       return {
-        ...stat,
-        notOuts,
-        totalMatches: matchIds.size,
-        average: dismissals > 0 ? stat.totalRuns / dismissals : stat.totalRuns,
-        strikeRate: stat.totalBalls > 0 ? (stat.totalRuns / stat.totalBalls) * 100 : 0,
+        playerId: data.player_id,
+        playerName: data.player_name || 'Unknown',
+        totalMatches: data.matches || 0,
+        totalInnings: data.bat_innings || 0,
+        notOuts: data.bat_not_out || 0,
+        totalRuns: data.bat_runs || 0,
+        bestScore: data.bat_highest || 0,
+        average: data.bat_average || 0,
+        totalBalls: data.bat_balls || 0,
+        strikeRate: data.bat_strike_rate || 0,
+        totalFours: data.bat_fours || 0,
+        totalSixes: data.bat_sixes || 0,
+        thirties: data.bat_thirties || 0,
+        fifties: data.bat_fifties || 0,
+        hundreds: data.bat_hundreds || 0,
+        ducks: data.bat_ducks || 0,
       };
     });
-
-    return batters.sort((a, b) => b.totalRuns - a.totalRuns).slice(0, 3);
   } catch (error) {
     console.error('getTopBattersAction Error:', error);
     throw error;
@@ -90,62 +53,30 @@ export async function getTopBattersAction(): Promise<PlayerBattingStats[]> {
 export async function getTopBowlersAction(): Promise<PlayerBowlingStats[]> {
   try {
     const db = getFirebaseAdmin();
-    const querySnapshot = await db.collection('performances').get();
-    const statsMap = new Map<string, PlayerBowlingStats & { matchIds: Set<string>; totalInnings: number }>();
+    const querySnapshot = await db.collection('player_stats_alltime')
+      .orderBy('bowl_wickets', 'desc')
+      .limit(3)
+      .get();
 
-    querySnapshot.forEach((doc) => {
-      const perf = doc.data();
-      if (!perf.bowl_did_bowl) return;
-
-      const playerId = perf.player_id;
-      if (!playerId) return;
-
-      if (!statsMap.has(playerId)) {
-        statsMap.set(playerId, {
-          playerId,
-          playerName: perf.player_name || 'Unknown',
-          totalMatches: 0,
-          totalInnings: 0,
-          totalWickets: 0,
-          totalRuns: 0,
-          bestHaul: 0,
-          totalBalls: 0,
-          totalOvers: 0,
-          average: 0,
-          strikeRate: 0,
-          economy: 0,
-          threeWickets: 0,
-          fiveWickets: 0,
-          matchIds: new Set(),
-        });
-      }
-
-      const stats = statsMap.get(playerId)!;
-      stats.totalInnings += (perf.bowl_innings || 0);
-      stats.totalWickets += (perf.bowl_wickets || 0);
-      stats.totalRuns += (perf.bowl_runs || 0);
-      stats.totalBalls += (perf.bowl_balls || 0);
-      
-      if (perf.bowl_is_three_fer) stats.threeWickets += 1;
-      if (perf.bowl_is_five_fer) stats.fiveWickets += 1;
-      
-      stats.bestHaul = Math.max(stats.bestHaul, perf.bowl_wickets || 0);
-      if (perf.match_id) stats.matchIds.add(perf.match_id);
-    });
-
-    let bowlers = Array.from(statsMap.values()).map(({ matchIds, totalInnings, ...stat }) => {
-      const totalOversDec = stat.totalOvers + (stat.totalBalls / 6);
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
       return {
-        ...stat,
-        totalInnings,
-        totalMatches: matchIds.size,
-        economy: totalOversDec > 0 ? stat.totalRuns / totalOversDec : 0,
-        average: stat.totalWickets > 0 ? stat.totalRuns / stat.totalWickets : 0,
-        strikeRate: stat.totalWickets > 0 ? stat.totalBalls / stat.totalWickets : 0,
+        playerId: data.player_id,
+        playerName: data.player_name || 'Unknown',
+        totalMatches: data.matches || 0,
+        totalInnings: data.bowl_innings || 0,
+        totalWickets: data.bowl_wickets || 0,
+        totalRuns: data.bowl_runs || 0,
+        bestHaul: data.bowl_best_wickets || 0,
+        totalBalls: data.bowl_balls || 0,
+        totalOvers: data.bowl_overs || 0,
+        average: data.bowl_average || 0,
+        strikeRate: data.bowl_strike_rate || 0,
+        economy: data.bowl_economy || 0,
+        threeWickets: data.bowl_three_fers || 0,
+        fiveWickets: data.bowl_five_fers || 0,
       };
     });
-
-    return bowlers.sort((a, b) => b.totalWickets - a.totalWickets).slice(0, 3);
   } catch (error) {
     console.error('getTopBowlersAction Error:', error);
     throw error;
@@ -165,16 +96,19 @@ export async function getRecentMatchesAction(limitCount: number = 5) {
 
     if (matchesSnapshot.empty) return [];
 
-    const perfsSnapshot = await db.collection('performances').get();
-    const allPerfs = perfsSnapshot.docs.map((doc) => mapFirestoreToPerformance({ id: doc.id, ...doc.data() }));
-
-    return matchesSnapshot.docs.map((doc) => {
+    const results = await Promise.all(matchesSnapshot.docs.map(async (doc) => {
       const matchId = doc.id;
+      const perfsSnapshot = await db.collection('performances')
+        .where('match_id', '==', matchId)
+        .get();
+      
       return {
         match: mapFirestoreToMatch({ id: matchId, ...doc.data() }),
-        performances: allPerfs.filter((p) => p.matchId === matchId),
+        performances: perfsSnapshot.docs.map((pDoc) => mapFirestoreToPerformance({ id: pDoc.id, ...pDoc.data() })),
       };
-    });
+    }));
+
+    return results;
   } catch (error) {
     console.error('getRecentMatchesAction Error:', error);
     throw error;
@@ -186,6 +120,10 @@ export async function getRecentMatchesAction(limitCount: number = 5) {
  */
 export async function getMatchDetailsAction(matchId: string) {
   try {
+    if (!matchId || typeof matchId !== 'string') {
+      console.warn('getMatchDetailsAction: Invalid matchId provided');
+      return null;
+    }
     const db = getFirebaseAdmin();
     const matchDoc = await db.collection('matches').doc(matchId).get();
     

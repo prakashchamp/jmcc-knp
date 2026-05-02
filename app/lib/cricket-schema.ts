@@ -50,6 +50,11 @@ export interface Match {
   firstInningsTeam?: string;
   firstInningsScore?: number;
 
+  teamRuns?: number;
+  teamWickets?: number;
+  opponentRuns?: number;
+  opponentWickets?: number;
+
   topBatters: Array<{
     playerId: string;
     playerName: string;

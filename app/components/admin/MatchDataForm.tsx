@@ -6,6 +6,19 @@ import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions'
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 
+function getISTYearMonth(dateString: string) {
+  const dateObj = new Date(dateString);
+  const istFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit'
+  });
+  const parts = istFormatter.formatToParts(dateObj);
+  const year = parts.find(p => p.type === 'year')?.value || dateObj.getUTCFullYear().toString();
+  const monthRaw = parts.find(p => p.type === 'month')?.value || (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
+  return { year, month: `${year}-${monthRaw}` };
+}
+
 interface ParsedData {
   match: Partial<Match>;
   performances: Partial<Performance>[];
@@ -110,13 +123,13 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
     try {
       const matchId = `match_${Date.now()}`;
       const now = new Date().toISOString();
-      const dateObj = new Date(match.date || now);
+      const { year, month } = getISTYearMonth(match.date || now);
 
       const completeMatch: Match = {
         id: matchId,
         date: match.date || now,
-        year: dateObj.getFullYear().toString(),
-        month: `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`,
+        year,
+        month,
         opponent: match.opponent || 'TBD',
         venue: (match.venue as any) || 'Home',
         tossWonBy: (match.tossWonBy as any) || 'Us',
@@ -131,8 +144,10 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         bestBowlerName: match.bestBowlerName || '',
         bestBowlerWickets: match.bestBowlerWickets || 0,
         bestBowlerRuns: match.bestBowlerRuns || 0,
-        firstInningsTeam: match.firstInningsTeam || '',
-        firstInningsScore: typeof match.firstInningsScore === 'number' ? match.firstInningsScore : 0,
+        teamRuns: Number(match.teamRuns || 0),
+        teamWickets: Number(match.teamWickets || 0),
+        opponentRuns: Number(match.opponentRuns || 0),
+        opponentWickets: Number(match.opponentWickets || 0),
         createdAt: now,
         topBatters: [],
         topBowlers: [],
@@ -143,6 +158,11 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       for (const perf of performances) {
         if (perf.playerName) {
           const performanceId = `${matchId}_${perf.playerId || perf.playerName.replace(/\s+/g, '_')}`;
+          const battingRuns = perf.batting?.runs || 0;
+          const battingBalls = perf.batting?.balls || 0;
+          const bowlingWickets = perf.bowling?.wickets || 0;
+          const bowlingOvers = perf.bowling?.overs || 0;
+
           const completePerf: Performance = {
             id: performanceId,
             matchId,
@@ -152,32 +172,34 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             year: completeMatch.year,
             month: completeMatch.month,
             opponent: completeMatch.opponent,
-            batting: perf.batting || {
-              didBat: false,
-              innings: 0,
-              runs: 0,
-              balls: 0,
-              fours: 0,
-              sixes: 0,
-              dismissed: false,
-              isDuck: false,
-              isThirty: false,
-              isFifty: false,
-              isHundred: false,
-              strikeRate: 0,
+            batting: {
+              ...(perf.batting || {}),
+              runs: battingRuns,
+              balls: battingBalls,
+              fours: perf.batting?.fours || 0,
+              sixes: perf.batting?.sixes || 0,
+              dismissed: !!perf.batting?.dismissed,
+              didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
+              innings: battingRuns > 0 || battingBalls > 0 ? 1 : 0,
+              isDuck: battingRuns === 0 && !!perf.batting?.dismissed,
+              isThirty: battingRuns >= 30 && battingRuns < 50,
+              isFifty: battingRuns >= 50 && battingRuns < 100,
+              isHundred: battingRuns >= 100,
+              strikeRate: battingBalls > 0 ? (battingRuns / battingBalls) * 100 : 0,
             },
-            bowling: perf.bowling || {
-              didBowl: false,
-              innings: 0,
-              overs: 0,
-              balls: 0,
-              runs: 0,
-              wickets: 0,
-              maidens: 0,
-              isThreeFer: false,
-              isFourFer: false,
-              isFiveFer: false,
-              economy: 0,
+            bowling: {
+              ...(perf.bowling || {}),
+              runs: perf.bowling?.runs || 0,
+              wickets: bowlingWickets,
+              overs: bowlingOvers,
+              balls: Math.floor(bowlingOvers) * 6 + Math.round((bowlingOvers % 1) * 10),
+              maidens: perf.bowling?.maidens || 0,
+              didBowl: bowlingOvers > 0 || (perf.bowling?.runs || 0) > 0 || bowlingWickets > 0,
+              innings: bowlingOvers > 0 ? 1 : 0,
+              isThreeFer: bowlingWickets === 3,
+              isFourFer: bowlingWickets === 4,
+              isFiveFer: bowlingWickets >= 5,
+              economy: bowlingOvers > 0 ? (perf.bowling?.runs || 0) / (Math.floor(bowlingOvers) + (bowlingOvers % 1) / 0.6) : 0,
             },
             createdAt: now,
           };
@@ -196,6 +218,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       }
 
       setSuccessMessage('Match data saved and stats updated successfully!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => {
         onSuccess();
       }, 2000);
@@ -221,17 +244,17 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       )}
 
       {/* Match Details */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 overflow-visible">
+      <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
         <h3 className="section-title text-white mb-4 sm:mb-6">Match Details</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
-          <div className="relative overflow-visible">
+          <div>
             <label className="label-text mb-1.5 block">Match Date</label>
             <input
               type="date"
-              value={match.date ? new Date(match.date).toISOString().split('T')[0] : ''}
-              onChange={(e) => handleMatchChange('date', new Date(e.target.value).toISOString())}
-              className="input-base"
+              value={match.date ? match.date.split('T')[0] : ''}
+              onChange={(e) => handleMatchChange('date', e.target.value ? new Date(e.target.value).toISOString() : '')}
+              className="input-base appearance-none"
             />
           </div>
 
@@ -290,35 +313,52 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             />
           </div>
 
-          <div>
-            <label className="label-text mb-1.5 block">First Innings Team</label>
-            <input
-              type="text"
-              value={match.firstInningsTeam || ''}
-              onChange={(e) => handleMatchChange('firstInningsTeam', e.target.value)}
-              placeholder="e.g. Us"
-              className="input-base"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-text mb-1.5 block">Our Team Runs</label>
+              <input
+                type="number"
+                value={match.teamRuns ?? ''}
+                onChange={(e) => handleMatchChange('teamRuns', e.target.value)}
+                placeholder="Runs"
+                className="input-base"
+              />
+            </div>
+            <div>
+              <label className="label-text mb-1.5 block">Our Team Wickets</label>
+              <input
+                type="number"
+                value={match.teamWickets ?? ''}
+                onChange={(e) => handleMatchChange('teamWickets', e.target.value)}
+                placeholder="Wkts"
+                className="input-base"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="label-text mb-1.5 block">First Innings Score</label>
-            <input
-              type="number"
-              value={match.firstInningsScore === 0 ? '' : match.firstInningsScore ?? ''}
-              onClick={() => {
-                if (match.firstInningsScore === 0) {
-                  handleMatchChange('firstInningsScore', undefined);
-                }
-              }}
-              onFocus={() => {
-                if (match.firstInningsScore === 0) {
-                  handleMatchChange('firstInningsScore', undefined);
-                }
-              }}
-              onChange={(e) => handleMatchChange('firstInningsScore', e.target.value === '' ? undefined : parseInt(e.target.value, 10))}
-              className="input-base"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-text mb-1.5 block">Opponent Runs</label>
+              <input
+                type="number"
+                value={match.opponentRuns ?? ''}
+                onChange={(e) => handleMatchChange('opponentRuns', e.target.value)}
+                placeholder="Runs"
+                onFocus={(e) => e.target.select()}
+                className="input-base"
+              />
+            </div>
+            <div>
+              <label className="label-text mb-1.5 block">Opponent Wickets</label>
+              <input
+                type="number"
+                value={match.opponentWickets ?? ''}
+                onChange={(e) => handleMatchChange('opponentWickets', e.target.value)}
+                placeholder="Wkts"
+                onFocus={(e) => e.target.select()}
+                className="input-base"
+              />
+            </div>
           </div>
 
           <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -330,6 +370,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                 value={winMarginValue}
                 onChange={(e) => setWinMarginValue(e.target.value.replace(/\D/g, ''))}
                 placeholder="0"
+                onFocus={(e) => e.target.select()}
                 className="input-base"
               />
             </div>
@@ -388,37 +429,37 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
                 <div>
                   <label className="label-text mb-1 block">Runs</label>
-                  <input type="number" value={perf.batting?.runs === 0 ? '' : perf.batting?.runs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, runs: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.batting?.runs ?? ''} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, runs: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">Balls</label>
-                  <input type="number" value={perf.batting?.balls === 0 ? '' : perf.batting?.balls} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, balls: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.batting?.balls ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, balls: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">4s</label>
-                  <input type="number" value={perf.batting?.fours === 0 ? '' : perf.batting?.fours} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, fours: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.batting?.fours ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, fours: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">6s</label>
-                  <input type="number" value={perf.batting?.sixes === 0 ? '' : perf.batting?.sixes} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, sixes: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.batting?.sixes ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, sixes: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">Wkts</label>
-                  <input type="number" value={perf.bowling?.wickets === 0 ? '' : perf.bowling?.wickets} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, wickets: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.bowling?.wickets ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, wickets: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">Overs</label>
-                  <input type="text" value={perf.bowling?.overs === 0 ? '' : perf.bowling?.overs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, overs: e.target.value === '' ? 0 : parseFloat(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="text" value={perf.bowling?.overs ?? ''} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, overs: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
 
                 <div>
                   <label className="label-text mb-1 block">Runs Conceded</label>
-                  <input type="number" value={perf.bowling?.runs === 0 ? '' : perf.bowling?.runs} placeholder="0" onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, runs: e.target.value === '' ? 0 : parseInt(e.target.value) })} className="input-base py-2 text-sm text-center" />
+                  <input type="number" value={perf.bowling?.runs ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'bowling', { ...perf.bowling, runs: e.target.value })} className="input-base py-2 text-sm text-center" />
                 </div>
               </div>
             </div>

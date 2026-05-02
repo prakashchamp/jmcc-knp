@@ -165,13 +165,21 @@ export default function ManageDataPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleDelete(match.id)}
-                          disabled={deletingId === match.id}
-                          className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {deletingId === match.id ? 'Deleting...' : 'Delete'}
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => router.push(`/admin/manage-data/edit/${match.id}`)}
+                            className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-xs font-medium transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(match.id)}
+                            disabled={deletingId === match.id}
+                            className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {deletingId === match.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

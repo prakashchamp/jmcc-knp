@@ -504,6 +504,8 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
       match: matchData,
       performances
     });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const hasData = battingRows.length > 0 || bowlingRows.length > 0;

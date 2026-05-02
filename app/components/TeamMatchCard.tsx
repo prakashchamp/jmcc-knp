@@ -116,14 +116,21 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
           <div className="flex items-center justify-between gap-2 sm:gap-4">
             <div className="text-right flex-1">
               <p className="font-semibold text-white text-base sm:text-lg">{teamName}</p>
+              <p className="text-sm sm:text-base font-bold text-white mt-1">
+                {match.teamRuns ?? 0}/{match.teamWickets ?? 0}
+              </p>
               <p className="text-[10px] sm:text-xs text-white/70 mt-0.5 sm:mt-1">Toss: {match.tossWonBy === 'Us' ? 'Won' : 'Lost'}</p>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
               <div className="h-0.5 sm:h-1 bg-white/30 w-4 sm:w-8"></div>
+              <p className="text-white/40 font-bold text-xs">VS</p>
               <div className="h-0.5 sm:h-1 bg-white/20 w-4 sm:w-8"></div>
             </div>
             <div className="text-left flex-1">
               <p className="font-semibold text-white text-base sm:text-lg">{match.opponent}</p>
+              <p className="text-sm sm:text-base font-bold text-white mt-1">
+                {match.opponentRuns ?? 0}/{match.opponentWickets ?? 0}
+              </p>
               <p className="text-[10px] sm:text-xs text-white/70 mt-0.5 sm:mt-1">Opponent</p>
             </div>
           </div>
@@ -149,12 +156,12 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
                   {match.topBatters?.slice(0, 2).map((batter, idx) => (
                     <div key={idx} className="text-[10px] sm:text-xs">
                       <p className="font-semibold text-white truncate">{batter.playerName}</p>
-                      <p className="text-white/70">{batter.runs} runs ({batter.balls}b)</p>
+                      <p className="text-white/70">{batter.runs} runs ({batter.balls} balls)</p>
                     </div>
                   )) || (match.bestBatterName && (
                     <div className="text-[10px] sm:text-xs">
                       <p className="font-semibold text-white truncate">{match.bestBatterName}</p>
-                      <p className="text-white/70">{match.bestBatterRuns} runs ({match.bestBatterBalls}b)</p>
+                      <p className="text-white/70">{match.bestBatterRuns} runs ({match.bestBatterBalls} balls)</p>
                     </div>
                   ))}
                 </div>
@@ -166,12 +173,12 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
                   {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
                     <div key={idx} className="text-[10px] sm:text-xs">
                       <p className="font-semibold text-white truncate">{bowler.playerName}</p>
-                      <p className="text-white/70">{bowler.wickets}w/{bowler.runs}r</p>
+                      <p className="text-white/70">{bowler.wickets} wickets/{bowler.runs} runs</p>
                     </div>
                   )) || (match.bestBowlerName && (
                     <div className="text-[10px] sm:text-xs">
                       <p className="font-semibold text-white truncate">{match.bestBowlerName}</p>
-                      <p className="text-white/70">{match.bestBowlerWickets}w/{match.bestBowlerRuns}r</p>
+                      <p className="text-white/70">{match.bestBowlerWickets} wickets/{match.bestBowlerRuns} runs</p>
                     </div>
                   ))}
                 </div>

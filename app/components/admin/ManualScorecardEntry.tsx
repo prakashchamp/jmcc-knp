@@ -17,34 +17,34 @@ interface ManualScorecardEntryProps {
 
 interface BattingRow {
   playerName: string;
-  runs: number;
-  balls: number;
-  fours: number;
-  sixes: number;
+  runs: number | '';
+  balls: number | '';
+  fours: number | '';
+  sixes: number | '';
   dismissed: boolean;
 }
 
 interface BowlingRow {
   playerName: string;
   overs: string; // Keep as string for decimal handling during input, parse on submit
-  runs: number;
-  maidens: number;
-  wickets: number;
+  runs: number | '';
+  maidens: number | '';
+  wickets: number | '';
 }
 
 export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps) {
   const { players } = useAllPlayers();
   
   const [battingRows, setBattingRows] = useState<BattingRow[]>([
-    { playerName: '', runs: 0, balls: 0, fours: 0, sixes: 0, dismissed: false }
+    { playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }
   ]);
   
   const [bowlingRows, setBowlingRows] = useState<BowlingRow[]>([
-    { playerName: '', overs: '', runs: 0, maidens: 0, wickets: 0 }
+    { playerName: '', overs: '', runs: '', maidens: '', wickets: '' }
   ]);
 
   const addBattingRow = () => {
-    setBattingRows([...battingRows, { playerName: '', runs: 0, balls: 0, fours: 0, sixes: 0, dismissed: false }]);
+    setBattingRows([...battingRows, { playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }]);
   };
 
   const removeBattingRow = (index: number) => {
@@ -58,7 +58,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
   };
 
   const addBowlingRow = () => {
-    setBowlingRows([...bowlingRows, { playerName: '', overs: '', runs: 0, maidens: 0, wickets: 0 }]);
+    setBowlingRows([...bowlingRows, { playerName: '', overs: '', runs: '', maidens: '', wickets: '' }]);
   };
 
   const removeBowlingRow = (index: number) => {
@@ -134,8 +134,8 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
       if (!row.playerName.trim()) return;
       const perf = getOrCreatePerf(row.playerName);
       
-      const runs = row.runs || 0;
-      const balls = row.balls || 0;
+      const runs = row.runs === '' ? 0 : Number(row.runs);
+      const balls = row.balls === '' ? 0 : Number(row.balls);
       const sr = balls > 0 ? (runs / balls) * 100 : 0;
       
       perf.batting = {
@@ -143,8 +143,8 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
         innings: 1,
         runs: runs,
         balls: balls,
-        fours: row.fours || 0,
-        sixes: row.sixes || 0,
+        fours: row.fours === '' ? 0 : Number(row.fours),
+        sixes: row.sixes === '' ? 0 : Number(row.sixes),
         dismissed: row.dismissed,
         isDuck: runs === 0 && balls > 0,
         isThirty: runs >= 30 && runs < 50,
@@ -159,8 +159,8 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
       const perf = getOrCreatePerf(row.playerName);
       
       const overs = parseFloat(row.overs) || 0;
-      const runs = row.runs || 0;
-      const wickets = row.wickets || 0;
+      const runs = row.runs === '' ? 0 : Number(row.runs);
+      const wickets = row.wickets === '' ? 0 : Number(row.wickets);
       
       // Calculate economy: runs / overs, handle decimal overs correctly
       // Decimal part of over means balls. e.g., 4.2 overs = 4 overs and 2 balls = 4.333 overs
@@ -177,7 +177,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
         balls: totalBalls,
         runs: runs,
         wickets: wickets,
-        maidens: row.maidens || 0,
+        maidens: row.maidens === '' ? 0 : Number(row.maidens),
         isThreeFer: wickets >= 3 && wickets < 4,
         isFourFer: wickets >= 4 && wickets < 5,
         isFiveFer: wickets >= 5,
@@ -279,19 +279,19 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
               
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
-                <input type="number" value={row.runs || ''} onChange={(e) => updateBattingRow(idx, 'runs', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBattingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Balls</label>
-                <input type="number" value={row.balls || ''} onChange={(e) => updateBattingRow(idx, 'balls', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.balls ?? ''} onChange={(e) => updateBattingRow(idx, 'balls', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-16">
                 <label className="block text-xs font-medium text-gray-300 mb-1">4s</label>
-                <input type="number" value={row.fours || ''} onChange={(e) => updateBattingRow(idx, 'fours', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.fours ?? ''} onChange={(e) => updateBattingRow(idx, 'fours', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-16">
                 <label className="block text-xs font-medium text-gray-300 mb-1">6s</label>
-                <input type="number" value={row.sixes || ''} onChange={(e) => updateBattingRow(idx, 'sixes', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.sixes ?? ''} onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-32">
                 <CustomSelect
@@ -353,15 +353,15 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
-                <input type="number" value={row.runs || ''} onChange={(e) => updateBowlingRow(idx, 'runs', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Maidens</label>
-                <input type="number" value={row.maidens || ''} onChange={(e) => updateBowlingRow(idx, 'maidens', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.maidens ?? ''} onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Wickets</label>
-                <input type="number" value={row.wickets || ''} onChange={(e) => updateBowlingRow(idx, 'wickets', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.wickets ?? ''} onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               
               <button 

@@ -31,16 +31,28 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
 
   try {
     // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
-    const allPlayersQuery = await db.collection('players').get();
+    // Targeted player lookup instead of full collection fetch
+    const namesToLookup = performances.map(p => p.playerName.trim());
+    const uniqueNames = Array.from(new Set(namesToLookup));
     const existingPlayers = new Map<string, string>();
     const existingNames = new Set<string>();
-    allPlayersQuery.docs.forEach(doc => {
-      const data = doc.data();
-      if (data.name) {
-        existingPlayers.set(data.name.toLowerCase().trim(), doc.id);
-        existingNames.add(data.name.toLowerCase().trim());
+
+    if (uniqueNames.length > 0) {
+      // Chunk names into groups of 30 for 'in' query
+      for (let i = 0; i < uniqueNames.length; i += 30) {
+        const chunk = uniqueNames.slice(i, i + 30);
+        const playersSnapshot = await db.collection('players')
+          .where('name', 'in', chunk)
+          .get();
+        
+        playersSnapshot.docs.forEach(doc => {
+          const data = doc.data();
+          const nameKey = data.name.toLowerCase().trim();
+          existingPlayers.set(nameKey, doc.id);
+          existingNames.add(nameKey);
+        });
       }
-    });
+    }
 
     for (const perf of performances) {
       const nameKey = perf.playerName.toLowerCase().trim();
@@ -160,6 +172,10 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         best_bowler_runs: match.bestBowlerRuns || topBowlers[0]?.runs || 0,
         first_innings_team: match.firstInningsTeam || '',
         first_innings_score: match.firstInningsScore || 0,
+        team_runs: match.teamRuns || 0,
+        team_wickets: match.teamWickets || 0,
+        opponent_runs: match.opponentRuns || 0,
+        opponent_wickets: match.opponentWickets || 0,
         created_at: match.createdAt || new Date().toISOString(),
       };
       
@@ -205,16 +221,27 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
   const performances = calculatePerformancesFromStats(match);
 
   // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
-  const allPlayersQuery = await db.collection('players').get();
+  // Targeted player lookup instead of full collection fetch
+  const namesToLookup = performances.map(p => p.playerName.trim());
+  const uniqueNames = Array.from(new Set(namesToLookup));
   const existingPlayers = new Map<string, string>();
   const existingNames = new Set<string>();
-  allPlayersQuery.docs.forEach(doc => {
-    const data = doc.data();
-    if (data.name) {
-      existingPlayers.set(data.name.toLowerCase().trim(), doc.id);
-      existingNames.add(data.name.toLowerCase().trim());
+
+  if (uniqueNames.length > 0) {
+    for (let i = 0; i < uniqueNames.length; i += 30) {
+      const chunk = uniqueNames.slice(i, i + 30);
+      const playersSnapshot = await db.collection('players')
+        .where('name', 'in', chunk)
+        .get();
+      
+      playersSnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        const nameKey = data.name.toLowerCase().trim();
+        existingPlayers.set(nameKey, doc.id);
+        existingNames.add(nameKey);
+      });
     }
-  });
+  }
 
   for (const perf of performances) {
     const nameKey = perf.playerName.toLowerCase().trim();
@@ -243,6 +270,15 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
   const topBowlers = findTopBowlers(performances);
   const bestBatter = findBestBatter(performances);
   const bestBowler = findBestBowler(performances);
+  
+  // Extract team and opponent scores
+  const ourInnings = match.innings.find(i => i.battingTeam === 'Us');
+  const opponentInnings = match.innings.find(i => i.battingTeam === 'Them');
+  
+  const teamRuns = ourInnings?.totalRuns || 0;
+  const teamWickets = ourInnings?.totalWickets || 0;
+  const opponentRuns = opponentInnings?.totalRuns || 0;
+  const opponentWickets = opponentInnings?.totalWickets || 0;
 
   // 2. Prepare Match Data
   const matchData = {
@@ -257,6 +293,10 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     best_bowler_name: bestBowler?.playerName || '',
     best_bowler_wickets: bestBowler?.bowling.wickets || 0,
     best_bowler_runs: bestBowler?.bowling.runs || 0,
+    team_runs: teamRuns,
+    team_wickets: teamWickets,
+    opponent_runs: opponentRuns,
+    opponent_wickets: opponentWickets,
     completed_at: completedAt,
     raw_data: JSON.stringify(match),
   };
@@ -396,7 +436,7 @@ function calculatePerformancesFromStats(match: LiveMatch): Performance[] {
         didBowl: !!bowlStats,
         innings: bowlStats ? 1 : 0,
         overs: bowlStats?.overs || 0,
-        balls: bowlStats?.balls || 0,
+        balls: 0, // Overs field already includes ball info (e.g. 3.2)
         runs: bowlStats?.runs || 0,
         wickets: bowlStats?.wickets || 0,
         maidens: bowlStats?.maidens || 0,
@@ -464,7 +504,13 @@ function calculateUpdatedStats(
     stats.bowl_innings += 1;
     stats.bowl_runs += perf.bowling.runs;
     stats.bowl_wickets += perf.bowling.wickets;
-    stats.bowl_balls += (perf.bowling.overs * 6) + perf.bowling.balls;
+    
+    // Calculate total balls from fractional overs
+    const wholeOvers = Math.floor(perf.bowling.overs);
+    const extraBalls = Math.round((perf.bowling.overs % 1) * 10);
+    const matchBalls = wholeOvers * 6 + extraBalls;
+    
+    stats.bowl_balls += matchBalls;
     stats.bowl_overs = Math.floor(stats.bowl_balls / 6) + (stats.bowl_balls % 6) / 10;
     stats.bowl_maidens += perf.bowling.maidens;
     
