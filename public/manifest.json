@@ -1,6 +1,6 @@
 {
   "name": "JMCC Spartans Cricket Scorer",
-  "short_name": "Cricket Scorer",
+  "short_name": "JMCC Spartans",
   "description": "Live cricket scoring app for JMCC Spartans",
   "start_url": "/",
   "display": "standalone",
