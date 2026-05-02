@@ -104,11 +104,11 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
               <th className={thClass} onClick={() => handleSort('totalBalls')}>
                 Balls <SortIcon field="totalBalls" sortField={sortField} sortDirection={sortDirection} />
               </th>
-              <th className={thClass} onClick={() => handleSort('ducks')}>
-                Ducks <SortIcon field="ducks" sortField={sortField} sortDirection={sortDirection} />
+              <th className={thClass} onClick={() => handleSort('strikeRate')}>
+                SR <SortIcon field="strikeRate" sortField={sortField} sortDirection={sortDirection} />
               </th>
-              <th className={thClass} onClick={() => handleSort('notOuts')}>
-                NO <SortIcon field="notOuts" sortField={sortField} sortDirection={sortDirection} />
+              <th className={thClass} onClick={() => handleSort('average')}>
+                Avg <SortIcon field="average" sortField={sortField} sortDirection={sortDirection} />
               </th>
               <th className={thClass} onClick={() => handleSort('totalFours')}>
                 4s <SortIcon field="totalFours" sortField={sortField} sortDirection={sortDirection} />
@@ -116,20 +116,17 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
               <th className={thClass} onClick={() => handleSort('totalSixes')}>
                 6s <SortIcon field="totalSixes" sortField={sortField} sortDirection={sortDirection} />
               </th>
+              <th className={thClass} onClick={() => handleSort('bestScore')}>
+                HS <SortIcon field="bestScore" sortField={sortField} sortDirection={sortDirection} />
+              </th>
               <th className={thClass} onClick={() => handleSort('thirties')}>
                 30s <SortIcon field="thirties" sortField={sortField} sortDirection={sortDirection} />
               </th>
               <th className={thClass} onClick={() => handleSort('fifties')}>
                 50s <SortIcon field="fifties" sortField={sortField} sortDirection={sortDirection} />
               </th>
-              <th className={thClass} onClick={() => handleSort('bestScore')}>
-                HS <SortIcon field="bestScore" sortField={sortField} sortDirection={sortDirection} />
-              </th>
-              <th className={thClass} onClick={() => handleSort('strikeRate')}>
-                SR <SortIcon field="strikeRate" sortField={sortField} sortDirection={sortDirection} />
-              </th>
-              <th className={thClass} onClick={() => handleSort('average')}>
-                Avg <SortIcon field="average" sortField={sortField} sortDirection={sortDirection} />
+              <th className={thClass} onClick={() => handleSort('ducks')}>
+                Ducks <SortIcon field="ducks" sortField={sortField} sortDirection={sortDirection} />
               </th>
             </tr>
           </thead>
@@ -149,15 +146,14 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <td className={tdClass}>{stats.totalInnings}</td>
                   <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-blue-400 text-xs sm:text-sm whitespace-nowrap">{stats.totalRuns}</td>
                   <td className={tdClass}>{stats.totalBalls}</td>
-                  <td className={tdClass}>{stats.ducks}</td>
-                  <td className={tdClass}>{stats.notOuts}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-green-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalFours}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-orange-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalSixes}</td>
-                  <td className={tdClass}>{stats.thirties}</td>
-                  <td className={tdClass}>{stats.fifties}</td>
-                  <td className={tdClass}>{stats.bestScore}</td>
                   <td className={tdClass}>{strikeRate}</td>
                   <td className={tdClass}>{average}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-green-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalFours}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-orange-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalSixes}</td>
+                  <td className={tdClass}>{stats.bestScore}</td>
+                  <td className={tdClass}>{stats.thirties}</td>
+                  <td className={tdClass}>{stats.fifties}</td>
+                  <td className={tdClass}>{stats.ducks}</td>
                 </tr>
               );
             })}

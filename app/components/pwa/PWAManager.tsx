@@ -40,6 +40,15 @@ export function PWAManager() {
     if (messaging) {
       const unsubscribe = onMessage(messaging, (payload) => {
         console.log('Foreground message received:', payload);
+        
+        // Force show OS notification even when app is open
+        if (Notification.permission === 'granted' && payload.notification) {
+          new Notification(payload.notification.title || 'Update', {
+            body: payload.notification.body,
+            icon: '/jmcc.jpg'
+          });
+        }
+
         if (payload.data?.type === 'MATCH_UPDATE') {
           handleDataUpdate();
         }

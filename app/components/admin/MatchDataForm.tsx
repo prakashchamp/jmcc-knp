@@ -269,7 +269,12 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               type="date"
               value={match.date ? match.date.split('T')[0] : ''}
               onChange={(e) => handleMatchChange('date', e.target.value ? new Date(e.target.value).toISOString() : '')}
-              className="input-base appearance-none"
+              className="input-base"
+              onFocus={(e) => {
+                setTimeout(() => {
+                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
+              }}
             />
           </div>
 
@@ -299,19 +304,28 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           </div>
 
           <div>
-            <CustomSelect
-              id="result-select"
-              label="Result"
-              value={match.result || 'won'}
-              onChange={(value) => handleMatchChange('result', value)}
-              options={[
-                { value: 'won', label: 'Won' },
-                { value: 'lost', label: 'Lost' },
-                { value: 'tie', label: 'Tie' },
-                { value: 'no_result', label: 'No Result' },
-              ]}
-              className="max-w-full"
-            />
+            <label className="label-text mb-1.5 block">Match Result</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { val: 'won', label: 'Win' },
+                { val: 'lost', label: 'Loss' },
+                { val: 'tie', label: 'Tie' },
+                { val: 'no_result', label: 'N/R' },
+              ].map((res) => (
+                <button
+                  key={res.val}
+                  type="button"
+                  onClick={() => handleMatchChange('result', res.val)}
+                  className={`flex-1 py-2.5 px-2 rounded-lg font-bold text-sm transition-all border ${
+                    match.result === res.val
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                      : 'bg-card border-border hover:bg-foreground/5'
+                  }`}
+                >
+                  {res.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

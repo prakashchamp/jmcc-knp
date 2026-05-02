@@ -8,7 +8,7 @@ interface AllTimeBowlingStatsTableProps {
   loading: boolean;
 }
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 const SortIcon = ({ field, sortField, sortDirection }: { field: BowlingSortField; sortField: BowlingSortField; sortDirection: 'asc' | 'desc' }) => (
   <span className={`ml-0.5 ${sortField === field ? 'text-yellow-300' : 'text-white/50'}`}>
@@ -107,23 +107,26 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
               <th className={thClass} onClick={() => handleSort('totalWickets')}>
                 Wkts <SortIcon field="totalWickets" sortField={sortField} sortDirection={sortDirection} />
               </th>
-              <th className={thClass} onClick={() => handleSort('threeWickets')}>
-                3W <SortIcon field="threeWickets" sortField={sortField} sortDirection={sortDirection} />
-              </th>
-              <th className={thClass} onClick={() => handleSort('fiveWickets')}>
-                5W <SortIcon field="fiveWickets" sortField={sortField} sortDirection={sortDirection} />
-              </th>
-              <th className={thClass} onClick={() => handleSort('bestHaul')}>
-                Best <SortIcon field="bestHaul" sortField={sortField} sortDirection={sortDirection} />
+              <th className={thClass} onClick={() => handleSort('totalRuns')}>
+                Runs <SortIcon field="totalRuns" sortField={sortField} sortDirection={sortDirection} />
               </th>
               <th className={thClass} onClick={() => handleSort('economy')}>
-                Econ <SortIcon field="economy" sortField={sortField} sortDirection={sortDirection} />
+                ECO <SortIcon field="economy" sortField={sortField} sortDirection={sortDirection} />
+              </th>
+              <th className={thClass} onClick={() => handleSort('average')}>
+                avg <SortIcon field="average" sortField={sortField} sortDirection={sortDirection} />
               </th>
               <th className={thClass} onClick={() => handleSort('strikeRate')}>
                 SR <SortIcon field="strikeRate" sortField={sortField} sortDirection={sortDirection} />
               </th>
-              <th className={thClass} onClick={() => handleSort('average')}>
-                Avg <SortIcon field="average" sortField={sortField} sortDirection={sortDirection} />
+              <th className={thClass} onClick={() => handleSort('bestHaul')}>
+                Best <SortIcon field="bestHaul" sortField={sortField} sortDirection={sortDirection} />
+              </th>
+              <th className={thClass} onClick={() => handleSort('threeWickets')}>
+                3w <SortIcon field="threeWickets" sortField={sortField} sortDirection={sortDirection} />
+              </th>
+              <th className={thClass} onClick={() => handleSort('fiveWickets')}>
+                5w <SortIcon field="fiveWickets" sortField={sortField} sortDirection={sortDirection} />
               </th>
             </tr>
           </thead>
@@ -141,12 +144,13 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <td className={tdClass}>{stats.totalInnings}</td>
                   <td className={tdClass}>{stats.totalOvers.toFixed(1)}</td>
                   <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-red-400 text-xs sm:text-sm whitespace-nowrap">{stats.totalWickets}</td>
+                  <td className={tdClass}>{stats.totalRuns}</td>
+                  <td className={tdClass}>{economy}</td>
+                  <td className={tdClass}>{average}</td>
+                  <td className={tdClass}>{strikeRate}</td>
+                  <td className={tdClass}>{stats.bestHaul}</td>
                   <td className={tdClass}>{stats.threeWickets}</td>
                   <td className={tdClass}>{stats.fiveWickets}</td>
-                  <td className={tdClass}>{stats.bestHaul}</td>
-                  <td className={tdClass}>{economy}</td>
-                  <td className={tdClass}>{strikeRate}</td>
-                  <td className={tdClass}>{average}</td>
                 </tr>
               );
             })}

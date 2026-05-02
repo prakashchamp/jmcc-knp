@@ -162,14 +162,29 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
             />
           </div>
 
-          <div>
-            <CustomSelect
-              id="result-select"
-              label="Result"
-              value={match.result || ''}
-              onChange={(val) => handleMatchChange('result', val)}
-              options={[{ value: 'won', label: 'Won' }, { value: 'lost', label: 'Lost' }, { value: 'tie', label: 'Tie' }, { value: 'no_result', label: 'No Result' }]}
-            />
+          <div className="md:col-span-2">
+            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Match Result</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { val: 'won', label: 'Win' },
+                { val: 'lost', label: 'Loss' },
+                { val: 'tie', label: 'Tie' },
+                { val: 'no_result', label: 'N/R' },
+              ].map((res) => (
+                <button
+                  key={res.val}
+                  type="button"
+                  onClick={() => handleMatchChange('result', res.val)}
+                  className={`flex-1 py-2.5 px-2 rounded-xl font-bold text-sm transition-all border ${
+                    match.result === res.val
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                      : 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
+                  }`}
+                >
+                  {res.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

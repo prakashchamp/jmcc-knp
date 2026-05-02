@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { MonthlyPlayerStats } from '../lib/hooks/useMonthlyStats';
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 interface MonthlyBowlingStatsTableProps {
   players: MonthlyPlayerStats[];
@@ -36,6 +36,9 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
       } else if (sortField === 'totalWickets') {
         aVal = a.bowlingStats.totalWickets;
         bVal = b.bowlingStats.totalWickets;
+      } else if (sortField === 'totalRuns') {
+        aVal = a.bowlingStats.totalRuns;
+        bVal = b.bowlingStats.totalRuns;
       } else if (sortField === 'threeWickets') {
         aVal = a.bowlingStats.threeWickets;
         bVal = b.bowlingStats.threeWickets;
@@ -113,23 +116,26 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('totalWickets')}>
                 Wkts {sortField === 'totalWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalWickets' && '⇅'}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
-                3W {sortField === 'threeWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'threeWickets' && '⇅'}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
-                5W {sortField === 'fiveWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'fiveWickets' && '⇅'}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
-                Best {sortField === 'bestHaul' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'bestHaul' && '⇅'}
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('totalRuns')}>
+                Runs {sortField === 'totalRuns' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalRuns' && '⇅'}
               </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('economy')}>
-                Econ {sortField === 'economy' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'economy' && '⇅'}
+                ECO {sortField === 'economy' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'economy' && '⇅'}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('average')}>
+                Avg {sortField === 'average' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'average' && '⇅'}
               </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('strikeRate')}>
                 SR {sortField === 'strikeRate' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'strikeRate' && '⇅'}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('average')}>
-                Avg {sortField === 'average' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'average' && '⇅'}
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
+                Best {sortField === 'bestHaul' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'bestHaul' && '⇅'}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
+                3w {sortField === 'threeWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'threeWickets' && '⇅'}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
+                5w {sortField === 'fiveWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'fiveWickets' && '⇅'}
               </th>
             </tr>
           </thead>
@@ -139,24 +145,25 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
                 key={player.playerId}
                 className={idx % 2 === 0 ? 'bg-gray-800' : 'bg-gray-700 hover:bg-red-900/40'}
               >
-                <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{player.playerName}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMatches}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalInnings}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalOvers}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{player.bowlingStats.totalWickets}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.threeWickets}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.fiveWickets}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-purple-400">{player.bowlingStats.bestHaul}</td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{player.playerName}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMatches}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalInnings}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalOvers}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{player.bowlingStats.totalWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
                   {player.bowlingStats.economy.toFixed(1)}
                 </td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
-                  {player.bowlingStats.strikeRate.toFixed(1)}
-                </td>
-                <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
                   {player.bowlingStats.average.toFixed(1)}
                 </td>
-              </tr>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
+                  {player.bowlingStats.strikeRate.toFixed(1)}
+                </td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-purple-400">{player.bowlingStats.bestHaul}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.threeWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.fiveWickets}</td>
+                </tr>
             ))}
           </tbody>
         </table>

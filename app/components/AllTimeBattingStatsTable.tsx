@@ -88,7 +88,7 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
           <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
             <tr>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('playerName')}>
-                Player
+                player
                 {sortField === 'playerName' ? (
                   <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
@@ -127,17 +127,17 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('ducks')}>
-                Ducks
-                {sortField === 'ducks' ? (
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
+                SR
+                {sortField === 'strikeRate' ? (
                   <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
-                NO
-                {sortField === 'notOuts' ? (
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('average')}>
+                Avg
+                {sortField === 'average' ? (
                   <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
@@ -159,6 +159,14 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
+                HS
+                {sortField === 'bestScore' ? (
+                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('thirties')}>
                 30s
                 {sortField === 'thirties' ? (
@@ -175,25 +183,9 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
-                HS
-                {sortField === 'bestScore' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                ) : (
-                  <span className="text-gray-400 ml-1">⇅</span>
-                )}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
-                SR
-                {sortField === 'strikeRate' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                ) : (
-                  <span className="text-gray-400 ml-1">⇅</span>
-                )}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('average')}>
-                Avg
-                {sortField === 'average' ? (
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('ducks')}>
+                Ducks
+                {sortField === 'ducks' ? (
                   <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
@@ -219,15 +211,14 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{stats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalBalls}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.ducks}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.notOuts}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400 font-medium">{stats.totalFours}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400 font-medium">{stats.totalSixes}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.thirties}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fifties}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.bestScore}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{strikeRate}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{average}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400 font-medium">{stats.totalFours}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400 font-medium">{stats.totalSixes}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.bestScore}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.thirties}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fifties}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.ducks}</td>
                 </tr>
               );
             })}

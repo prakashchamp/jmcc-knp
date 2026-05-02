@@ -3,9 +3,9 @@ import { RootState } from '../redux/store';
 
 /**
  * Custom hook to get the primary team name
- * Returns Firestore team name or default 'JMCC'
+ * Returns Firestore team name or default 'JMCC Spartans' if not set
  */
 export function useTeamName() {
   const team = useSelector((state: RootState) => state.team.team);
-  return team?.name || 'JMCC';
+  return team?.name || 'JMCC Spartans';
 }

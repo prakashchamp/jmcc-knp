@@ -8,7 +8,7 @@ interface AllTimeBowlingStatsTableProps {
   loading: boolean;
 }
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingStatsTableProps) {
   const [sortField, setSortField] = useState<BowlingSortField>('totalWickets');
@@ -90,7 +90,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
           <thead className="bg-gradient-to-r from-yellow-700 to-yellow-600 border-b border-gray-700">
             <tr>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('playerName')}>
-                Player
+                player
                 {sortField === 'playerName' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
@@ -129,33 +129,25 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
-                3W
-                {sortField === 'threeWickets' ? (
-                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                ) : (
-                  <span className="text-gray-400 ml-1">⇅</span>
-                )}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
-                5W
-                {sortField === 'fiveWickets' ? (
-                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                ) : (
-                  <span className="text-gray-400 ml-1">⇅</span>
-                )}
-              </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
-                Best
-                {sortField === 'bestHaul' ? (
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalRuns')}>
+                Runs
+                {sortField === 'totalRuns' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('economy')}>
-                Econ
+                ECO
                 {sortField === 'economy' ? (
+                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('average')}>
+                Avg
+                {sortField === 'average' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
@@ -169,9 +161,25 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('average')}>
-                Avg
-                {sortField === 'average' ? (
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('bestHaul')}>
+                Best
+                {sortField === 'bestHaul' ? (
+                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('threeWickets')}>
+                3w
+                {sortField === 'threeWickets' ? (
+                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('fiveWickets')}>
+                5w
+                {sortField === 'fiveWickets' ? (
                   <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
@@ -196,12 +204,13 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalOvers.toFixed(1)}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{stats.totalWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalRuns}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{economy}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{average}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{strikeRate}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.bestHaul}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.threeWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.fiveWickets}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.bestHaul}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{economy}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{strikeRate}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{average}</td>
                 </tr>
               );
             })}
