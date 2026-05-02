@@ -14,7 +14,7 @@ export interface PlayerStats {
   totalMatches: number;
 }
 
-export function useAllPlayers() {
+export function useAllPlayers(forceRefresh = false) {
   const [players, setPlayers] = useState<PlayerStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export function useAllPlayers() {
         setLoading(true);
         setError(null);
         
-        const data = await getAllTimePlayerStatsClient();
+        const data = await getAllTimePlayerStatsClient(forceRefresh);
         
         const sortedPlayers = data.sort((a, b) =>
           a.playerName.localeCompare(b.playerName)

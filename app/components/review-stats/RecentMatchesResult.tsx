@@ -159,12 +159,12 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
                           {match.topBatters?.slice(0, 2).map((batter, idx) => (
                             <div key={idx} className="min-w-0">
                               <p className="text-white text-xs sm:text-sm font-bold truncate">{batter.playerName}</p>
-                              <p className="text-white/55 text-[10px] sm:text-xs">{batter.runs} <span className="text-white/35">({batter.balls}b)</span></p>
+                              <p className="text-white/55 text-[10px] sm:text-xs">{batter.runs} <span className="text-white/35">runs</span> ({batter.balls} <span className="text-white/35">balls</span>)</p>
                             </div>
                           )) || (match.bestBatterName && (
                             <div className="min-w-0">
                               <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBatterName}</p>
-                              <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBatterRuns} <span className="text-white/35">({match.bestBatterBalls}b)</span></p>
+                              <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBatterRuns} <span className="text-white/35">runs</span> ({match.bestBatterBalls} <span className="text-white/35">balls</span>)</p>
                             </div>
                           ))}
                         </div>
@@ -176,12 +176,12 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
                           {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
                             <div key={idx} className="min-w-0">
                               <p className="text-white text-xs sm:text-sm font-bold truncate">{bowler.playerName}</p>
-                              <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">Wkts</span></p>
+                              <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">wickets /</span> {bowler.runs} <span className="text-white/35">runs</span></p>
                             </div>
                           )) || (match.bestBowlerName && (
                             <div className="min-w-0">
                               <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBowlerName}</p>
-                              <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBowlerWickets} <span className="text-white/35">Wkts</span></p>
+                              <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBowlerWickets} <span className="text-white/35">wickets /</span> {match.bestBowlerRuns} <span className="text-white/35">runs</span></p>
                             </div>
                           ))}
                         </div>

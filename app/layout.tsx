@@ -31,6 +31,8 @@ export const viewport = {
   viewportFit: "cover" as const,
 };
 
+import { PWAManager } from "./components/pwa/PWAManager";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,6 +50,7 @@ export default function RootLayout({
           <ScrollToTop />
           <MobileInputHandler />
           <ReduxProvider>
+            <PWAManager />
             {children}
           </ReduxProvider>
         </ThemeProvider>

@@ -62,7 +62,7 @@ export async function GET() {
             bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0, 
             bat_thirties: 0, bat_fifties: 0, bat_hundreds: 0,
             bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0, 
-            bowl_wickets: 0, bowl_maidens: 0, bowl_best_wickets: 0, bowl_best_runs: 0,
+            bowl_wickets: 0, bowl_maidens: 0, bowl_best_wickets: 0, bowl_best_runs: 0, bowl_best: '',
             bowl_three_fers: 0, bowl_four_fers: 0, bowl_five_fers: 0,
             ...scope.extras
           });
@@ -111,9 +111,11 @@ export async function GET() {
           if ((perf.bowl_wickets || 0) > stats.bowl_best_wickets) {
             stats.bowl_best_wickets = perf.bowl_wickets;
             stats.bowl_best_runs = perf.bowl_runs || 0;
+            stats.bowl_best = `${perf.bowl_wickets}/${perf.bowl_runs || 0}`;
           } else if ((perf.bowl_wickets || 0) === stats.bowl_best_wickets) {
             if ((perf.bowl_runs || 0) < (stats.bowl_best_runs || 999)) {
               stats.bowl_best_runs = perf.bowl_runs || 0;
+              stats.bowl_best = `${perf.bowl_wickets}/${perf.bowl_runs || 0}`;
             }
           }
 

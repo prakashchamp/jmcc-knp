@@ -4,6 +4,7 @@ import * as admin from 'firebase-admin';
 import { getFirebaseAdmin } from '@/services/firebase/server-config';
 import { Performance } from '@/app/lib/cricket-schema';
 import { mapFirestoreToPerformance } from '@/app/lib/firestore-mapper';
+import { sendMatchUpdateNotification } from './notification-actions';
 
 /**
  * Decrement stats logic to reverse calculateUpdatedStats.
@@ -139,6 +140,17 @@ export async function deleteMatchAction(matchId: string) {
         }
       });
     });
+    
+    // Trigger Push Notification & Cache Clearing
+    try {
+      await sendMatchUpdateNotification(
+        'Match Removed',
+        'A match was deleted by the administrator.',
+        { type: 'MATCH_UPDATE' }
+      );
+    } catch (e) {
+      console.error('Notification Error:', e);
+    }
 
     return { success: true };
   } catch (error: any) {

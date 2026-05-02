@@ -32,18 +32,30 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
   });
 
   const handleMatchChange = (field: keyof Match, value: any) => {
-    setMatch((prev) => ({ ...prev, [field]: value }));
+    let finalValue = value;
+    if (typeof value === 'number' || (!isNaN(Number(value)) && value !== '')) {
+      const numValue = Number(value);
+      if (numValue < 0) finalValue = 0;
+    }
+    setMatch((prev) => ({ ...prev, [field]: finalValue }));
   };
 
   const handlePerformanceChange = (index: number, field: string, subField: string, value: any) => {
     const updated = [...performances];
     const perf = { ...updated[index] };
+    
+    let finalValue = value;
+    if (field !== 'playerName' && (typeof value === 'number' || (!isNaN(Number(value)) && value !== ''))) {
+      const numValue = Number(value);
+      if (numValue < 0) finalValue = 0;
+    }
+
     if (field === 'playerName') {
-      perf.playerName = value;
+      perf.playerName = finalValue;
     } else {
       (perf as any)[field] = {
         ...(perf as any)[field],
-        [subField]: value,
+        [subField]: finalValue,
       };
     }
     updated[index] = perf;
@@ -59,19 +71,21 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
       const updatedMatch = {
         ...match,
         winMargin: winMarginValue ? `${winMarginValue} ${winMarginUnit}` : '',
-        teamRuns: Number(match.teamRuns || 0),
-        teamWickets: Number(match.teamWickets || 0),
-        opponentRuns: Number(match.opponentRuns || 0),
-        opponentWickets: Number(match.opponentWickets || 0),
+        teamRuns: Math.max(0, Number(match.teamRuns || 0)),
+        teamWickets: Math.max(0, Number(match.teamWickets || 0)),
+        opponentRuns: Math.max(0, Number(match.opponentRuns || 0)),
+        opponentWickets: Math.max(0, Number(match.opponentWickets || 0)),
       };
 
       // Ensure all derived fields are re-calculated if needed
       const finalPerformances = performances.map(perf => {
-        const battingRuns = Number(perf.batting?.runs || 0);
-        const battingBalls = Number(perf.batting?.balls || 0);
-        const bowlingOvers = Number(perf.bowling?.overs || 0);
-        const bowlingRuns = Number(perf.bowling?.runs || 0);
-        const bowlingWickets = Number(perf.bowling?.wickets || 0);
+        const battingRuns = Math.max(0, Number(perf.batting?.runs || 0));
+        const battingBalls = Math.max(0, Number(perf.batting?.balls || 0));
+        const bowlingOvers = Math.max(0, Number(perf.bowling?.overs || 0));
+        const bowlingRuns = Math.max(0, Number(perf.bowling?.runs || 0));
+        const bowlingWickets = Math.max(0, Number(perf.bowling?.wickets || 0));
+        const battingFours = Math.max(0, Number(perf.batting?.fours || 0));
+        const battingSixes = Math.max(0, Number(perf.batting?.sixes || 0));
 
         return {
           ...perf,
@@ -79,8 +93,8 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
             ...perf.batting,
             runs: battingRuns,
             balls: battingBalls,
-            fours: Number(perf.batting?.fours || 0),
-            sixes: Number(perf.batting?.sixes || 0),
+            fours: battingFours,
+            sixes: battingSixes,
             didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
             innings: (battingRuns > 0 || battingBalls > 0) ? 1 : 0,
             strikeRate: battingBalls > 0 ? (battingRuns / battingBalls) * 100 : 0,
@@ -163,8 +177,12 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Win Margin</label>
               <input
                 type="number"
+                min="0"
                 value={winMarginValue}
-                onChange={(e) => setWinMarginValue(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value)).toString();
+                  setWinMarginValue(val);
+                }}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
               />
             </div>
@@ -184,6 +202,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Team Runs</label>
               <input
                 type="number"
+                min="0"
                 value={match.teamRuns ?? ''}
                 onChange={(e) => handleMatchChange('teamRuns', e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
@@ -193,6 +212,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Team Wkts</label>
               <input
                 type="number"
+                min="0"
                 value={match.teamWickets ?? ''}
                 onChange={(e) => handleMatchChange('teamWickets', e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
@@ -205,6 +225,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Opponent Runs</label>
               <input
                 type="number"
+                min="0"
                 value={match.opponentRuns ?? ''}
                 onChange={(e) => handleMatchChange('opponentRuns', e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
@@ -214,6 +235,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Opponent Wkts</label>
               <input
                 type="number"
+                min="0"
                 value={match.opponentWickets ?? ''}
                 onChange={(e) => handleMatchChange('opponentWickets', e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
@@ -243,6 +265,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Runs</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.batting?.runs ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'batting', 'runs', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -252,6 +275,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Balls</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.batting?.balls ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'batting', 'balls', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -261,6 +285,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">4s</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.batting?.fours ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'batting', 'fours', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -270,6 +295,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">6s</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.batting?.sixes ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'batting', 'sixes', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -280,6 +306,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <input
                     type="number"
                     step="0.1"
+                    min="0"
                     value={perf.bowling?.overs ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'bowling', 'overs', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -289,6 +316,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Wkts</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.bowling?.wickets ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'bowling', 'wickets', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
@@ -298,6 +326,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Bowl R</label>
                   <input
                     type="number"
+                    min="0"
                     value={perf.bowling?.runs ?? ''}
                     onChange={(e) => handlePerformanceChange(idx, 'bowling', 'runs', e.target.value)}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"

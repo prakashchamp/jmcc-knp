@@ -6,6 +6,7 @@ import { createNewPlayer } from '@/app/lib/player-utils';
 import * as admin from 'firebase-admin';
 import { mapMatchToFirestore, mapPerformanceToFirestore, findBestBatter, findBestBowler, findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 import { Performance, Match } from '@/app/lib/cricket-schema';
+import { sendMatchUpdateNotification } from './notification-actions';
 
 function getISTYearMonth(dateString: string) {
   const dateObj = new Date(dateString);
@@ -194,6 +195,17 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         transaction.set(item.ref, updatedStats);
       });
     });
+
+    // Trigger Push Notification & Cache Clearing
+    try {
+      await sendMatchUpdateNotification(
+        'New Match Data!',
+        `Match against ${match.opponent} has been uploaded.`,
+        { type: 'MATCH_UPDATE' }
+      );
+    } catch (e) {
+      console.error('Notification Error:', e);
+    }
 
     return { success: true, matchId };
   } catch (error: any) {
@@ -387,6 +399,17 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
         transaction.set(item.ref, updatedStats);
       });
     });
+
+    // Trigger Push Notification & Cache Clearing
+    try {
+      await sendMatchUpdateNotification(
+        'Match Updated!',
+        `Match against ${match.opponent} has been saved.`,
+        { type: 'MATCH_UPDATE' }
+      );
+    } catch (e) {
+      console.error('Notification Error:', e);
+    }
 
     return { success: true, matchId };
   } catch (error: any) {

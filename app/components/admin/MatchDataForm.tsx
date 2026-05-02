@@ -49,17 +49,28 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
   });
 
   const handleMatchChange = (field: keyof Match, value: any) => {
+    let finalValue = value;
+    if (typeof value === 'number' || (!isNaN(Number(value)) && value !== '')) {
+      const numValue = Number(value);
+      if (numValue < 0) finalValue = 0;
+    }
     setMatch((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: finalValue,
     }));
   };
 
   const handlePerformanceChange = (index: number, field: string, value: any) => {
     const updated = [...performances];
+    let finalValue = value;
+    if (field === 'batting' || field === 'bowling') {
+      // It's a subfield object, we need to clamp the values inside if it's a numeric update
+      // Actually, it's passed as the whole object from the input.
+      // We should probably handle it in the input itself or here.
+    }
     (updated[index] as any) = {
       ...(updated[index] || {}),
-      [field]: value,
+      [field]: finalValue,
     };
     setPerformances(updated);
   };
@@ -144,10 +155,10 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         bestBowlerName: match.bestBowlerName || '',
         bestBowlerWickets: match.bestBowlerWickets || 0,
         bestBowlerRuns: match.bestBowlerRuns || 0,
-        teamRuns: Number(match.teamRuns || 0),
-        teamWickets: Number(match.teamWickets || 0),
-        opponentRuns: Number(match.opponentRuns || 0),
-        opponentWickets: Number(match.opponentWickets || 0),
+        teamRuns: Math.max(0, Number(match.teamRuns || 0)),
+        teamWickets: Math.max(0, Number(match.teamWickets || 0)),
+        opponentRuns: Math.max(0, Number(match.opponentRuns || 0)),
+        opponentWickets: Math.max(0, Number(match.opponentWickets || 0)),
         createdAt: now,
         topBatters: [],
         topBowlers: [],
@@ -158,10 +169,14 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       for (const perf of performances) {
         if (perf.playerName) {
           const performanceId = `${matchId}_${perf.playerId || perf.playerName.replace(/\s+/g, '_')}`;
-          const battingRuns = perf.batting?.runs || 0;
-          const battingBalls = perf.batting?.balls || 0;
-          const bowlingWickets = perf.bowling?.wickets || 0;
-          const bowlingOvers = perf.bowling?.overs || 0;
+          const battingRuns = Math.max(0, Number(perf.batting?.runs || 0));
+          const battingBalls = Math.max(0, Number(perf.batting?.balls || 0));
+          const bowlingWickets = Math.max(0, Number(perf.bowling?.wickets || 0));
+          const bowlingOvers = Math.max(0, Number(perf.bowling?.overs || 0));
+          const battingFours = Math.max(0, Number(perf.batting?.fours || 0));
+          const battingSixes = Math.max(0, Number(perf.batting?.sixes || 0));
+          const bowlingRuns = Math.max(0, Number(perf.bowling?.runs || 0));
+          const bowlingMaidens = Math.max(0, Number(perf.bowling?.maidens || 0));
 
           const completePerf: Performance = {
             id: performanceId,
@@ -176,8 +191,8 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               ...(perf.batting || {}),
               runs: battingRuns,
               balls: battingBalls,
-              fours: perf.batting?.fours || 0,
-              sixes: perf.batting?.sixes || 0,
+              fours: battingFours,
+              sixes: battingSixes,
               dismissed: !!perf.batting?.dismissed,
               didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
               innings: battingRuns > 0 || battingBalls > 0 ? 1 : 0,
@@ -189,12 +204,12 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
             },
             bowling: {
               ...(perf.bowling || {}),
-              runs: perf.bowling?.runs || 0,
+              runs: bowlingRuns,
               wickets: bowlingWickets,
               overs: bowlingOvers,
               balls: Math.floor(bowlingOvers) * 6 + Math.round((bowlingOvers % 1) * 10),
-              maidens: perf.bowling?.maidens || 0,
-              didBowl: bowlingOvers > 0 || (perf.bowling?.runs || 0) > 0 || bowlingWickets > 0,
+              maidens: bowlingMaidens,
+              didBowl: bowlingOvers > 0 || bowlingRuns > 0 || bowlingWickets > 0,
               innings: bowlingOvers > 0 ? 1 : 0,
               isThreeFer: bowlingWickets === 3,
               isFourFer: bowlingWickets === 4,

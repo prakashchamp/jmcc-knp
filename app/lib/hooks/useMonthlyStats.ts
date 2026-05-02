@@ -13,7 +13,7 @@ export interface MonthlyPlayerStats {
   bowlingStats: PlayerBowlingStats;
 }
 
-export function useMonthlyStats(month?: string) {
+export function useMonthlyStats(month?: string, forceRefresh = false) {
   const [players, setPlayers] = useState<MonthlyPlayerStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +29,7 @@ export function useMonthlyStats(month?: string) {
         setLoading(true);
         setError(null);
         
-        const data = await getMonthlyPlayerStatsClient(month);
+        const data = await getMonthlyPlayerStatsClient(month, forceRefresh);
         
         const sortedPlayers = data.sort((a, b) =>
           a.playerName.localeCompare(b.playerName)

@@ -11,7 +11,8 @@ import {
   DocumentData,
   QueryDocumentSnapshot,
   getDocsFromCache,
-  getDocsFromServer
+  getDocsFromServer,
+  getDocFromServer
 } from "firebase/firestore";
 import { db } from "./config";
 import { Match } from "@/app/lib/cricket-schema";
@@ -158,11 +159,13 @@ function mapToPlayerStatsFormat(data: any) {
 /**
  * Fetch monthly stats using Client SDK
  */
-export async function getMonthlyPlayerStatsClient(month: string) {
+export async function getMonthlyPlayerStatsClient(month: string, forceRefresh = false) {
   try {
     const collRef = collection(db, 'player_stats_monthly');
     const q = query(collRef, where('month', '==', month));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = forceRefresh 
+      ? await getDocsFromServer(q) 
+      : await getDocs(q);
     return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
   } catch (error) {
     console.error("Client SDK: Error fetching monthly stats:", error);
@@ -173,11 +176,13 @@ export async function getMonthlyPlayerStatsClient(month: string) {
 /**
  * Fetch yearly stats using Client SDK
  */
-export async function getYearlyPlayerStatsClient(year: string) {
+export async function getYearlyPlayerStatsClient(year: string, forceRefresh = false) {
   try {
     const collRef = collection(db, 'player_stats_yearly');
     const q = query(collRef, where('year', '==', year));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = forceRefresh 
+      ? await getDocsFromServer(q) 
+      : await getDocs(q);
     return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
   } catch (error) {
     console.error("Client SDK: Error fetching yearly stats:", error);
@@ -188,10 +193,12 @@ export async function getYearlyPlayerStatsClient(year: string) {
 /**
  * Fetch all-time stats using Client SDK
  */
-export async function getAllTimePlayerStatsClient() {
+export async function getAllTimePlayerStatsClient(forceRefresh = false) {
   try {
     const collRef = collection(db, 'player_stats_alltime');
-    const querySnapshot = await getDocs(collRef);
+    const querySnapshot = forceRefresh 
+      ? await getDocsFromServer(collRef) 
+      : await getDocs(collRef);
     return querySnapshot.docs.map(doc => mapToPlayerStatsFormat(doc.data()));
   } catch (error) {
     console.error("Client SDK: Error fetching all-time stats:", error);
@@ -219,11 +226,13 @@ export async function getPlayersClient() {
 /**
  * Fetch recent matches with performances using Client SDK
  */
-export async function getRecentMatchesClient(limitCount = 5) {
+export async function getRecentMatchesClient(limitCount = 5, forceRefresh = false) {
   try {
     const collRef = collection(db, 'matches');
     const q = query(collRef, orderBy('created_at', 'desc'), limit(limitCount));
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = forceRefresh 
+      ? await getDocsFromServer(q) 
+      : await getDocs(q);
     
     return await Promise.all(querySnapshot.docs.map(async (matchDoc) => {
       const matchData = mapFirestoreToMatch({ id: matchDoc.id, ...matchDoc.data() });
@@ -231,7 +240,9 @@ export async function getRecentMatchesClient(limitCount = 5) {
       // Fetch performances for this match
       const perfColl = collection(db, 'performances');
       const perfQuery = query(perfColl, where('match_id', '==', matchDoc.id));
-      const perfSnapshot = await getDocs(perfQuery);
+      const perfSnapshot = forceRefresh 
+        ? await getDocsFromServer(perfQuery) 
+        : await getDocs(perfQuery);
       
       const performances = perfSnapshot.docs.map(d => mapFirestoreToPerformance({
         id: d.id,
@@ -249,10 +260,12 @@ export async function getRecentMatchesClient(limitCount = 5) {
 /**
  * Fetch specific match details (match + performances) using Client SDK
  */
-export async function getMatchDetailsClient(matchId: string) {
+export async function getMatchDetailsClient(matchId: string, forceRefresh = false) {
   try {
     const docRef = doc(db, 'matches', matchId);
-    const docSnap = await getDoc(docRef);
+    const docSnap = forceRefresh 
+      ? await getDocFromServer(docRef)
+      : await getDoc(docRef);
     
     if (!docSnap.exists()) return null;
     
@@ -260,16 +273,18 @@ export async function getMatchDetailsClient(matchId: string) {
     
     const perfColl = collection(db, 'performances');
     const perfQuery = query(perfColl, where('match_id', '==', matchId));
-    const perfSnapshot = await getDocs(perfQuery);
+    const perfSnapshot = forceRefresh 
+      ? await getDocsFromServer(perfQuery)
+      : await getDocs(perfQuery);
     
     const performances = perfSnapshot.docs.map(d => mapFirestoreToPerformance({
       id: d.id,
       ...d.data()
     }));
-    
+
     return { match: matchData, performances };
   } catch (error) {
     console.error("Client SDK: Error fetching match details:", error);
-    throw error;
+    return null;
   }
 }
