@@ -5,6 +5,8 @@ import { PlayerBowlingStats } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
+import { getTopBowlersClient } from '@/services/firebase';
+
 /**
  * Hook to fetch top 3 all-time bowlers from Firestore
  */
@@ -22,8 +24,7 @@ export function useTopBowlers(): {
       try {
         setLoading(true);
         setError(null);
-        const { getTopBowlersAction } = await import('@/app/lib/actions/stats-actions');
-        const bowlers = await getTopBowlersAction();
+        const bowlers = await getTopBowlersClient();
         setData(bowlers);
       } catch (err) {
         console.error('Error fetching top bowlers:', err);

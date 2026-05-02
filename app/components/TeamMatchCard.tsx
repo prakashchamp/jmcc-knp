@@ -108,39 +108,34 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
 
       {/* Card Content */}
       <div className="p-4 sm:p-6">
-        {/* Venue */}
-        <p className="text-[10px] sm:text-xs text-white/70 mb-3 sm:mb-4">Venue: {match.venue}</p>
-
-        {/* Teams and result */}
+        {/* Opponent + Venue row */}
         <div className="mb-3 sm:mb-4">
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
-            <div className="text-right flex-1">
-              <p className="font-semibold text-white text-base sm:text-lg">{teamName}</p>
-              <p className="text-sm sm:text-base font-bold text-white mt-1">
-                {match.teamRuns ?? 0}/{match.teamWickets ?? 0}
-              </p>
-              <p className="text-[10px] sm:text-xs text-white/70 mt-0.5 sm:mt-1">Toss: {match.tossWonBy === 'Us' ? 'Won' : 'Lost'}</p>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <div className="h-0.5 sm:h-1 bg-white/30 w-4 sm:w-8"></div>
-              <p className="text-white/40 font-bold text-xs">VS</p>
-              <div className="h-0.5 sm:h-1 bg-white/20 w-4 sm:w-8"></div>
-            </div>
-            <div className="text-left flex-1">
-              <p className="font-semibold text-white text-base sm:text-lg">{match.opponent}</p>
-              <p className="text-sm sm:text-base font-bold text-white mt-1">
-                {match.opponentRuns ?? 0}/{match.opponentWickets ?? 0}
-              </p>
-              <p className="text-[10px] sm:text-xs text-white/70 mt-0.5 sm:mt-1">Opponent</p>
-            </div>
+          <p className="text-sm sm:text-base font-semibold text-white mb-0.5">vs {match.opponent}</p>
+          <p className="text-xs sm:text-sm text-white/60">{match.venue === 'Home' ? '🏠' : match.venue === 'Away' ? '✈️' : '⚔️'} {match.venue}</p>
+        </div>
+
+        {/* Score row */}
+        <div className="flex items-center justify-between mb-3 sm:mb-4 bg-white/10 rounded-lg px-3 py-2 border border-white/15">
+          <div className="text-center">
+            <p className="text-[10px] sm:text-xs text-white/60 font-medium uppercase tracking-wider mb-0.5">Spartans</p>
+            <p className="text-lg sm:text-2xl font-black text-white">
+              {match.teamRuns ?? 0}<span className="text-white/50 text-sm mx-0.5">/</span>{match.teamWickets ?? 0}
+            </p>
+          </div>
+          <div className="text-white/30 font-bold text-base sm:text-lg">vs</div>
+          <div className="text-center">
+            <p className="text-[10px] sm:text-xs text-white/60 font-medium uppercase tracking-wider mb-0.5">{match.opponent.split(' ')[0]}</p>
+            <p className="text-lg sm:text-2xl font-black text-white">
+              {match.opponentRuns ?? 0}<span className="text-white/50 text-sm mx-0.5">/</span>{match.opponentWickets ?? 0}
+            </p>
           </div>
         </div>
 
         {/* Win margin */}
         {match.winMargin && (
-          <div className="bg-white/10 backdrop-blur-sm rounded p-1.5 sm:p-2 text-center border border-white/20 mb-3 sm:mb-4">
-            <p className={`text-xs sm:text-sm font-medium ${resultStyle.textColor}`}>
-        {match.result === 'won' ? 'Won by' : match.result === 'lost' ? 'Lost by' : ''} {match.winMargin}
+          <div className="bg-white/10 rounded px-3 py-1.5 text-center border border-white/15 mb-3 sm:mb-4">
+            <p className={`text-xs sm:text-sm font-semibold ${resultStyle.textColor}`}>
+              {match.result === 'won' ? 'Won by' : match.result === 'lost' ? 'Lost by' : ''} {match.winMargin}
             </p>
           </div>
         )}
@@ -148,37 +143,37 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
         {/* Best performers */}
         {(match.topBatters?.length || match.topBowlers?.length || match.bestBatterName || match.bestBowlerName) && (
           <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/20">
-            <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               {/* Top Batters */}
               {(match.topBatters?.length || match.bestBatterName) && (
-                <div className="space-y-2">
-                  <p className="text-white/80 font-medium text-[10px] sm:text-sm">Top Batters</p>
+                <div className="space-y-1.5">
+                  <p className="text-white/50 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest">Top Batters</p>
                   {match.topBatters?.slice(0, 2).map((batter, idx) => (
-                    <div key={idx} className="text-[10px] sm:text-xs">
-                      <p className="font-semibold text-white truncate">{batter.playerName}</p>
-                      <p className="text-white/70">{batter.runs} runs ({batter.balls} balls)</p>
+                    <div key={idx}>
+                      <p className="font-bold text-white text-xs sm:text-sm truncate">{batter.playerName}</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{batter.runs} <span className="text-white/35">({batter.balls}b)</span></p>
                     </div>
                   )) || (match.bestBatterName && (
-                    <div className="text-[10px] sm:text-xs">
-                      <p className="font-semibold text-white truncate">{match.bestBatterName}</p>
-                      <p className="text-white/70">{match.bestBatterRuns} runs ({match.bestBatterBalls} balls)</p>
+                    <div>
+                      <p className="font-bold text-white text-xs sm:text-sm truncate">{match.bestBatterName}</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBatterRuns} <span className="text-white/35">({match.bestBatterBalls}b)</span></p>
                     </div>
                   ))}
                 </div>
               )}
               {/* Top Bowlers */}
               {(match.topBowlers?.length || match.bestBowlerName) && (
-                <div className="space-y-2">
-                  <p className="text-white/80 font-medium text-[10px] sm:text-sm">Top Bowlers</p>
+                <div className="space-y-1.5">
+                  <p className="text-white/50 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest">Top Bowlers</p>
                   {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
-                    <div key={idx} className="text-[10px] sm:text-xs">
-                      <p className="font-semibold text-white truncate">{bowler.playerName}</p>
-                      <p className="text-white/70">{bowler.wickets} wickets/{bowler.runs} runs</p>
+                    <div key={idx}>
+                      <p className="font-bold text-white text-xs sm:text-sm truncate">{bowler.playerName}</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">Wkts</span></p>
                     </div>
                   )) || (match.bestBowlerName && (
-                    <div className="text-[10px] sm:text-xs">
-                      <p className="font-semibold text-white truncate">{match.bestBowlerName}</p>
-                      <p className="text-white/70">{match.bestBowlerWickets} wickets/{match.bestBowlerRuns} runs</p>
+                    <div>
+                      <p className="font-bold text-white text-xs sm:text-sm truncate">{match.bestBowlerName}</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBowlerWickets} <span className="text-white/35">Wkts</span></p>
                     </div>
                   ))}
                 </div>

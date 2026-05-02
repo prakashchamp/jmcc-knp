@@ -5,6 +5,8 @@ import { Match } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
+import { getMatchesClient } from '@/services/firebase';
+
 /**
  * Hook to fetch the most recent match from Firestore
  */
@@ -18,10 +20,10 @@ export function useRecentMatch(): { data: Match | null; loading: boolean; error:
       try {
         setLoading(true);
         setError(null);
-        const { getRecentMatchesAction } = await import('@/app/lib/actions/stats-actions');
-        const matches = await getRecentMatchesAction(1);
+        // getMatchesClient already orders by created_at desc
+        const matches = await getMatchesClient(false);
         if (matches && matches.length > 0) {
-          setData(matches[0].match as Match);
+          setData(matches[0]);
         } else {
           setData(null);
         }

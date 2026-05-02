@@ -19,8 +19,8 @@ export function useTeamStats(): { data: TeamStats | null; loading: boolean; erro
         setLoading(true);
         setError(null);
 
-        const { getAllMatchesAction } = await import('@/app/lib/actions/stats-actions');
-        const matches = await getAllMatchesAction();
+        const { getMatchesClient } = await import('@/services/firebase');
+        const matches = await getMatchesClient();
 
         const stats: TeamStats = {
           totalMatches: matches.length,

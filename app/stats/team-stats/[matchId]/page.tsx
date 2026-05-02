@@ -20,12 +20,12 @@ export default function MatchDetailPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { getMatchDetailsAction } = await import('@/app/lib/actions/stats-actions');
-        const data = await getMatchDetailsAction(matchId);
+        const { getMatchDetailsClient } = await import('@/services/firebase');
+        const data = await getMatchDetailsClient(matchId);
         
         if (data) {
           setMatch(data.match);
-          setMatchPerformances(data.performances);
+          setMatchPerformances(data.performances as Performance[]);
         }
       } catch (err) {
         console.error('Error fetching match details:', err);
@@ -179,41 +179,59 @@ export default function MatchDetailPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium"
+          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium shadow-lg hover:scale-105 active:scale-95 transform"
         >
           ← Back to Team Stats
         </button>
 
         {/* Match Header */}
-        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8 shadow-md">
-          <h1 className="text-xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">Match Details</h1>
+        <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8 shadow-xl backdrop-blur-sm bg-opacity-80">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h1 className="text-xl sm:text-3xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Match Details</h1>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`px-4 py-1 rounded-full text-xs sm:text-sm font-bold shadow-md ${
+                match.result === 'won' ? 'bg-green-600 text-white' :
+                match.result === 'lost' ? 'bg-red-600 text-white' :
+                match.result === 'tie' ? 'bg-yellow-600 text-white' :
+                'bg-gray-600 text-white'
+              }`}>
+                {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
+              </span>
+              {match.winMargin && <span className="text-blue-300 text-xs sm:text-sm font-semibold">{match.winMargin}</span>}
+            </div>
+          </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-6">
-            <div>
-              <p className="text-gray-400 text-[10px] sm:text-sm">Date</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">{formatDate(match)}</p>
+          {/* Score Summary Banner */}
+          <div className="bg-slate-700/50 rounded-xl p-4 sm:p-6 mb-6 border border-slate-600 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
+            <div className="text-center">
+              <p className="text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">Spartans</p>
+              <p className="text-2xl sm:text-4xl font-black text-white">
+                {match.teamRuns ?? 0}<span className="text-slate-400 text-xl sm:text-2xl mx-1">/</span>{match.teamWickets ?? 0}
+              </p>
             </div>
-            <div>
-              <p className="text-gray-400 text-[10px] sm:text-sm">Opponent</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">{match.opponent}</p>
+            <div className="hidden sm:block h-12 w-px bg-slate-600"></div>
+            <div className="text-center">
+              <p className="text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">{match.opponent}</p>
+              <p className="text-2xl sm:text-4xl font-black text-white">
+                {match.opponentRuns ?? 0}<span className="text-slate-400 text-xl sm:text-2xl mx-1">/</span>{match.opponentWickets ?? 0}
+              </p>
             </div>
-            <div>
-              <p className="text-gray-400 text-[10px] sm:text-sm">Venue</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">{match.venue}</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
+              <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Date</p>
+              <p className="text-sm sm:text-base font-semibold text-white mt-1">{formatDate(match)}</p>
             </div>
-            <div>
-              <p className="text-gray-400 text-[10px] sm:text-sm">Result</p>
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
-                <span className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-[10px] sm:text-sm font-semibold ${
-                  match.result === 'won' ? 'bg-green-900 text-green-200' :
-                  match.result === 'lost' ? 'bg-red-900 text-red-200' :
-                  match.result === 'tie' ? 'bg-yellow-900 text-yellow-200' :
-                  'bg-gray-700 text-gray-200'
-                }`}>
-                  {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
-                </span>
-                {match.winMargin && <span className="text-white text-[10px] sm:text-sm font-medium">{match.winMargin}</span>}
-              </div>
+            <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
+              <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Venue</p>
+              <p className="text-sm sm:text-base font-semibold text-white mt-1">{match.venue}</p>
+            </div>
+            <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50 col-span-2 sm:col-span-1">
+              <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Toss</p>
+              <p className="text-sm sm:text-base font-semibold text-white mt-1">
+                {match.tossWonBy === 'Us' ? 'Spartans won' : `${match.opponent} won`} ({match.tossDecision})
+              </p>
             </div>
           </div>
         </div>

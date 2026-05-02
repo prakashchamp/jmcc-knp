@@ -5,6 +5,8 @@ import { PlayerBattingStats } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 
+import { getTopBattersClient } from '@/services/firebase';
+
 /**
  * Hook to fetch top 3 all-time batters from Firestore
  */
@@ -22,8 +24,7 @@ export function useTopBatters(): {
       try {
         setLoading(true);
         setError(null);
-        const { getTopBattersAction } = await import('@/app/lib/actions/stats-actions');
-        const batters = await getTopBattersAction();
+        const batters = await getTopBattersClient();
         setData(batters);
       } catch (err) {
         console.error('Error fetching top batters:', err);

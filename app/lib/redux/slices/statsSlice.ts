@@ -2,7 +2,7 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Match } from '@/app/lib/cricket-schema';
-import { getAllMatchesAction } from '@/app/lib/actions/stats-actions';
+import { getMatchesClient } from '@/services/firebase';
 
 export interface StatsState {
   matches: Match[];
@@ -25,23 +25,9 @@ const initialState: StatsState = {
 export const fetchAllMatches = createAsyncThunk(
   'stats/fetchAllMatches',
   async (force: boolean = false, { getState }) => {
-    const state = getState() as { stats: StatsState };
-    const statsState = state.stats;
-    
-    // Simple cache invalidation (e.g. 5 minutes) or force refresh
-    const CACHE_TTL = 5 * 60 * 1000;
-    const now = Date.now();
-    
-    if (
-      !force && 
-      statsState.matches.length > 0 && 
-      statsState.lastFetchedAt && 
-      (now - statsState.lastFetchedAt < CACHE_TTL)
-    ) {
-      return statsState.matches;
-    }
-    
-    const matches = await getAllMatchesAction();
+    // Client SDK handles persistence automatically.
+    // We only force a network fetch if explicitly requested.
+    const matches = await getMatchesClient(force);
     return matches;
   }
 );

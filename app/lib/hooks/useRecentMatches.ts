@@ -10,6 +10,8 @@ export interface RecentMatchStats {
   performances: Performance[];
 }
 
+import { getRecentMatchesClient } from '@/services/firebase';
+
 /**
  * Hook to fetch recent N matches from Firestore
  */
@@ -24,8 +26,7 @@ export function useRecentMatches(limitCount: number = 5) {
         setLoading(true);
         setError(null);
 
-        const { getRecentMatchesAction } = await import('@/app/lib/actions/stats-actions');
-        const recentMatches = await getRecentMatchesAction(limitCount);
+        const recentMatches = await getRecentMatchesClient(limitCount);
         setMatches(recentMatches as RecentMatchStats[]);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('Failed to fetch recent matches'));

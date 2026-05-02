@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Performance, PlayerBattingStats, PlayerBowlingStats } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
-import { getAllTimePlayerStatsAction } from '@/app/lib/actions/stats-actions';
+import { getAllTimePlayerStatsClient } from '@/services/firebase';
 
 export interface PlayerStats {
   playerId: string;
@@ -25,7 +25,7 @@ export function useAllPlayers() {
         setLoading(true);
         setError(null);
         
-        const data = await getAllTimePlayerStatsAction();
+        const data = await getAllTimePlayerStatsClient();
         
         const sortedPlayers = data.sort((a, b) =>
           a.playerName.localeCompare(b.playerName)

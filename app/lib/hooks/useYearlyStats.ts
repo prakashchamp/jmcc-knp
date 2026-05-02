@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { PlayerBattingStats, PlayerBowlingStats } from '../cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
-import { getYearlyPlayerStatsAction } from '@/app/lib/actions/stats-actions';
+import { getYearlyPlayerStatsClient } from '@/services/firebase';
 
 export interface YearlyPlayerStats {
   playerId: string;
@@ -29,7 +29,7 @@ export function useYearlyStats(year?: string) {
         setLoading(true);
         setError(null);
         
-        const data = await getYearlyPlayerStatsAction(year);
+        const data = await getYearlyPlayerStatsClient(year);
         
         const sortedPlayers = data.sort((a, b) =>
           a.playerName.localeCompare(b.playerName)
