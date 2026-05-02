@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, replaceBatsman } from '@/app/lib/redux/slices/scorerSlice';
 import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
+import { CricketScoringEngine } from '@/app/lib/scoring-engine';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { useState } from 'react';
@@ -35,9 +36,7 @@ export function NewBatsmanDialog() {
   // Get available players (not current batsmen and not dismissed)
   // Show all players regardless of role
   const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
-  const availableBatsmen = battingTeamPlayers.filter(
-    (player) => !excludeIds.includes(player.id)
-  );
+  const availableBatsmen = CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings);
 
   const handleSelectBatsman = (batsman: TeamPlayer) => {
     if (!batsman) return;
@@ -54,6 +53,7 @@ export function NewBatsmanDialog() {
           outBatsmanId,
           newBatsman: batsman,
           isStriker: dismissedBatsmanRole === 'striker',
+          isChangeBatsman: true,
         })
       );
     }
@@ -91,10 +91,13 @@ export function NewBatsmanDialog() {
               setDismissedBatsmanRole('striker');
               setSelectedBatter(null);
             }}
+            disabled={currentInnings.striker?.balls !== 0}
             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
-              dismissedBatsmanRole === 'striker'
-                ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+              currentInnings.striker?.balls === 0
+                ? dismissedBatsmanRole === 'striker'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+                : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
             }`}
           >
             <span className="mb-0.5 block text-[10px] uppercase tracking-widest opacity-60">Replace</span>
@@ -105,10 +108,13 @@ export function NewBatsmanDialog() {
               setDismissedBatsmanRole('non-striker');
               setSelectedBatter(null);
             }}
+            disabled={currentInnings.nonStriker?.balls !== 0}
             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
-              dismissedBatsmanRole === 'non-striker'
-                ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+              currentInnings.nonStriker?.balls === 0
+                ? dismissedBatsmanRole === 'non-striker'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+                : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
             }`}
           >
             <span className="mb-0.5 block text-[10px] uppercase tracking-widest opacity-60">Replace</span>

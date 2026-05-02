@@ -215,6 +215,26 @@ function updateBatsmanStats(innings: InningsState) {
   }
 }
 
+function replaceBatsmanInPartnership(innings: InningsState, outBatsmanId: string, newBatsman: TeamPlayer) {
+  if (!innings.currentPartnership) return;
+
+  if (innings.currentPartnership.batsman1.id === outBatsmanId) {
+    innings.currentPartnership.batsman1 = {
+      ...innings.currentPartnership.batsman1,
+      id: newBatsman.id,
+      name: newBatsman.name,
+    };
+  }
+
+  if (innings.currentPartnership.batsman2.id === outBatsmanId) {
+    innings.currentPartnership.batsman2 = {
+      ...innings.currentPartnership.batsman2,
+      id: newBatsman.id,
+      name: newBatsman.name,
+    };
+  }
+}
+
 /**
  * Helper: Update bowlerStats array to keep it in sync with current bowler stats
  */
@@ -1748,34 +1768,36 @@ export const scorerSlice = createSlice({
     /**
      * Replace dismissed batsman with new batsman
      */
-    replaceBatsman: (state, action: PayloadAction<{ outBatsmanId: string; newBatsman: TeamPlayer; isStriker: boolean }>) => {
-      const { outBatsmanId, newBatsman, isStriker } = action.payload;
+    replaceBatsman: (state, action: PayloadAction<{ outBatsmanId: string; newBatsman: TeamPlayer; isStriker: boolean; isChangeBatsman?: boolean }>) => {
+      const { outBatsmanId, newBatsman, isStriker, isChangeBatsman = false } = action.payload;
       if (!state.currentInnings) return;
 
       const innings = state.currentInnings;
+      const outBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === outBatsmanId);
+      const outBatsman = outBatsmanIndex >= 0 ? innings.batsmanStats[outBatsmanIndex] : undefined;
 
-      // Check if newBatsman is already in batsmanStats (e.g., was retired hurt and returning)
-      const existingBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === newBatsman.id);
-      const isRetiredHurtReturning = existingBatsmanIndex >= 0 && 
-        innings.batsmanStats[existingBatsmanIndex].dismissal?.mode === 'retired-hurt';
+      const isRetiredHurtReturning = innings.batsmanStats.findIndex(b => b.id === newBatsman.id) >= 0 && 
+        innings.batsmanStats[innings.batsmanStats.findIndex(b => b.id === newBatsman.id)].dismissal?.mode === 'retired-hurt';
 
       let newBatsmanObj: CurrentBatsman;
 
       if (isRetiredHurtReturning) {
-        // Restore retired hurt batsman - clear dismissal, keep their stats
+        const existingBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === newBatsman.id);
         const existingBatsman = innings.batsmanStats[existingBatsmanIndex];
         newBatsmanObj = {
           ...existingBatsman,
           role: isStriker ? 'striker' : 'non-striker',
           status: 'batting',
-          dismissal: undefined, // Clear retired hurt status
+          dismissal: undefined,
         };
-        // Update in place
         innings.batsmanStats[existingBatsmanIndex] = newBatsmanObj;
       } else {
-        // New batsman - calculate batsman order
         const maxOrder = Math.max(...innings.batsmanStats.map(b => b.batsmanOrder || 0), 0);
-        const nextBatsmanOrder = Math.min(maxOrder + 1, 11);
+        let nextBatsmanOrder = Math.min(maxOrder + 1, 11);
+
+        if (isChangeBatsman && outBatsman && outBatsman.batsmanOrder) {
+          nextBatsmanOrder = outBatsman.batsmanOrder;
+        }
 
         newBatsmanObj = {
           id: newBatsman.id,
@@ -1792,13 +1814,17 @@ export const scorerSlice = createSlice({
           batsmanOrder: nextBatsmanOrder,
         };
 
-        // Update the out batsman's status in batsmanStats
-        const outBatsmanIndex = innings.batsmanStats.findIndex(b => b.id === outBatsmanId);
-        if (outBatsmanIndex >= 0) {
-          innings.batsmanStats[outBatsmanIndex].status = 'out';
+        if (isChangeBatsman && outBatsman && outBatsman.balls === 0 && outBatsman.runs === 0) {
+          if (outBatsmanIndex >= 0) {
+            innings.batsmanStats.splice(outBatsmanIndex, 1);
+          }
+          replaceBatsmanInPartnership(innings, outBatsmanId, newBatsman);
+        } else {
+          if (outBatsmanIndex >= 0) {
+            innings.batsmanStats[outBatsmanIndex].status = 'out';
+          }
         }
 
-        // Add new batsman to batsmanStats
         innings.batsmanStats.push(newBatsmanObj);
       }
 

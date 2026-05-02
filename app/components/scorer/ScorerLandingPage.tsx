@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
 import { TeamPlayer, LiveMatch } from '@/app/lib/cricket-scorer-types';
+import { generatePlayerId } from '@/app/lib/player-utils';
 import { validateAndClearCorruptedState } from '@/app/lib/redux/store';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { inputClass, primaryButtonClass, secondaryButtonClass } from './dialogs/dialogTheme';
@@ -298,7 +299,7 @@ export function ScorerLandingPage({
   const handleCreateNewBowler = () => {
     if (newBowlerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: `bowler-${Date.now()}`,
+        id: generatePlayerId(),
         name: newBowlerName.trim(),
       };
       setBowler(newPlayer);

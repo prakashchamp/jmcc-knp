@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { MatchSetupData } from '@/app/lib/pwa-cricket-types';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface MatchSetupFormProps {
   onSubmit: (data: MatchSetupData) => void;
@@ -140,16 +141,18 @@ export const MatchSetupForm: React.FC<MatchSetupFormProps> = ({
             <label className="block text-sm font-semibold mb-2">
               Toss Won By
             </label>
-            <select
-              name="tossWonBy"
+            <CustomSelect
+              id="tossWonBy"
               value={formData.tossWonBy}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Select team"
+              options={[
+                { value: 'ABC', label: 'ABC' },
+                { value: 'opponent', label: formData.opponentName || 'Opponent' },
+              ]}
+              onChange={(value) => setFormData((prev) => ({ ...prev, tossWonBy: value as MatchSetupData['tossWonBy'] }))}
+              className="w-full"
               disabled={isLoading}
-            >
-              <option value="ABC">ABC</option>
-              <option value="opponent">{formData.opponentName || 'Opponent'}</option>
-            </select>
+            />
           </div>
 
           {/* Decision */}
@@ -157,16 +160,18 @@ export const MatchSetupForm: React.FC<MatchSetupFormProps> = ({
             <label className="block text-sm font-semibold mb-2">
               Decision: {formData.tossWonBy} chooses to...
             </label>
-            <select
-              name="decision"
+            <CustomSelect
+              id="decision"
               value={formData.decision}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Select decision"
+              options={[
+                { value: 'bat', label: 'Bat' },
+                { value: 'bowl', label: 'Bowl' },
+              ]}
+              onChange={(value) => setFormData((prev) => ({ ...prev, decision: value as MatchSetupData['decision'] }))}
+              className="w-full"
               disabled={isLoading}
-            >
-              <option value="bat">Bat</option>
-              <option value="bowl">Bowl</option>
-            </select>
+            />
           </div>
 
           {/* Summary */}

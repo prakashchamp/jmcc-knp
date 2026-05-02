@@ -135,6 +135,8 @@ export function mapFirestoreToMatch(data: any): Match {
     firstInningsScore: typeof data.firstInningsScore === 'number'
       ? data.firstInningsScore
       : data.first_innings_score || 0,
+    topBatters: data.topBatters || data.top_batters || [],
+    topBowlers: data.topBowlers || data.top_bowlers || [],
     bestBatterId: data.bestBatterId || data.best_batter_id || '',
     bestBatterName: data.bestBatterName || data.best_batter_name || '',
     bestBatterRuns: data.bestBatterRuns || data.best_batter_runs || 0,
@@ -168,6 +170,30 @@ export function findBestBatter(performances: Performance[]) {
 }
 
 /**
+ * Finds top 2 batters from a list of performances
+ */
+export function findTopBatters(performances: Performance[]) {
+  if (performances.length === 0) return [];
+  
+  return [...performances]
+    .sort((a, b) => {
+      // Primary: Runs
+      if (b.batting.runs !== a.batting.runs) {
+        return b.batting.runs - a.batting.runs;
+      }
+      // Secondary: Fewer balls (better SR)
+      return a.batting.balls - b.batting.balls;
+    })
+    .slice(0, 2)
+    .map(perf => ({
+      playerId: perf.playerId,
+      playerName: perf.playerName,
+      runs: perf.batting.runs,
+      balls: perf.batting.balls,
+    }));
+}
+
+/**
  * Finds the best bowler from a list of performances
  */
 export function findBestBowler(performances: Performance[]) {
@@ -181,4 +207,28 @@ export function findBestBowler(performances: Performance[]) {
     // Secondary: Fewer runs conceded
     return a.bowling.runs - b.bowling.runs;
   })[0];
+}
+
+/**
+ * Finds top 2 bowlers from a list of performances
+ */
+export function findTopBowlers(performances: Performance[]) {
+  if (performances.length === 0) return [];
+  
+  return [...performances]
+    .sort((a, b) => {
+      // Primary: Wickets
+      if (b.bowling.wickets !== a.bowling.wickets) {
+        return b.bowling.wickets - a.bowling.wickets;
+      }
+      // Secondary: Fewer runs conceded
+      return a.bowling.runs - b.bowling.runs;
+    })
+    .slice(0, 2)
+    .map(perf => ({
+      playerId: perf.playerId,
+      playerName: perf.playerName,
+      wickets: perf.bowling.wickets,
+      runs: perf.bowling.runs,
+    }));
 }

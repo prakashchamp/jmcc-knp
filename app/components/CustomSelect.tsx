@@ -14,9 +14,11 @@ interface CustomSelectProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
-export function CustomSelect({ id, label, options, value, onChange, className = '' }: CustomSelectProps) {
+export function CustomSelect({ id, label, options, value, onChange, className = '', placeholder, disabled = false }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -46,12 +48,13 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
       <button
         id={id}
         type="button"
-        onClick={() => setIsOpen((o) => !o)}
+        onClick={() => { if (!disabled) setIsOpen((o) => !o); }}
+        disabled={disabled}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        className="w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
       >
-        <span className="truncate">{selected?.label ?? 'Select...'}</span>
+        <span className="truncate">{selected?.label ?? placeholder ?? 'Select...'}</span>
         <svg
           className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"

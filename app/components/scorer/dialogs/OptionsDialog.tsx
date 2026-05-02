@@ -20,15 +20,12 @@ export function OptionsDialog() {
 
   // Helper functions to determine if options are allowed
   const canChangeBatsman = () => {
-    // Allowed at beginning of innings or after wicket on last ball
-    if (currentInnings.totalBalls === 0) return true;
+    if (!currentInnings.striker && !currentInnings.nonStriker) return false;
 
-    // Check if last ball was a wicket
-    if (currentInnings.ballHistory && currentInnings.ballHistory.length > 0) {
-      const lastBall = currentInnings.ballHistory[currentInnings.ballHistory.length - 1];
-      return Boolean(lastBall.isWicket || lastBall.dismissal);
-    }
-    return false;
+    const strikerHasNotFaced = currentInnings.striker?.balls === 0;
+    const nonStrikerHasNotFaced = currentInnings.nonStriker?.balls === 0;
+
+    return Boolean(strikerHasNotFaced || nonStrikerHasNotFaced);
   };
 
   const canChangeBowler = () => {

@@ -1,10 +1,14 @@
 'use server';
 
 /**
- * Validate admin password.
- * Reads from environment or falls back to default 0000.
+ * Validate admin password against environment variable.
  */
 export async function validateAdminPassword(password: string) {
-  const expectedPassword = process.env.ADMIN_PASSWORD || '0000';
+  const expectedPassword = process.env.NEXT_PRIVATE_ADMIN_PASSWORD;
+  if (!expectedPassword) {
+    console.error('NEXT_PRIVATE_ADMIN_PASSWORD environment variable is not set.');
+    return false;
+  }
+
   return password === expectedPassword;
 }

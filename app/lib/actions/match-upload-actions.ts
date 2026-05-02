@@ -2,8 +2,9 @@
 
 import { getFirebaseAdmin } from '@/services/firebase/server-config';
 import { LiveMatch, TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { createNewPlayer } from '@/app/lib/player-utils';
 import * as admin from 'firebase-admin';
-import { mapMatchToFirestore, mapPerformanceToFirestore, findBestBatter, findBestBowler } from '@/app/lib/firestore-mapper';
+import { mapMatchToFirestore, mapPerformanceToFirestore, findBestBatter, findBestBowler, findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 import { Performance, Match } from '@/app/lib/cricket-schema';
 
 function getISTYearMonth(dateString: string) {
@@ -32,10 +33,12 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
     // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
     const allPlayersQuery = await db.collection('players').get();
     const existingPlayers = new Map<string, string>();
+    const existingNames = new Set<string>();
     allPlayersQuery.docs.forEach(doc => {
       const data = doc.data();
       if (data.name) {
         existingPlayers.set(data.name.toLowerCase().trim(), doc.id);
+        existingNames.add(data.name.toLowerCase().trim());
       }
     });
 
@@ -45,8 +48,12 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
       if (trueId) {
         perf.playerId = trueId;
       } else {
-        perf.playerId = `player_${nameKey.replace(/\s+/g, '_')}`;
-        existingPlayers.set(nameKey, perf.playerId);
+        // Create new player with collision handling
+        const newPlayer = createNewPlayer(perf.playerName, existingNames);
+        perf.playerId = newPlayer.id;
+        perf.playerName = newPlayer.name; // Update name if collision occurred
+        existingPlayers.set(newPlayer.name.toLowerCase().trim(), newPlayer.id);
+        existingNames.add(newPlayer.name.toLowerCase().trim());
       }
       perf.id = `${matchId}_${perf.playerId}`;
     }
@@ -122,6 +129,11 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
           });
         }
       }
+
+      // Calculate top batters and bowlers
+      const topBatters = findTopBatters(performances);
+      const topBowlers = findTopBowlers(performances);
+      
       // Save match with snake_case fields
       const mappedMatch = {
         ...mapMatchToFirestore({
@@ -136,14 +148,16 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
           totalOvers: match.totalOvers || 20,
           status: 'complete'
         } as any),
-        best_batter_id: match.bestBatterId,
-        best_batter_name: match.bestBatterName,
-        best_batter_runs: match.bestBatterRuns,
-        best_batter_balls: match.bestBatterBalls,
-        best_bowler_id: match.bestBowlerId,
-        best_bowler_name: match.bestBowlerName,
-        best_bowler_wickets: match.bestBowlerWickets,
-        best_bowler_runs: match.bestBowlerRuns,
+        top_batters: topBatters,
+        top_bowlers: topBowlers,
+        best_batter_id: match.bestBatterId || topBatters[0]?.playerId || '',
+        best_batter_name: match.bestBatterName || topBatters[0]?.playerName || '',
+        best_batter_runs: match.bestBatterRuns || topBatters[0]?.runs || 0,
+        best_batter_balls: match.bestBatterBalls || topBatters[0]?.balls || 0,
+        best_bowler_id: match.bestBowlerId || topBowlers[0]?.playerId || '',
+        best_bowler_name: match.bestBowlerName || topBowlers[0]?.playerName || '',
+        best_bowler_wickets: match.bestBowlerWickets || topBowlers[0]?.wickets || 0,
+        best_bowler_runs: match.bestBowlerRuns || topBowlers[0]?.runs || 0,
         first_innings_team: match.firstInningsTeam || '',
         first_innings_score: match.firstInningsScore || 0,
         created_at: match.createdAt || new Date().toISOString(),
@@ -193,10 +207,12 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
   // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
   const allPlayersQuery = await db.collection('players').get();
   const existingPlayers = new Map<string, string>();
+  const existingNames = new Set<string>();
   allPlayersQuery.docs.forEach(doc => {
     const data = doc.data();
     if (data.name) {
       existingPlayers.set(data.name.toLowerCase().trim(), doc.id);
+      existingNames.add(data.name.toLowerCase().trim());
     }
   });
 
@@ -206,8 +222,12 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     if (trueId) {
       perf.playerId = trueId;
     } else {
-      perf.playerId = `player_${nameKey.replace(/\s+/g, '_')}`;
-      existingPlayers.set(nameKey, perf.playerId);
+      // Create new player with collision handling
+      const newPlayer = createNewPlayer(perf.playerName, existingNames);
+      perf.playerId = newPlayer.id;
+      perf.playerName = newPlayer.name; // Update name if collision occurred
+      existingPlayers.set(newPlayer.name.toLowerCase().trim(), newPlayer.id);
+      existingNames.add(newPlayer.name.toLowerCase().trim());
     }
     perf.id = `${matchId}_${perf.playerId}`;
     
@@ -215,15 +235,20 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     const teamPlayer = match.teamPlayers.find(p => p.name.toLowerCase().trim() === nameKey);
     if (teamPlayer) {
       teamPlayer.id = perf.playerId;
+      teamPlayer.name = perf.playerName; // Update name if collision occurred
     }
   }
 
+  const topBatters = findTopBatters(performances);
+  const topBowlers = findTopBowlers(performances);
   const bestBatter = findBestBatter(performances);
   const bestBowler = findBestBowler(performances);
 
   // 2. Prepare Match Data
   const matchData = {
     ...mapMatchToFirestore(match),
+    top_batters: topBatters,
+    top_bowlers: topBowlers,
     best_batter_id: bestBatter?.playerId || '',
     best_batter_name: bestBatter?.playerName || '',
     best_batter_runs: bestBatter?.batting.runs || 0,

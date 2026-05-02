@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import { closeDialog } from '@/app/lib/redux/slices/scorerSlice';
 import { uploadMatchToFirestore } from '@/app/lib/redux/thunks/matchUpload';
+import { CustomSelect } from '@/app/components/CustomSelect';
 import {
   modalEyebrowClass,
   modalHeaderClass,
@@ -114,15 +115,18 @@ export function UploadConfirmDialog() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-400 mb-1">Toss Won By</label>
-                  <select
-                    value={tossWonBy}
-                    onChange={(e) => setTossWonBy(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="Us">Us</option>
-                    <option value="Them">Them</option>
-                  </select>
-                </div>
+                <CustomSelect
+                  id="upload-toss-won-by"
+                  value={tossWonBy}
+                  placeholder="Select toss winner"
+                  options={[
+                    { value: 'Us', label: 'Us' },
+                    { value: 'Them', label: 'Them' },
+                  ]}
+                  onChange={(value) => setTossWonBy(value as 'Us' | 'Them')}
+                  className="w-full"
+                />
+              </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

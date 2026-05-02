@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "./lib/redux/provider";
 import MobileInputHandler from "./components/MobileInputHandler";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 import { ThemeProvider } from "./components/ThemeProvider";
 
@@ -24,6 +25,10 @@ export const metadata: Metadata = {
 
 export const viewport = {
   themeColor: "#000000",
+  initialScale: 1,
+  width: "device-width",
+  userScalable: false,
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({
@@ -39,6 +44,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
         <ThemeProvider>
+          <ScrollToTop />
           <MobileInputHandler />
           <ReduxProvider>
             {children}

@@ -315,20 +315,35 @@ export class CricketScoringEngine {
   }
 
   /**
-   * Get available batsmen (not currently batting, not dismissed)
+   * Get available batsmen for replacement.
+   * Only include players who are not currently batting and who are not dismissed/out.
+   * Retired hurt batters remain eligible for return, while any player who is out or retired out is excluded.
    */
   static getAvailableBatsmen(allPlayers: TeamPlayer[], innings: InningsState): TeamPlayer[] {
-    const usedIds = new Set<string>();
+    const activeBatsmanIds = new Set<string>();
+    if (innings.striker) activeBatsmanIds.add(innings.striker.id);
+    if (innings.nonStriker) activeBatsmanIds.add(innings.nonStriker.id);
 
-    // Add striker and non-striker
-    if (innings.striker) usedIds.add(innings.striker.id);
-    if (innings.nonStriker) usedIds.add(innings.nonStriker.id);
+    const dismissedOutIds = new Set<string>();
 
-    // Add dismissed batsmen
-    innings.dismissedBatsmen.forEach((b) => usedIds.add(b.id));
+    innings.batsmanStats.forEach((batsman) => {
+      if (batsman.status === 'out') {
+        dismissedOutIds.add(batsman.id);
+      }
+      if (batsman.dismissal?.mode && batsman.dismissal.mode !== 'retired-hurt') {
+        dismissedOutIds.add(batsman.id);
+      }
+    });
 
-    // Return players not in used set
-    return allPlayers.filter((p) => !usedIds.has(p.id));
+    innings.dismissedBatsmen.forEach((dismissed) => {
+      dismissedOutIds.add(dismissed.id);
+    });
+
+    return allPlayers.filter((player) => {
+      if (activeBatsmanIds.has(player.id)) return false;
+      if (dismissedOutIds.has(player.id)) return false;
+      return true;
+    });
   }
 
   /**

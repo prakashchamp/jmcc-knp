@@ -50,15 +50,30 @@ export interface Match {
   firstInningsTeam?: string;
   firstInningsScore?: number;
 
-  bestBatterId: string;
-  bestBatterName: string;
-  bestBatterRuns: number;
-  bestBatterBalls: number;
+  topBatters: Array<{
+    playerId: string;
+    playerName: string;
+    runs: number;
+    balls: number;
+  }>;
 
-  bestBowlerId: string;
-  bestBowlerName: string;
-  bestBowlerWickets: number;
-  bestBowlerRuns: number;
+  topBowlers: Array<{
+    playerId: string;
+    playerName: string;
+    wickets: number;
+    runs: number;
+  }>;
+
+  // Deprecated: kept for backward compatibility
+  bestBatterId?: string;
+  bestBatterName?: string;
+  bestBatterRuns?: number;
+  bestBatterBalls?: number;
+
+  bestBowlerId?: string;
+  bestBowlerName?: string;
+  bestBowlerWickets?: number;
+  bestBowlerRuns?: number;
 
   createdAt: string; // ISO 8601
 

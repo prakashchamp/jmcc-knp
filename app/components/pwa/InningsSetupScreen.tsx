@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { BatsmanScorecard, BowlerScorecard } from '@/app/lib/pwa-cricket-types';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface InningsSetupScreenProps {
   inningsNumber: 1 | 2;
@@ -130,41 +131,35 @@ export const InningsSetupScreen: React.FC<InningsSetupScreenProps> = ({
           {isJMCCBatting && (
             <>
               <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Striker (on strike)
-                </label>
-                <select
+                <CustomSelect
+                  id="striker"
+                  label="Striker"
                   value={striker}
-                  onChange={(e) => { setStriker(e.target.value); setErrors([]); }}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[48px]"
+                  placeholder="Select striker"
+                  options={[
+                    { value: '', label: 'Select striker' },
+                    ...abcTeamPlayers.map((player) => ({ value: player.id, label: `${player.name} (#${player.jerseyNumber})` })),
+                  ]}
+                  onChange={(value) => { setStriker(value); setErrors([]); }}
+                  className="w-full"
                   disabled={isLoading}
-                >
-                  <option value="">Select striker</option>
-                  {abcTeamPlayers.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name} (#{player.jerseyNumber})
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Non-Striker (at other end)
-                </label>
-                <select
+                <CustomSelect
+                  id="non-striker"
+                  label="Non-Striker"
                   value={nonStriker}
-                  onChange={(e) => { setNonStriker(e.target.value); setErrors([]); }}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[48px]"
+                  placeholder="Select non-striker"
+                  options={[
+                    { value: '', label: 'Select non-striker' },
+                    ...abcTeamPlayers.map((player) => ({ value: player.id, label: `${player.name} (#${player.jerseyNumber})` })),
+                  ]}
+                  onChange={(value) => { setNonStriker(value); setErrors([]); }}
+                  className="w-full"
                   disabled={isLoading}
-                >
-                  <option value="">Select non-striker</option>
-                  {abcTeamPlayers.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name} (#{player.jerseyNumber})
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* Opponent bowler name (text only — we don't have their roster) */}
@@ -194,22 +189,19 @@ export const InningsSetupScreen: React.FC<InningsSetupScreenProps> = ({
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">
-                  Opening Bowler (JMCC)
-                </label>
-                <select
+                <CustomSelect
+                  id="opening-bowler"
+                  label="Opening Bowler"
                   value={bowler}
-                  onChange={(e) => { setBowler(e.target.value); setErrors([]); }}
-                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[48px]"
+                  placeholder="Select opening bowler"
+                  options={[
+                    { value: '', label: 'Select opening bowler' },
+                    ...abcTeamPlayers.map((player) => ({ value: player.id, label: `${player.name} (#${player.jerseyNumber})` })),
+                  ]}
+                  onChange={(value) => { setBowler(value); setErrors([]); }}
+                  className="w-full"
                   disabled={isLoading}
-                >
-                  <option value="">Select opening bowler</option>
-                  {abcTeamPlayers.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name} (#{player.jerseyNumber})
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </>
           )}

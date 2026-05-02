@@ -133,21 +133,41 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
                 </div>
 
                 {/* Best Performers */}
-                {(match.bestBatterName || match.bestBowlerName) && (
+                {(match.topBatters?.length || match.topBowlers?.length || match.bestBatterName || match.bestBowlerName) && (
                   <div className="mt-3 pt-3 border-t border-white/10">
                     <div className="grid grid-cols-2 gap-3">
-                      {match.bestBatterName && (
-                        <div className="min-w-0">
-                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-0.5">Top Batter</p>
-                          <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBatterName}</p>
-                          <p className="text-blue-400 text-[10px] sm:text-xs font-medium">{match.bestBatterRuns} <span className="text-gray-500 text-[9px]">({match.bestBatterBalls})</span></p>
+                      {/* Top Batters */}
+                      {(match.topBatters?.length || match.bestBatterName) && (
+                        <div className="min-w-0 space-y-2">
+                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">Top Batters</p>
+                          {match.topBatters?.slice(0, 2).map((batter, idx) => (
+                            <div key={idx} className="min-w-0">
+                              <p className="text-white text-xs sm:text-sm font-bold truncate">{batter.playerName}</p>
+                              <p className="text-blue-400 text-[10px] sm:text-xs font-medium">{batter.runs} <span className="text-gray-500 text-[9px]">({batter.balls})</span></p>
+                            </div>
+                          )) || (match.bestBatterName && (
+                            <div className="min-w-0">
+                              <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBatterName}</p>
+                              <p className="text-blue-400 text-[10px] sm:text-xs font-medium">{match.bestBatterRuns} <span className="text-gray-500 text-[9px]">({match.bestBatterBalls})</span></p>
+                            </div>
+                          ))}
                         </div>
                       )}
-                      {match.bestBowlerName && (
-                        <div className="min-w-0">
-                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold mb-0.5">Top Bowler</p>
-                          <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBowlerName}</p>
-                          <p className="text-red-400 text-[10px] sm:text-xs font-medium">{match.bestBowlerWickets} <span className="text-gray-500 text-[9px]">Wkts</span></p>
+                      {/* Top Bowlers */}
+                      {(match.topBowlers?.length || match.bestBowlerName) && (
+                        <div className="min-w-0 space-y-2">
+                          <p className="text-[9px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">Top Bowlers</p>
+                          {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
+                            <div key={idx} className="min-w-0">
+                              <p className="text-white text-xs sm:text-sm font-bold truncate">{bowler.playerName}</p>
+                              <p className="text-red-400 text-[10px] sm:text-xs font-medium">{bowler.wickets} <span className="text-gray-500 text-[9px]">Wkts</span></p>
+                            </div>
+                          )) || (match.bestBowlerName && (
+                            <div className="min-w-0">
+                              <p className="text-white text-xs sm:text-sm font-bold truncate">{match.bestBowlerName}</p>
+                              <p className="text-red-400 text-[10px] sm:text-xs font-medium">{match.bestBowlerWickets} <span className="text-gray-500 text-[9px]">Wkts</span></p>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>

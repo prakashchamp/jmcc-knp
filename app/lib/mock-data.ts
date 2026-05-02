@@ -28,7 +28,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 3,
     bestBowlerRuns: 22,
-    createdAt: '2024-03-15T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-03-15T10:00:00Z',
   },
   {
     id: 'match002',
@@ -49,7 +49,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 2,
     bestBowlerRuns: 28,
-    createdAt: '2024-03-20T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-03-20T10:00:00Z',
   },
   {
     id: 'match003',
@@ -70,7 +70,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 4,
     bestBowlerRuns: 18,
-    createdAt: '2024-03-25T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-03-25T10:00:00Z',
   },
   {
     id: 'match004',
@@ -91,7 +91,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 1,
     bestBowlerRuns: 25,
-    createdAt: '2024-04-01T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-04-01T10:00:00Z',
   },
   {
     id: 'match005',
@@ -112,7 +112,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 3,
     bestBowlerRuns: 20,
-    createdAt: '2024-04-05T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-04-05T10:00:00Z',
   },
   {
     id: 'match006',
@@ -133,7 +133,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 4,
     bestBowlerRuns: 15,
-    createdAt: '2024-04-12T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-04-12T10:00:00Z',
   },
   {
     id: 'match007',
@@ -154,7 +154,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 2,
     bestBowlerRuns: 32,
-    createdAt: '2024-05-02T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-05-02T10:00:00Z',
   },
   {
     id: 'match008',
@@ -175,7 +175,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 3,
     bestBowlerRuns: 24,
-    createdAt: '2024-05-10T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-05-10T10:00:00Z',
   },
   {
     id: 'match009',
@@ -196,7 +196,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 3,
     bestBowlerRuns: 28,
-    createdAt: '2024-05-18T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-05-18T10:00:00Z',
   },
   {
     id: 'match010',
@@ -217,7 +217,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 4,
     bestBowlerRuns: 21,
-    createdAt: '2024-06-01T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-06-01T10:00:00Z',
   },
   {
     id: 'match011',
@@ -238,7 +238,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 2,
     bestBowlerRuns: 31,
-    createdAt: '2024-06-08T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-06-08T10:00:00Z',
   },
   {
     id: 'match012',
@@ -259,7 +259,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 5,
     bestBowlerRuns: 19,
-    createdAt: '2024-06-15T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-06-15T10:00:00Z',
   },
   {
     id: 'match013',
@@ -280,7 +280,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 3,
     bestBowlerRuns: 26,
-    createdAt: '2024-07-05T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-07-05T10:00:00Z',
   },
   {
     id: 'match014',
@@ -301,7 +301,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 4,
     bestBowlerRuns: 23,
-    createdAt: '2024-07-12T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-07-12T10:00:00Z',
   },
   {
     id: 'match015',
@@ -322,7 +322,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 2,
     bestBowlerRuns: 36,
-    createdAt: '2024-07-20T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2024-07-20T10:00:00Z',
   },
   {
     id: 'match016',
@@ -343,7 +343,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 4,
     bestBowlerRuns: 20,
-    createdAt: '2023-10-15T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2023-10-15T10:00:00Z',
   },
   {
     id: 'match017',
@@ -364,7 +364,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 3,
     bestBowlerRuns: 29,
-    createdAt: '2023-10-22T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2023-10-22T10:00:00Z',
   },
   {
     id: 'match018',
@@ -385,7 +385,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 3,
     bestBowlerRuns: 27,
-    createdAt: '2023-11-05T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2023-11-05T10:00:00Z',
   },
   {
     id: 'match019',
@@ -406,7 +406,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 2,
     bestBowlerRuns: 33,
-    createdAt: '2023-11-18T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2023-11-18T10:00:00Z',
   },
   {
     id: 'match020',
@@ -427,7 +427,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 4,
     bestBowlerRuns: 22,
-    createdAt: '2025-01-10T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2025-01-10T10:00:00Z',
   },
   {
     id: 'match021',
@@ -448,7 +448,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 3,
     bestBowlerRuns: 30,
-    createdAt: '2025-01-18T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2025-01-18T10:00:00Z',
   },
   {
     id: 'match022',
@@ -469,7 +469,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Kuldeep Yadav',
     bestBowlerWickets: 4,
     bestBowlerRuns: 25,
-    createdAt: '2025-02-02T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2025-02-02T10:00:00Z',
   },
   {
     id: 'match023',
@@ -490,7 +490,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Mohammed Siraj',
     bestBowlerWickets: 3,
     bestBowlerRuns: 28,
-    createdAt: '2025-02-14T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2025-02-14T10:00:00Z',
   },
   {
     id: 'match024',
@@ -511,7 +511,7 @@ export const MOCK_MATCHES: Match[] = [
     bestBowlerName: 'Jasprit Bumrah',
     bestBowlerWickets: 4,
     bestBowlerRuns: 18,
-    createdAt: '2025-02-25T10:00:00Z',
+    topBatters: [], topBowlers: [], createdAt: '2025-02-25T10:00:00Z',
   },
 ];
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Ball, TeamPlayer, DismissalMode, ExtraType } from '@/app/lib/cricket-scorer-types';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface BallEntryProps {
   onBallAdd: (ball: Ball) => boolean;
@@ -120,19 +121,18 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
         {/* Batter and Bowler */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1">Batter</label>
-            <select
+            <CustomSelect
+              id="ball-batter"
+              label="Batter"
               value={batter}
-              onChange={(e) => setBatter(e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:border-blue-500"
-            >
-              <option value="">Select Batter</option>
-              {teamPlayers.map((p) => (
-                <option key={p.id} value={p.name}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              placeholder="Select Batter"
+              options={[
+                { value: '', label: 'Select Batter' },
+                ...teamPlayers.map((p) => ({ value: p.name, label: p.name })),
+              ]}
+              onChange={(value) => setBatter(value)}
+              className="w-full"
+            />
           </div>
 
           <div>
@@ -185,17 +185,20 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           {hasExtra && (
             <div className="grid grid-cols-2 gap-4 bg-background/50 p-3 rounded-lg border border-border">
               <div>
-                <label className="block text-xs font-semibold mb-1">Extra Type</label>
-                <select
+                <CustomSelect
+                  id="extra-type"
+                  label="Extra Type"
                   value={extraType}
-                  onChange={(e) => setExtraType(e.target.value as ExtraType)}
-                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
-                >
-                  <option value="wide">Wide</option>
-                  <option value="no-ball">No Ball</option>
-                  <option value="byes">Byes</option>
-                  <option value="leg-byes">Leg Byes</option>
-                </select>
+                  placeholder="Select extra type"
+                  options={[
+                    { value: 'wide', label: 'Wide' },
+                    { value: 'no-ball', label: 'No Ball' },
+                    { value: 'byes', label: 'Byes' },
+                    { value: 'leg-byes', label: 'Leg Byes' },
+                  ]}
+                  onChange={(value) => setExtraType(value as ExtraType)}
+                  className="w-full"
+                />
               </div>
 
               <div>
@@ -230,35 +233,35 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           {hasWicket && (
             <div className="space-y-3 bg-background/50 p-3 rounded-lg border border-border">
               <div>
-                <label className="block text-xs font-semibold mb-1">Player Out</label>
-                <select
+                <CustomSelect
+                  id="wicket-player"
+                  label="Player Out"
                   value={wicketPlayer}
-                  onChange={(e) => setWicketPlayer(e.target.value)}
-                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
-                >
-                  {teamPlayers.map((p) => (
-                    <option key={p.id} value={p.name}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Select player"
+                  options={teamPlayers.map((p) => ({ value: p.name, label: p.name }))}
+                  onChange={(value) => setWicketPlayer(value)}
+                  className="w-full"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold mb-1">Dismissal Mode</label>
-                <select
+                <CustomSelect
+                  id="dismissal-mode"
+                  label="Dismissal Mode"
                   value={dismissalMode}
-                  onChange={(e) => setDismissalMode(e.target.value as DismissalMode)}
-                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
-                >
-                  <option value="bowled">Bowled</option>
-                  <option value="lbw">LBW</option>
-                  <option value="caught">Caught</option>
-                  <option value="run-out">Run-out</option>
-                  <option value="stumped">Stumped</option>
-                  <option value="handled-ball">Handled Ball</option>
-                  <option value="obstructing-field">Obstructing Field</option>
-                </select>
+                  placeholder="Select dismissal"
+                  options={[
+                    { value: 'bowled', label: 'Bowled' },
+                    { value: 'lbw', label: 'LBW' },
+                    { value: 'caught', label: 'Caught' },
+                    { value: 'run-out', label: 'Run-out' },
+                    { value: 'stumped', label: 'Stumped' },
+                    { value: 'handled-ball', label: 'Handled Ball' },
+                    { value: 'obstructing-field', label: 'Obstructing Field' },
+                  ]}
+                  onChange={(value) => setDismissalMode(value as DismissalMode)}
+                  className="w-full"
+                />
               </div>
 
               {dismissalMode === 'caught' || dismissalMode === 'run-out' ? (

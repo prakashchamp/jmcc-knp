@@ -65,9 +65,9 @@ export function OversHistory() {
           <p className="text-gray-400">No balls recorded yet</p>
         </div>
       ) : (
-      <div className="overflow-hidden rounded-lg border border-gray-600">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <table className="w-full table-fixed text-xs">
-          <thead className="bg-blue-800 text-white border-b border-gray-600">
+          <thead className="bg-blue-600 text-white border-b border-border">
             <tr>
               <th className="w-16 px-2 py-2 text-center font-bold">Over</th>
               <th className="w-16 px-2 py-2 text-center font-bold">Runs</th>
@@ -81,21 +81,21 @@ export function OversHistory() {
               return (
               <tr
                 key={overGroup.over}
-                className='bg-gray-800 border-b border-gray-700'
+                className={idx % 2 === 0 ? 'bg-background border-b border-border' : 'bg-card border-b border-border dark:bg-slate-800'}
               >
-                <td className="px-2 py-2 text-center font-semibold text-white">
+                <td className="px-2 py-2 text-center font-semibold text-foreground dark:text-white">
                   <div className="text-sm font-semibold mb-1">{overGroup.over + 1}.{overGroup.balls.length < 6 ? overGroup.balls.length : 0}</div>
-                  <div className="text-m text-blue-300 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
+                  <div className="text-m text-blue-600 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
                 </td>
-                <td className="px-2 py-2 text-center font-bold text-white">
+                <td className="px-2 py-2 text-center font-bold text-foreground dark:text-white">
                   {overGroup.overRuns}
                 </td>
-                <td className="px-2 py-2 text-left text-xs text-white align-top">
+                <td className="px-2 py-2 text-left text-xs text-foreground dark:text-white align-top">
                   <div className="flex flex-wrap gap-1">
                     {overGroup.balls.map((ball, ballIdx) => (
                       <span
                         key={ballIdx}
-                        className={`inline-flex w-fit px-2 py-0.5 rounded border border-gray-600 ${getBallColor(ball)} text-center text-xs font-semibold whitespace-nowrap`}
+                        className={`inline-flex w-fit px-2 py-0.5 rounded border border-border ${getBallColor(ball)} text-center text-xs font-semibold whitespace-nowrap`}
                       >
                         {formatBallDisplay(ball)}
                       </span>

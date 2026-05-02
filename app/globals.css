@@ -98,6 +98,7 @@ body {
 /* Hide scrollbar while maintaining scroll functionality */
 html {
   scrollbar-width: none; /* Firefox */
+  scroll-behavior: smooth;
 }
 
 html::-webkit-scrollbar {

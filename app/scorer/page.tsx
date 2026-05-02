@@ -37,8 +37,8 @@ function ScorecardPageContent() {
   // Only show loading screen if we don't have a team yet (neither from storage nor from firestore)
   if (loading && !team) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white font-bold animate-pulse text-lg">Loading team players...</div>
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="font-bold animate-pulse text-lg">Loading team players...</div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ function ScorecardPageContent() {
   const teamPlayers = team?.players || JMCC_TEAM_PLAYERS;
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen bg-background text-foreground">
       <LiveScorer teamPlayers={teamPlayers} />
     </div>
   );

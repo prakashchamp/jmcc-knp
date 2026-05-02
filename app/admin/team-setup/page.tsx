@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAllTeams } from '@/app/lib/hooks/useTeam';
 import { TeamPlayer } from '@/app/lib/cricket-schema';
+import { createNewPlayer } from '@/app/lib/player-utils';
 import Link from 'next/link';
 import { setTeam, saveToRedux, setPendingCloudPush, syncTeam, SINGLETON_TEAM_ID } from '@/app/lib/redux/slices/teamSlice';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
@@ -78,18 +79,10 @@ export default function TeamSetupPage() {
       return;
     }
 
-    // Generate unique 3-digit ID
-    let newId;
-    const existingIds = players.map(p => p.id);
-    do {
-      newId = Math.floor(100 + Math.random() * 900).toString();
-    } while (existingIds.includes(newId));
+    // Get existing player names for collision detection
+    const existingNames = new Set(players.map(p => p.name.toLowerCase().trim()));
 
-    const newPlayer: TeamPlayer = {
-      id: newId,
-      name: newPlayerName.trim(),
-      jerseyNumber: newPlayerJerseyNumber ? parseInt(newPlayerJerseyNumber) : undefined,
-    };
+    const newPlayer = createNewPlayer(newPlayerName.trim(), existingNames, newPlayerJerseyNumber ? parseInt(newPlayerJerseyNumber) : undefined);
 
     setPlayers([...players, newPlayer]);
     setNewPlayerName('');

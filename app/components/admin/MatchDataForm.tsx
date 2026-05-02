@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
 import { CustomSelect } from '@/app/components/CustomSelect';
+import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -133,6 +134,8 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         firstInningsTeam: match.firstInningsTeam || '',
         firstInningsScore: typeof match.firstInningsScore === 'number' ? match.firstInningsScore : 0,
         createdAt: now,
+        topBatters: [],
+        topBowlers: [],
       };
 
       const finalPerformances: Performance[] = [];
@@ -181,6 +184,10 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           finalPerformances.push(completePerf);
         }
       }
+
+      // Update match top performers from final performances
+      completeMatch.topBatters = findTopBatters(finalPerformances);
+      completeMatch.topBowlers = findTopBowlers(finalPerformances);
 
       const result = await uploadManualMatchAction(completeMatch, finalPerformances);
       

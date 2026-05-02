@@ -335,9 +335,9 @@ export function LiveScorer(props: LiveScorerProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="flex items-center justify-center h-screen bg-background text-foreground">
         <div className="text-center">
-          <div className="text-xl font-bold text-gray-800">Loading match...</div>
+          <div className="text-xl font-bold">Loading match...</div>
         </div>
       </div>
     );
@@ -345,9 +345,9 @@ export function LiveScorer(props: LiveScorerProps) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-red-100">
+      <div className="flex items-center justify-center h-screen bg-background text-foreground">
         <div className="text-center">
-          <div className="text-xl font-bold text-red-800">Error</div>
+          <div className="text-xl font-bold text-red-700">Error</div>
           <div className="text-red-700">{error}</div>
         </div>
       </div>
@@ -359,7 +359,7 @@ export function LiveScorer(props: LiveScorerProps) {
 
   if (!innings) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+      <div className="flex items-center justify-center h-screen bg-background text-foreground">
         <div className="text-center">
           <div className="text-xl font-bold">Initializing innings...</div>
         </div>

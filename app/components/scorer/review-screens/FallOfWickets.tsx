@@ -73,9 +73,9 @@ export function FallOfWickets() {
           <p className="text-gray-400">No wickets fallen yet</p>
         </div>
       ) : (
-      <div className="overflow-hidden rounded-lg border border-gray-600">
+      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <table className="w-full text-xs">
-          <thead className="bg-blue-800 text-white border-b border-gray-600">
+          <thead className="bg-blue-600 text-white border-b border-border">
             <tr>
               <th className="px-2 py-2 text-center font-bold">Wicket</th>
               <th className="px-2 py-2 text-center font-bold">Over</th>
@@ -87,18 +87,18 @@ export function FallOfWickets() {
             {selectedInnings.dismissedBatsmen.map((batsman, idx) => (
               <tr
                 key={idx}
-                className={idx % 2 === 0 ? 'bg-gray-800 border-b border-gray-700' : 'bg-gray-700 border-b border-gray-600'}
+                className={idx % 2 === 0 ? 'bg-background border-b border-border' : 'bg-card border-b border-border dark:bg-slate-800'}
               >
-                <td className="px-2 py-2 text-center font-bold text-white text-xs">
+                <td className="px-2 py-2 text-center font-bold text-foreground dark:text-white text-xs">
                   {idx + 1}
                 </td>
-                <td className="px-2 py-2 text-center font-semibold text-white text-xs">
+                <td className="px-2 py-2 text-center font-semibold text-foreground dark:text-white text-xs">
                   {findWicketOver(batsman.id)}
                 </td>
-                <td className="px-2 py-2 text-center font-bold text-white text-xs">
+                <td className="px-2 py-2 text-center font-bold text-foreground dark:text-white text-xs">
                   {getRunsAtWicket(batsman.id)}
                 </td>
-                <td className="px-2 py-2 font-semibold text-white text-xs">{batsman.name}</td>
+                <td className="px-2 py-2 font-semibold text-foreground dark:text-white text-xs">{batsman.name}</td>
               </tr>
             ))}
           </tbody>

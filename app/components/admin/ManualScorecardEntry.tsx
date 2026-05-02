@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
+import { createNewPlayer, generatePlayerId } from '@/app/lib/player-utils';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -78,37 +80,52 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
     const getOrCreatePerf = (name: string) => {
       const trimmedName = name.trim();
       if (!perfMap.has(trimmedName)) {
-        perfMap.set(trimmedName, {
-          playerName: trimmedName,
-          playerId: `player_${trimmedName}`,
-          batting: {
-            didBat: false,
-            innings: 0,
-            runs: 0,
-            balls: 0,
-            fours: 0,
-            sixes: 0,
-            dismissed: false,
-            isDuck: false,
-            isThirty: false,
-            isFifty: false,
-            isHundred: false,
-            strikeRate: 0,
-          },
-          bowling: {
-            didBowl: false,
-            innings: 0,
-            overs: 0,
-            balls: 0,
-            runs: 0,
-            wickets: 0,
-            maidens: 0,
-            isThreeFer: false,
-            isFourFer: false,
-            isFiveFer: false,
-            economy: 0,
-          }
-        });
+      // Check if player already exists
+      const existingPlayer = players.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
+      let playerId: string;
+      let playerName = trimmedName;
+
+      if (existingPlayer) {
+        playerId = existingPlayer.playerId;
+      } else {
+        // Get existing names for collision detection
+        const existingNames = new Set(players.map(p => p.playerName.toLowerCase().trim()));
+        const newPlayer = createNewPlayer(trimmedName, existingNames);
+        playerId = newPlayer.id;
+        playerName = newPlayer.name;
+      }
+
+      perfMap.set(trimmedName, {
+        playerName,
+        playerId,
+        batting: {
+          didBat: false,
+          innings: 0,
+          runs: 0,
+          balls: 0,
+          fours: 0,
+          sixes: 0,
+          dismissed: false,
+          isDuck: false,
+          isThirty: false,
+          isFifty: false,
+          isHundred: false,
+          strikeRate: 0,
+        },
+        bowling: {
+          didBowl: false,
+          innings: 0,
+          overs: 0,
+          balls: 0,
+          runs: 0,
+          wickets: 0,
+          maidens: 0,
+          isThreeFer: false,
+          isFourFer: false,
+          isFiveFer: false,
+          economy: 0,
+        }
+      });
       }
       return perfMap.get(trimmedName)!;
     };
@@ -170,16 +187,36 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
 
     performances.push(...Array.from(perfMap.values()));
 
-    // Determine best batter and bowler
-    const bestBatter = performances.reduce((prev, current) => 
-      (prev.batting?.runs || 0) > (current.batting?.runs || 0) ? prev : current, 
-      performances[0] || {}
-    );
+    // Calculate top 2 batters and bowlers
+    const topBatters = [...performances]
+      .sort((a, b) => {
+        if ((b.batting?.runs || 0) !== (a.batting?.runs || 0)) {
+          return (b.batting?.runs || 0) - (a.batting?.runs || 0);
+        }
+        return (a.batting?.balls || 0) - (b.batting?.balls || 0);
+      })
+      .slice(0, 2)
+      .map(perf => ({
+        playerId: perf.playerId || '',
+        playerName: perf.playerName || '',
+        runs: perf.batting?.runs || 0,
+        balls: perf.batting?.balls || 0,
+      }));
 
-    const bestBowler = performances.reduce((prev, current) => 
-      (prev.bowling?.wickets || 0) > (current.bowling?.wickets || 0) ? prev : current, 
-      performances[0] || {}
-    );
+    const topBowlers = [...performances]
+      .sort((a, b) => {
+        if ((b.bowling?.wickets || 0) !== (a.bowling?.wickets || 0)) {
+          return (b.bowling?.wickets || 0) - (a.bowling?.wickets || 0);
+        }
+        return (a.bowling?.runs || 0) - (b.bowling?.runs || 0);
+      })
+      .slice(0, 2)
+      .map(perf => ({
+        playerId: perf.playerId || '',
+        playerName: perf.playerName || '',
+        wickets: perf.bowling?.wickets || 0,
+        runs: perf.bowling?.runs || 0,
+      }));
 
     const matchData: Partial<Match> = {
       date: new Date().toISOString(),
@@ -188,14 +225,16 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
       tossWonBy: 'Us',
       tossDecision: 'bat',
       result: 'won',
-      bestBatterId: bestBatter.playerId || '',
-      bestBatterName: bestBatter.playerName || '',
-      bestBatterRuns: bestBatter.batting?.runs || 0,
-      bestBatterBalls: bestBatter.batting?.balls || 0,
-      bestBowlerId: bestBowler.playerId || '',
-      bestBowlerName: bestBowler.playerName || '',
-      bestBowlerWickets: bestBowler.bowling?.wickets || 0,
-      bestBowlerRuns: bestBowler.bowling?.runs || 0,
+      topBatters,
+      topBowlers,
+      bestBatterId: topBatters[0]?.playerId || '',
+      bestBatterName: topBatters[0]?.playerName || '',
+      bestBatterRuns: topBatters[0]?.runs || 0,
+      bestBatterBalls: topBatters[0]?.balls || 0,
+      bestBowlerId: topBowlers[0]?.playerId || '',
+      bestBowlerName: topBowlers[0]?.playerName || '',
+      bestBowlerWickets: topBowlers[0]?.wickets || 0,
+      bestBowlerRuns: topBowlers[0]?.runs || 0,
     };
 
     onDataParsed({
@@ -255,15 +294,18 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
                 <input type="number" value={row.sixes || ''} onChange={(e) => updateBattingRow(idx, 'sixes', parseInt(e.target.value) || 0)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
               </div>
               <div className="w-32">
-                <label className="block text-xs font-medium text-gray-300 mb-1">Status</label>
-                <select 
-                  value={row.dismissed ? "yes" : "no"} 
-                  onChange={(e) => updateBattingRow(idx, 'dismissed', e.target.value === "yes")}
-                  className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm"
-                >
-                  <option value="no">Not Out</option>
-                  <option value="yes">Out</option>
-                </select>
+                <CustomSelect
+                  id={`batting-status-${idx}`}
+                  label="Status"
+                  value={row.dismissed ? 'yes' : 'no'}
+                  placeholder="Select status"
+                  options={[
+                    { value: 'no', label: 'Not Out' },
+                    { value: 'yes', label: 'Out' },
+                  ]}
+                  onChange={(value) => updateBattingRow(idx, 'dismissed', value === 'yes')}
+                  className="w-full"
+                />
               </div>
               
               <button 

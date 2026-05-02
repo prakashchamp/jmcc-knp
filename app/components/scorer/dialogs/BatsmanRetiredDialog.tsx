@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, addNewTeamPlayer, replaceStrikerForRetiredHurt } from '@/app/lib/redux/slices/scorerSlice';
+import { CricketScoringEngine } from '@/app/lib/scoring-engine';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
@@ -27,12 +28,7 @@ export function BatsmanRetiredDialog() {
   // Get available players (not currently batting - striker and non-striker, and not dismissed)
   // Show all players regardless of role
   const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
-  const availableBatsmen = battingTeamPlayers.filter(
-    (player) =>
-      player.id !== currentInnings.striker?.id &&
-      player.id !== currentInnings.nonStriker?.id &&
-      !currentInnings.dismissedBatsmen.some((d) => d.id === player.id)
-  );
+  const availableBatsmen = CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings);
 
   const excludeIds: string[] = [];
   if (currentInnings.striker) excludeIds.push(currentInnings.striker.id);

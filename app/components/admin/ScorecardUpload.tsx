@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Match, Performance } from '@/app/lib/cricket-schema';
+import { createNewPlayer } from '@/app/lib/player-utils';
 import Tesseract from 'tesseract.js';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
 
@@ -340,9 +341,24 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
     const getOrCreatePerf = (name: string) => {
       const trimmedName = name.trim();
       if (!perfMap.has(trimmedName)) {
+        // Check if player already exists
+        const existingPlayer = players.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
+        let playerId: string;
+        let playerName = trimmedName;
+
+        if (existingPlayer) {
+          playerId = existingPlayer.playerId;
+        } else {
+          // Get existing names for collision detection
+          const existingNames = new Set(players.map(p => p.playerName.toLowerCase().trim()));
+          const newPlayer = createNewPlayer(trimmedName, existingNames);
+          playerId = newPlayer.id;
+          playerName = newPlayer.name;
+        }
+
         perfMap.set(trimmedName, {
-          playerName: trimmedName,
-          playerId: `player_${trimmedName}`,
+          playerName,
+          playerId,
           batting: {
             didBat: false,
             innings: 0,
@@ -434,15 +450,36 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
 
     performances.push(...Array.from(perfMap.values()));
 
-    const bestBatter = performances.reduce((prev, current) => 
-      (prev.batting?.runs || 0) > (current.batting?.runs || 0) ? prev : current, 
-      performances[0] || {}
-    );
+    // Calculate top 2 batters and bowlers
+    const topBatters = [...performances]
+      .sort((a, b) => {
+        if ((b.batting?.runs || 0) !== (a.batting?.runs || 0)) {
+          return (b.batting?.runs || 0) - (a.batting?.runs || 0);
+        }
+        return (a.batting?.balls || 0) - (b.batting?.balls || 0);
+      })
+      .slice(0, 2)
+      .map(perf => ({
+        playerId: perf.playerId || '',
+        playerName: perf.playerName || '',
+        runs: perf.batting?.runs || 0,
+        balls: perf.batting?.balls || 0,
+      }));
 
-    const bestBowler = performances.reduce((prev, current) => 
-      (prev.bowling?.wickets || 0) > (current.bowling?.wickets || 0) ? prev : current, 
-      performances[0] || {}
-    );
+    const topBowlers = [...performances]
+      .sort((a, b) => {
+        if ((b.bowling?.wickets || 0) !== (a.bowling?.wickets || 0)) {
+          return (b.bowling?.wickets || 0) - (a.bowling?.wickets || 0);
+        }
+        return (a.bowling?.runs || 0) - (b.bowling?.runs || 0);
+      })
+      .slice(0, 2)
+      .map(perf => ({
+        playerId: perf.playerId || '',
+        playerName: perf.playerName || '',
+        wickets: perf.bowling?.wickets || 0,
+        runs: perf.bowling?.runs || 0,
+      }));
 
     const matchData: Partial<Match> = {
       date: new Date().toISOString(),
@@ -451,14 +488,16 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
       tossWonBy: 'Us',
       tossDecision: 'bat',
       result: 'won',
-      bestBatterId: bestBatter.playerId || '',
-      bestBatterName: bestBatter.playerName || '',
-      bestBatterRuns: bestBatter.batting?.runs || 0,
-      bestBatterBalls: bestBatter.batting?.balls || 0,
-      bestBowlerId: bestBowler.playerId || '',
-      bestBowlerName: bestBowler.playerName || '',
-      bestBowlerWickets: bestBowler.bowling?.wickets || 0,
-      bestBowlerRuns: bestBowler.bowling?.runs || 0,
+      topBatters,
+      topBowlers,
+      bestBatterId: topBatters[0]?.playerId || '',
+      bestBatterName: topBatters[0]?.playerName || '',
+      bestBatterRuns: topBatters[0]?.runs || 0,
+      bestBatterBalls: topBatters[0]?.balls || 0,
+      bestBowlerId: topBowlers[0]?.playerId || '',
+      bestBowlerName: topBowlers[0]?.playerName || '',
+      bestBowlerWickets: topBowlers[0]?.wickets || 0,
+      bestBowlerRuns: topBowlers[0]?.runs || 0,
     };
 
     onDataParsed({

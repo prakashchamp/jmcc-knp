@@ -2,6 +2,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 import { addNewTeamPlayer } from '../slices/scorerSlice';
 import { addPlayerAndSync } from '../slices/teamSlice';
 import { TeamPlayer } from '../../cricket-schema';
+import { generatePlayerId } from '../../player-utils';
 
 /**
  * Thunk to add a player to both the live match and the global team roster
@@ -12,7 +13,7 @@ export const addNewPlayerToTeamAndMatch = createAsyncThunk(
     const { name } = payload;
     
     const newPlayer: TeamPlayer = {
-      id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: generatePlayerId(),
       name: name.trim(),
     };
 

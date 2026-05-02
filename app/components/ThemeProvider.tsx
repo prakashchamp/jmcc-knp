@@ -14,23 +14,24 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('light');
 
   // Only allow light theme on scorer pages
   const isScorerPage = pathname.startsWith('/scorer') || pathname.startsWith('/pwa-scorer');
 
   useEffect(() => {
-    if (!isScorerPage && theme === 'light') {
-      setTheme('dark');
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+
+    if (isScorerPage) {
+      if (savedTheme === 'dark') {
+        setTheme('dark');
+      } else {
+        setTheme('light');
+      }
       return;
     }
 
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme && (isScorerPage || savedTheme === 'dark')) {
-      setTheme(savedTheme);
-    } else if (isScorerPage && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setTheme('light');
-    }
+    setTheme('dark');
   }, [isScorerPage]);
 
   useEffect(() => {

@@ -139,21 +139,41 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
         )}
 
         {/* Best performers */}
-        {(match.bestBatterName || match.bestBowlerName) && (
+        {(match.topBatters?.length || match.topBowlers?.length || match.bestBatterName || match.bestBowlerName) && (
           <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/20">
             <div className="grid grid-cols-2 gap-2 sm:gap-4">
-              {match.bestBatterName && (
-                <div className="text-[10px] sm:text-sm">
-                  <p className="text-white/80 font-medium">Best Batter</p>
-                  <p className="font-semibold text-white truncate">{match.bestBatterName}</p>
-                  <p className="text-white/70">{match.bestBatterRuns} runs ({match.bestBatterBalls}b)</p>
+              {/* Top Batters */}
+              {(match.topBatters?.length || match.bestBatterName) && (
+                <div className="space-y-2">
+                  <p className="text-white/80 font-medium text-[10px] sm:text-sm">Top Batters</p>
+                  {match.topBatters?.slice(0, 2).map((batter, idx) => (
+                    <div key={idx} className="text-[10px] sm:text-xs">
+                      <p className="font-semibold text-white truncate">{batter.playerName}</p>
+                      <p className="text-white/70">{batter.runs} runs ({batter.balls}b)</p>
+                    </div>
+                  )) || (match.bestBatterName && (
+                    <div className="text-[10px] sm:text-xs">
+                      <p className="font-semibold text-white truncate">{match.bestBatterName}</p>
+                      <p className="text-white/70">{match.bestBatterRuns} runs ({match.bestBatterBalls}b)</p>
+                    </div>
+                  ))}
                 </div>
               )}
-              {match.bestBowlerName && (
-                <div className="text-[10px] sm:text-sm">
-                  <p className="text-white/80 font-medium">Best Bowler</p>
-                  <p className="font-semibold text-white truncate">{match.bestBowlerName}</p>
-                  <p className="text-white/70">{match.bestBowlerWickets}w/{match.bestBowlerRuns}r</p>
+              {/* Top Bowlers */}
+              {(match.topBowlers?.length || match.bestBowlerName) && (
+                <div className="space-y-2">
+                  <p className="text-white/80 font-medium text-[10px] sm:text-sm">Top Bowlers</p>
+                  {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
+                    <div key={idx} className="text-[10px] sm:text-xs">
+                      <p className="font-semibold text-white truncate">{bowler.playerName}</p>
+                      <p className="text-white/70">{bowler.wickets}w/{bowler.runs}r</p>
+                    </div>
+                  )) || (match.bestBowlerName && (
+                    <div className="text-[10px] sm:text-xs">
+                      <p className="font-semibold text-white truncate">{match.bestBowlerName}</p>
+                      <p className="text-white/70">{match.bestBowlerWickets}w/{match.bestBowlerRuns}r</p>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

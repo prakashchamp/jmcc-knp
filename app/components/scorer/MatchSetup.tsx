@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
+import { generatePlayerId } from '@/app/lib/player-utils';
+import { CustomSelect } from '@/app/components/CustomSelect';
 
 // Constant opponent player list
 const OPPONENT_PLAYERS: TeamPlayer[] = Array.from({ length: 11 }, (_, i) => ({
@@ -60,7 +62,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewStriker = () => {
     if (newStrikerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: `striker-${Date.now()}`,
+        id: generatePlayerId(),
         name: newStrikerName.trim(),
       };
       setStriker(newPlayer);
@@ -72,7 +74,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewNonStriker = () => {
     if (newNonStrikerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: `non-striker-${Date.now()}`,
+        id: generatePlayerId(),
         name: newNonStrikerName.trim(),
       };
       setNonStriker(newPlayer);
@@ -84,7 +86,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewBowler = () => {
     if (newBowlerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: `bowler-${Date.now()}`,
+        id: generatePlayerId(),
         name: newBowlerName.trim(),
       };
       setBowler(newPlayer);
@@ -159,58 +161,70 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
 
         {/* Venue */}
         <div>
-          <label className="block text-sm font-semibold mb-1">Venue</label>
-          <select
+          <CustomSelect
+            id="venue"
+            label="Venue"
             value={venue}
-            onChange={(e) => setVenue(e.target.value as 'Home' | 'Away' | 'Neutral')}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="Home">Home</option>
-            <option value="Away">Away</option>
-            <option value="Neutral">Neutral</option>
-          </select>
+            placeholder="Choose venue"
+            options={[
+              { value: 'Home', label: 'Home' },
+              { value: 'Away', label: 'Away' },
+              { value: 'Neutral', label: 'Neutral' },
+            ]}
+            onChange={(value) => setVenue(value as 'Home' | 'Away' | 'Neutral')}
+            className="w-full"
+          />
         </div>
 
         {/* Toss */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1">Toss Won By</label>
-            <select
+            <CustomSelect
+              id="tossWonBy"
+              label="Toss Won By"
               value={tossWonBy}
-              onChange={(e) => setTossWonBy(e.target.value as 'Us' | 'Them')}
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="Us">Us</option>
-              <option value="Them">Opponent</option>
-            </select>
+              placeholder="Select toss winner"
+              options={[
+                { value: 'Us', label: 'Us' },
+                { value: 'Them', label: 'Opponent' },
+              ]}
+              onChange={(value) => setTossWonBy(value as 'Us' | 'Them')}
+              className="w-full"
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold mb-1">Toss Decision</label>
-            <select
+            <CustomSelect
+              id="tossDecision"
+              label="Toss Decision"
               value={tossDecision}
-              onChange={(e) => setTossDecision(e.target.value as 'bat' | 'field')}
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="bat">Bat</option>
-              <option value="field">Field</option>
-            </select>
+              placeholder="Select toss decision"
+              options={[
+                { value: 'bat', label: 'Bat' },
+                { value: 'field', label: 'Field' },
+              ]}
+              onChange={(value) => setTossDecision(value as 'bat' | 'field')}
+              className="w-full"
+            />
           </div>
         </div>
 
         {/* Format and Overs */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold mb-1">Format</label>
-            <select
+            <CustomSelect
+              id="format"
+              label="Format"
               value={format}
-              onChange={(e) => setFormat(e.target.value as 'T20' | 'ODI' | 'Custom')}
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-            >
-              <option value="T20">T20</option>
-              <option value="ODI">ODI</option>
-              <option value="Custom">Custom</option>
-            </select>
+              placeholder="Choose format"
+              options={[
+                { value: 'T20', label: 'T20' },
+                { value: 'ODI', label: 'ODI' },
+                { value: 'Custom', label: 'Custom' },
+              ]}
+              onChange={(value) => setFormat(value as 'T20' | 'ODI' | 'Custom')}
+              className="w-full"
+            />
           </div>
 
           <div>
