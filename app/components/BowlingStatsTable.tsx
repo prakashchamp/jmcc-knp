@@ -143,7 +143,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <td className={tdClass}>{stats.totalMatches}</td>
                   <td className={tdClass}>{stats.totalInnings}</td>
                   <td className={tdClass}>{stats.totalOvers.toFixed(1)}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-red-400 text-xs sm:text-sm whitespace-nowrap">{stats.totalWickets}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-xs sm:text-sm whitespace-nowrap">{stats.totalWickets}</td>
                   <td className={tdClass}>{stats.totalRuns}</td>
                   <td className={tdClass}>{economy}</td>
                   <td className={tdClass}>{average}</td>

@@ -110,6 +110,9 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
               <th className={thClass} onClick={() => handleSort('average')}>
                 Avg <SortIcon field="average" sortField={sortField} sortDirection={sortDirection} />
               </th>
+              <th className={thClass} onClick={() => handleSort('notOuts')}>
+                NO <SortIcon field="notOuts" sortField={sortField} sortDirection={sortDirection} />
+              </th>
               <th className={thClass} onClick={() => handleSort('totalFours')}>
                 4s <SortIcon field="totalFours" sortField={sortField} sortDirection={sortDirection} />
               </th>
@@ -134,7 +137,7 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
             {sortedPlayers.map((player, index) => {
               const stats = player.battingStats!;
               const strikeRate = stats.totalBalls > 0 ? ((stats.totalRuns / stats.totalBalls) * 100).toFixed(2) : '0.00';
-              const average = stats.totalInnings > 0 ? (stats.totalRuns / stats.totalInnings).toFixed(2) : '0.00';
+              const average = (stats.totalInnings - stats.notOuts) > 0 ? (stats.totalRuns / (stats.totalInnings - stats.notOuts)).toFixed(2) : '0.00';
 
               return (
                 <tr
@@ -144,12 +147,13 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-left font-medium text-white text-xs sm:text-sm whitespace-nowrap">{player.playerName}</td>
                   <td className={tdClass}>{stats.totalMatches}</td>
                   <td className={tdClass}>{stats.totalInnings}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-blue-400 text-xs sm:text-sm whitespace-nowrap">{stats.totalRuns}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-xs sm:text-sm whitespace-nowrap">{stats.totalRuns}</td>
                   <td className={tdClass}>{stats.totalBalls}</td>
                   <td className={tdClass}>{strikeRate}</td>
                   <td className={tdClass}>{average}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-green-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalFours}</td>
-                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center text-orange-400 font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalSixes}</td>
+                  <td className={tdClass}>{stats.notOuts}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalFours}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-medium text-xs sm:text-sm whitespace-nowrap">{stats.totalSixes}</td>
                   <td className={tdClass}>{stats.bestScore}</td>
                   <td className={tdClass}>{stats.thirties}</td>
                   <td className={tdClass}>{stats.fifties}</td>

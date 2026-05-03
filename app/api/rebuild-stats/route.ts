@@ -87,7 +87,7 @@ export async function GET() {
           if (perf.bat_is_fifty) stats.bat_fifties += 1;
           if (perf.bat_is_hundred) stats.bat_hundreds += 1;
           
-          const dismissals = stats.bat_dismissed;
+          const dismissals = stats.bat_innings - stats.bat_not_out;
           stats.bat_average = dismissals > 0 ? stats.bat_runs / dismissals : stats.bat_runs;
           stats.bat_strike_rate = stats.bat_balls > 0 ? (stats.bat_runs / stats.bat_balls) * 100 : 0;
         }

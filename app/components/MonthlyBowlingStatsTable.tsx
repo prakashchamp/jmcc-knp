@@ -149,7 +149,7 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMatches}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalOvers}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{player.bowlingStats.totalWickets}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
                   {player.bowlingStats.economy.toFixed(1)}

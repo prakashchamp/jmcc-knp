@@ -128,6 +128,9 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('average')}>
                 Avg {sortField === 'average' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'average' && '⇅'}
               </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
+                NO {sortField === 'notOuts' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'notOuts' && '⇅'}
+              </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
                 4s {sortField === 'totalFours' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalFours' && '⇅'}
               </th>
@@ -157,17 +160,18 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{player.playerName}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalMatches}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalInnings}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{player.battingStats.totalRuns}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold">{player.battingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalBalls}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">
                   {player.battingStats.strikeRate.toFixed(1)}
                 </td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">
                   {player.battingStats.average.toFixed(1)}
                 </td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.notOuts}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalFours}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalSixes}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-400">{player.battingStats.bestScore}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.battingStats.bestScore}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.thirties}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.fifties}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.ducks}</td>
