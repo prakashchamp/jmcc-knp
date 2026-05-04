@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import Image from 'next/image';
+import { useSelector } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { createNewPlayer } from '@/app/lib/player-utils';
 import Tesseract from 'tesseract.js';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
+import { CustomSelect } from '@/app/components/CustomSelect';
+import type { RootState } from '@/app/lib/redux/store';
 
 interface ParsedData {
   match: Partial<Match>;
@@ -17,6 +20,7 @@ interface ScorecardUploadProps {
 }
 
 interface BattingRow {
+  playerId?: string;
   playerName: string;
   runs: number | '';
   balls: number | '';
@@ -26,6 +30,7 @@ interface BattingRow {
 }
 
 interface BowlingRow {
+  playerId?: string;
   playerName: string;
   overs: string;
   runs: number | '';
@@ -34,7 +39,33 @@ interface BowlingRow {
 }
 
 export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
-  const { players } = useAllPlayers();
+  const rosterPlayers = useSelector((state: RootState) => state.team.team?.players || []);
+  const { players: firestorePlayers } = useAllPlayers();
+
+  const normalizePlayerName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
+
+  const allPlayers = useMemo(() => {
+    const normalizedMap = new Map<string, { playerId: string; playerName: string }>();
+
+    const addPlayer = (playerId: string, playerName: string) => {
+      const normalized = normalizePlayerName(playerName);
+      if (!normalizedMap.has(normalized)) {
+        normalizedMap.set(normalized, { playerId, playerName });
+      }
+    };
+
+    rosterPlayers.forEach((player) => addPlayer(player.id, player.name));
+    firestorePlayers.forEach((player) => addPlayer(player.playerId, player.playerName));
+
+    return Array.from(normalizedMap.values());
+  }, [rosterPlayers, firestorePlayers]);
+
+  const buildPlayerOptionValue = (playerId: string) => `player:${playerId}`;
+
+  const playerOptions = allPlayers.map((player) => ({
+    value: buildPlayerOptionValue(player.playerId),
+    label: player.playerName,
+  }));
 
   const [battingImage, setBattingImage] = useState<File | null>(null);
   const [bowlingImage, setBowlingImage] = useState<File | null>(null);
@@ -44,9 +75,70 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
   const [isParsingBowling, setIsParsingBowling] = useState(false);
   const [error, setError] = useState('');
 
-  const [battingRows, setBattingRows] = useState<BattingRow[]>([{ playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }]);
-  const [bowlingRows, setBowlingRows] = useState<BowlingRow[]>([{ playerName: '', overs: '', runs: '', maidens: '', wickets: '' }]);
+  const [battingRows, setBattingRows] = useState<BattingRow[]>([{ playerId: undefined, playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }]);
+  const [bowlingRows, setBowlingRows] = useState<BowlingRow[]>([{ playerId: undefined, playerName: '', overs: '', runs: '', maidens: '', wickets: '' }]);
 
+  const findRosterPlayer = (name: string) => {
+    const normalized = normalizePlayerName(name);
+    return allPlayers.find((player) => normalizePlayerName(player.playerName) === normalized)
+      || allPlayers.find((player) => normalizePlayerName(player.playerName).endsWith(normalized))
+      || allPlayers.find((player) => normalizePlayerName(player.playerName).startsWith(normalized));
+  };
+
+  const buildCustomOptionValue = (playerName: string) => `custom:${playerName}`;
+
+  const playerOptionsForRow = (row: BattingRow | BowlingRow) => {
+    const options = [...playerOptions];
+    if (row.playerName.trim()) {
+      const match = findRosterPlayer(row.playerName);
+      if (!match) {
+        options.unshift({ value: buildCustomOptionValue(row.playerName), label: row.playerName });
+      }
+    }
+    return options;
+  };
+
+  const getSelectedPlayerValue = (row: BattingRow | BowlingRow) => {
+    if (row.playerId) {
+      return buildPlayerOptionValue(row.playerId);
+    }
+    if (row.playerName.trim()) {
+      const match = findRosterPlayer(row.playerName);
+      if (match) {
+        return buildPlayerOptionValue(match.playerId);
+      }
+      return buildCustomOptionValue(row.playerName);
+    }
+    return '';
+  };
+
+  const handlePlayerSelection = (index: number, isBatting: boolean, rawValue: string) => {
+    const newRows = isBatting ? [...battingRows] : [...bowlingRows];
+    const row = { ...newRows[index] } as BattingRow | BowlingRow;
+
+    if (rawValue.startsWith('player:')) {
+      const selectedId = rawValue.replace('player:', '');
+      const selectedPlayer = allPlayers.find((p) => p.playerId === selectedId);
+      if (selectedPlayer) {
+        row.playerId = selectedPlayer.playerId;
+        row.playerName = selectedPlayer.playerName;
+      }
+    } else if (rawValue.startsWith('custom:')) {
+      const customName = rawValue.replace('custom:', '');
+      row.playerId = undefined;
+      row.playerName = customName;
+    } else {
+      row.playerId = undefined;
+      row.playerName = rawValue;
+    }
+
+    newRows[index] = row;
+    if (isBatting) {
+      setBattingRows(newRows as BattingRow[]);
+    } else {
+      setBowlingRows(newRows as BowlingRow[]);
+    }
+  };
 
   const battingInputRef = useRef<HTMLInputElement>(null);
   const bowlingInputRef = useRef<HTMLInputElement>(null);
@@ -201,8 +293,10 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         const hasValidStats = !isNaN(runs) && !isNaN(balls) && balls >= 1 && runs >= 0;
         
         if (hasValidName && hasValidStats) {
+          const rosterMatch = findRosterPlayer(playerName);
           rows.push({
-            playerName,
+            playerId: rosterMatch?.playerId,
+            playerName: rosterMatch?.playerName || playerName,
             runs,
             balls,
             fours: !isNaN(fours) ? fours : 0,
@@ -252,8 +346,10 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
       }
 
       if (foundData && playerName && !playerName.match(/^(Bowler|Player|O|R|W|M|ECO)$/i) && overs > 0) {
+        const rosterMatch = findRosterPlayer(playerName);
         rows.push({
-          playerName,
+          playerId: rosterMatch?.playerId,
+          playerName: rosterMatch?.playerName || playerName,
           overs: overs.toString(),
           runs,
           wickets,
@@ -338,19 +434,27 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
 
     const perfMap = new Map<string, Partial<Performance>>();
 
-    const getOrCreatePerf = (name: string) => {
+    const getOrCreatePerf = (name: string, selectedPlayerId?: string) => {
       const trimmedName = name.trim();
       if (!perfMap.has(trimmedName)) {
         // Check if player already exists
-        const existingPlayer = players.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
-        let playerId: string;
+        const existingPlayer = allPlayers.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
+        let playerId = selectedPlayerId;
         let playerName = trimmedName;
 
         if (existingPlayer) {
           playerId = existingPlayer.playerId;
-        } else {
+          playerName = existingPlayer.playerName;
+        } else if (selectedPlayerId) {
+          const rosterEntry = allPlayers.find((p) => p.playerId === selectedPlayerId);
+          if (rosterEntry) {
+            playerName = rosterEntry.playerName;
+          }
+        }
+
+        if (!playerId) {
           // Get existing names for collision detection
-          const existingNames = new Set(players.map(p => p.playerName.toLowerCase().trim()));
+          const existingNames = new Set(allPlayers.map(p => p.playerName.toLowerCase().trim()));
           const newPlayer = createNewPlayer(trimmedName, existingNames);
           playerId = newPlayer.id;
           playerName = newPlayer.name;
@@ -364,6 +468,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
             innings: 0,
             runs: 0,
             balls: 0,
+            zeros: 0,
             fours: 0,
             sixes: 0,
             dismissed: false,
@@ -393,7 +498,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
 
     battingRows.forEach(row => {
       if (!row.playerName.trim()) return;
-      const perf = getOrCreatePerf(row.playerName);
+      const perf = getOrCreatePerf(row.playerName, row.playerId);
       
       const runs = typeof row.runs === 'number' ? row.runs : 0;
       const balls = typeof row.balls === 'number' ? row.balls : 0;
@@ -406,6 +511,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         innings: 1,
         runs: runs,
         balls: balls,
+        zeros: 0,
         fours: fours,
         sixes: sixes,
         dismissed: row.dismissed,
@@ -419,7 +525,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
 
     bowlingRows.forEach(row => {
       if (!row.playerName.trim()) return;
-      const perf = getOrCreatePerf(row.playerName);
+      const perf = getOrCreatePerf(row.playerName, row.playerId);
       
       const overs = parseFloat(row.overs) || 0;
       const runs = typeof row.runs === 'number' ? row.runs : 0;
@@ -448,7 +554,11 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
     });
 
 
-    performances.push(...Array.from(perfMap.values()));
+    const teamPerformances = Array.from(perfMap.values()).filter(perf => {
+      return allPlayers.some(p => p.playerName.toLowerCase().trim() === perf.playerName?.toLowerCase().trim());
+    });
+
+    performances.push(...teamPerformances);
 
     // Calculate top 2 batters and bowlers
     const topBatters = [...performances]
@@ -572,12 +682,6 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         </div>
       </div>
 
-      <datalist id="players-list">
-        {players.map(p => (
-          <option key={p.playerId} value={p.playerName} />
-        ))}
-      </datalist>
-
       {/* Batting Performances */}
       <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
@@ -598,13 +702,15 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
             <div key={idx} className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-end bg-background p-3 rounded-lg border border-border">
               <div className="col-span-2 sm:w-44 sm:flex-shrink-0">
                 <label className="label-text mb-1 block">Player</label>
-                <input 
-                  type="text" 
-                  value={row.playerName} 
-                  onChange={(e) => updateBattingRow(idx, 'playerName', e.target.value)} 
-                  list="players-list" 
-                  placeholder="Player name" 
-                  className="input-base py-1.5 text-xs" 
+                <CustomSelect
+                  id={`batting-player-${idx}`}
+                  label=""
+                  value={getSelectedPlayerValue(row)}
+                  placeholder="Select or enter player"
+                  options={playerOptionsForRow(row)}
+                  onChange={(value) => handlePlayerSelection(idx, true, value)}
+                  className="w-full"
+                  allowCustom
                 />
               </div>
               <div>
@@ -689,13 +795,15 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
             <div key={idx} className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 items-end bg-background p-3 rounded-lg border border-border">
               <div className="col-span-2 sm:w-44 sm:flex-shrink-0">
                 <label className="label-text mb-1 block">Player</label>
-                <input 
-                  type="text" 
-                  value={row.playerName} 
-                  onChange={(e) => updateBowlingRow(idx, 'playerName', e.target.value)} 
-                  list="players-list" 
-                  placeholder="Player name" 
-                  className="input-base py-1.5 text-xs" 
+                <CustomSelect
+                  id={`bowling-player-${idx}`}
+                  label=""
+                  value={getSelectedPlayerValue(row)}
+                  placeholder="Select or enter player"
+                  options={playerOptionsForRow(row)}
+                  onChange={(value) => handlePlayerSelection(idx, false, value)}
+                  className="w-full"
+                  allowCustom
                 />
               </div>
               <div>

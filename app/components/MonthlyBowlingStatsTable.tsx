@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { MonthlyPlayerStats } from '../lib/hooks/useMonthlyStats';
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalMaidens' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 interface MonthlyBowlingStatsTableProps {
   players: MonthlyPlayerStats[];
@@ -33,6 +33,9 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
       } else if (sortField === 'totalOvers') {
         aVal = a.bowlingStats.totalOvers;
         bVal = b.bowlingStats.totalOvers;
+      } else if (sortField === 'totalMaidens') {
+        aVal = a.bowlingStats.totalMaidens;
+        bVal = b.bowlingStats.totalMaidens;
       } else if (sortField === 'totalWickets') {
         aVal = a.bowlingStats.totalWickets;
         bVal = b.bowlingStats.totalWickets;
@@ -113,6 +116,9 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('totalOvers')}>
                 Overs {sortField === 'totalOvers' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalOvers' && '⇅'}
               </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('totalMaidens')}>
+                M {sortField === 'totalMaidens' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalMaidens' && '⇅'}
+              </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600" onClick={() => handleSort('totalWickets')}>
                 Wkts {sortField === 'totalWickets' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalWickets' && '⇅'}
               </th>
@@ -149,6 +155,7 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMatches}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalOvers}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMaidens}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">

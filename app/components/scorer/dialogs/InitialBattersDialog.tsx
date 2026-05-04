@@ -1,10 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
-import { closeDialog, setInitialBattersAndBowler } from '@/app/lib/redux/slices/scorerSlice';
-import { addNewPlayerToTeamAndMatch } from '@/app/lib/redux/thunks/matchThunks';
-import { useState } from 'react';
+import { closeDialog, setInitialBattersAndBowler, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
 import type { TeamPlayer } from '@/app/lib/cricket-scorer-types';
 import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 import { BatterDropdownSelect } from './BatterDropdownSelect';
@@ -29,6 +28,23 @@ export function InitialBattersDialog() {
   const [bowler, setBowler] = useState<TeamPlayer | null>(null);
   const [newBatterName, setNewBatterName] = useState('');
   const [newBowlerName, setNewBowlerName] = useState('');
+
+  // Auto-select and start if opponent is involved
+  useEffect(() => {
+    if (!liveMatch || !currentInnings) return;
+
+    // Case: We are batting (Opponent is bowling)
+    // Auto-select opponent bowler and openers if they are already selected in Landing Page
+    if (currentInnings.battingTeam === 'Us') {
+       if (!bowler) setBowler(OPPONENT_TEAM_PLAYERS[0]);
+    } 
+
+    // Case: Opponent is batting (We are bowling)
+    if (currentInnings.battingTeam === 'Them') {
+       if (!batter1) setBatter1(OPPONENT_TEAM_PLAYERS[0]);
+       if (!batter2) setBatter2(OPPONENT_TEAM_PLAYERS[1]);
+    }
+  }, [currentInnings?.battingTeam, liveMatch]);
 
   const teamName = useTeamName();
   
@@ -92,7 +108,7 @@ export function InitialBattersDialog() {
       return;
     }
 
-    dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() }));
+    dispatch(addNewTeamPlayer({ name: name.trim() }));
     setNewBatterName('');
   };
 
@@ -102,7 +118,7 @@ export function InitialBattersDialog() {
       return;
     }
 
-    dispatch(addNewPlayerToTeamAndMatch({ name: name.trim() }));
+    dispatch(addNewTeamPlayer({ name: name.trim() }));
 
     const newPlayer: TeamPlayer = {
       id: `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,

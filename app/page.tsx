@@ -2,7 +2,7 @@
 
 import { Header } from '@/app/components/Header';
 import { TeamStatsCard } from '@/app/components/TeamStatsCard';
-import { TeamMatchCard } from '@/app/components/TeamMatchCard';
+import { TeamMatchDetails } from '@/app/components/TeamMatchDetails';
 import { TopBattersSection } from '@/app/components/TopBattersSection';
 import { TopBowlersSection } from '@/app/components/TopBowlersSection';
 import { useTeamStats } from '@/app/lib/hooks/useTeamStats';
@@ -17,11 +17,11 @@ export default function Home() {
       <Header />
       <main className="flex-1 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
         <div className="page-container space-y-4 sm:space-y-8">
-          {/* Recent Match Card */}
+          {/* Recent Match Details */}
           {!matchLoading && recentMatch && (
             <div>
               <h2 className="section-title text-white mb-3 sm:mb-4">Recent Match</h2>
-              <TeamMatchCard match={recentMatch} />
+              <TeamMatchDetails match={recentMatch} />
             </div>
           )}
 

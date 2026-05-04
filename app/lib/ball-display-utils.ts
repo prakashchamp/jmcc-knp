@@ -19,6 +19,15 @@ export interface Ball {
 }
 
 /**
+ * Format overs display (e.g., 8.3 for 8 overs and 3 balls)
+ */
+export function formatOversDisplay(overs: number): string {
+  const fullOvers = Math.floor(overs);
+  const balls = overs % 1 === 0 ? 0 : Math.round((overs % 1) * 10);
+  return balls === 0 ? fullOvers.toString() : `${fullOvers}.${balls}`;
+}
+
+/**
  * Format ball display text based on runs, extras, and wicket status
  * 
  * Examples:

@@ -8,7 +8,7 @@ interface AllTimeBowlingStatsTableProps {
   loading: boolean;
 }
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalMaidens' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingStatsTableProps) {
   const [sortField, setSortField] = useState<BowlingSortField>('totalWickets');
@@ -121,6 +121,14 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalMaidens')}>
+                M
+                {sortField === 'totalMaidens' ? (
+                  <span className="text-red-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer hover:bg-yellow-600" onClick={() => handleSort('totalWickets')}>
                 Wkts
                 {sortField === 'totalWickets' ? (
@@ -203,6 +211,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalMatches}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalOvers.toFixed(1)}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalMaidens}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold">{stats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{stats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{economy}</td>

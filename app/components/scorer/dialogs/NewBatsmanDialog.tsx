@@ -27,16 +27,21 @@ export function NewBatsmanDialog() {
 
   if (!liveMatch || !currentInnings) return null;
 
-  // Build excludeIds: current batsmen + dismissed batsmen (can't be selected until end of innings)
-  const excludeIds: string[] = [];
-  if (currentInnings.striker) excludeIds.push(currentInnings.striker.id);
-  if (currentInnings.nonStriker) excludeIds.push(currentInnings.nonStriker.id);
-  currentInnings.dismissedBatsmen.forEach((d) => excludeIds.push(d.id));
-
-  // Get available players (not current batsmen and not dismissed)
-  // Show all players regardless of role
+  // Get available players (not current batsmen and not dismissed, except retired-hurt)
   const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
   const availableBatsmen = CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings);
+  
+  // Auto-select a random batsman for opponents (sequential: pick first available)
+  useState(() => {
+    if (currentInnings.battingTeam === 'Them' && availableBatsmen.length > 0) {
+      // Pick the first available batsman to maintain sequential order (1 -> 2 -> 3...)
+      const nextBatter = availableBatsmen[0];
+      if (nextBatter) setSelectedBatter(nextBatter);
+    }
+  });
+
+  // excludeIds is now handled internally by getAvailableBatsmen
+  const excludeIds: string[] = [];
 
   const handleSelectBatsman = (batsman: TeamPlayer) => {
     if (!batsman) return;

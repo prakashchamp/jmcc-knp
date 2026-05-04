@@ -39,6 +39,7 @@ export async function getTopBattersAction(): Promise<PlayerBattingStats[]> {
         fifties: data.bat_fifties || 0,
         hundreds: data.bat_hundreds || 0,
         ducks: data.bat_ducks || 0,
+        totalZeros: data.bat_zeros || 0,
       };
     });
   } catch (error) {
@@ -75,6 +76,7 @@ export async function getTopBowlersAction(): Promise<PlayerBowlingStats[]> {
         economy: data.bowl_economy || 0,
         threeWickets: data.bowl_three_fers || 0,
         fiveWickets: data.bowl_five_fers || 0,
+        totalMaidens: data.bowl_maidens || 0,
       };
     });
   } catch (error) {
@@ -196,6 +198,7 @@ function mapToPlayerStatsFormat(data: any) {
     fifties: data.bat_fifties || 0,
     hundreds: data.bat_hundreds || 0,
     ducks: data.bat_ducks || 0,
+    totalZeros: data.bat_zeros || 0,
   };
 
   const bowlingStats = {
@@ -213,6 +216,7 @@ function mapToPlayerStatsFormat(data: any) {
     economy: data.bowl_economy || 0,
     threeWickets: data.bowl_three_fers || 0,
     fiveWickets: data.bowl_five_fers || 0,
+    totalMaidens: data.bowl_maidens || 0,
   };
 
   return { playerId, playerName, battingStats, bowlingStats, totalMatches };

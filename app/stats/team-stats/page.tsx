@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Header } from '@/app/components/Header';
-import { TeamMatchCard } from '@/app/components/TeamMatchCard';
+import { TeamMatchDetails } from '@/app/components/TeamMatchDetails';
 import { Match } from '@/app/lib/cricket-schema';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
@@ -189,7 +189,7 @@ export default function TeamStatsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredMonthMatches.map((match) => (
-                  <TeamMatchCard key={match.id} match={match} />
+                  <TeamMatchDetails key={match.id} match={match} />
                 ))}
               </div>
             )}
@@ -212,7 +212,7 @@ export default function TeamStatsPage() {
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   {paginatedMatches.map((match) => (
-                    <TeamMatchCard key={match.id} match={match} />
+                    <TeamMatchDetails key={match.id} match={match} />
                   ))}
                 </div>
 

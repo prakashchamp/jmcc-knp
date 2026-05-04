@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { openDialog, closeDialog } from '@/app/lib/redux/slices/scorerSlice';
+import { openDialog, closeDialog, recordRunOutBall } from '@/app/lib/redux/slices/scorerSlice';
 import type { DismissalMode } from '@/app/lib/cricket-scorer-types';
 import {
   formLabelClass,
@@ -83,6 +83,15 @@ export function RunOutDialog() {
       return;
     }
 
+    dispatch(
+      recordRunOutBall({
+        dismissalMode: dialogData.dismissalMode as 'run-out' | 'handled-ball' | 'obstructing-field',
+        ballType: ballType ?? 'regular',
+        runs: parsedRuns,
+        batsmanIdToMarkOut: batsmanIdToMarkOut,
+      })
+    );
+
     dispatch(closeDialog());
     dispatch(
       openDialog({
@@ -93,7 +102,7 @@ export function RunOutDialog() {
           selectedBatsman: batsmanOut,
           runs: parsedRuns,
           ballType,
-          recordOnSelect: true,
+          recordOnSelect: false, // Already recorded
         },
       })
     );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import { closeDialog, completeOver, undoLastDelivery } from '@/app/lib/redux/slices/scorerSlice';
@@ -23,11 +23,6 @@ import {
 export function OverEndPopup() {
   const dispatch = useDispatch<AppDispatch>();
   const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
-  
-  const [selectedBowler, setSelectedBowler] = useState<TeamPlayer | null>(null);
-  const [newBowlerName, setNewBowlerName] = useState('');
-
-  const teamName = useTeamName();
   
   if (!currentInnings || !liveMatch) return null;
 
@@ -59,9 +54,30 @@ export function OverEndPopup() {
     }
   }
 
+  // Pre-populate the selected bowler based on rotation logic
+  const getInitialBowler = (): TeamPlayer | null => {
+    if (currentInnings.battingTeam === 'Us' && previousBowler) {
+      const match = previousBowler.id.match(/opp-(\d+)/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num >= 1 && num <= 5) {
+          const nextIndex = num % 5;
+          return OPPONENT_TEAM_PLAYERS[nextIndex];
+        }
+      }
+    }
+    return null;
+  };
+
+  const [selectedBowler, setSelectedBowler] = useState<TeamPlayer | null>(getInitialBowler);
+  const [newBowlerName, setNewBowlerName] = useState('');
+
+  const teamName = useTeamName();
+
   const bowlingTeamPlayers = currentInnings.battingTeam === 'Us'
     ? OPPONENT_TEAM_PLAYERS
     : liveMatch.teamPlayers;
+
   const excludedBowlerIds = previousBowler
     ? bowlingTeamPlayers
         .filter((player) => player.id === previousBowler?.id || player.name === previousBowler?.name)

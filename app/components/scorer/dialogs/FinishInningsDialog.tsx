@@ -2,7 +2,7 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { completeMatchAfterFirstInnings, startSecondInnings } from '@/app/lib/redux/slices/scorerSlice';
+import { completeMatchAfterFirstInnings, completeMatchOnTargetReached, finishCurrentInnings, startSecondInnings } from '@/app/lib/redux/slices/scorerSlice';
 import {
   infoCardClass,
   modalEyebrowClass,
@@ -28,12 +28,27 @@ export function FinishInningsDialog() {
   const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
   const battingTeamName = currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent;
 
+  const isSecondInnings = currentInnings.inningsNumber === 2;
+  const firstInnings = liveMatch.innings[0];
+  const target = currentInnings.target ?? (firstInnings ? firstInnings.totalRuns + 1 : undefined);
+  const targetReached = typeof target === 'number' && currentInnings.totalRuns >= target;
+
+  const handleFinishMatch = () => {
+    if (targetReached) {
+      dispatch(completeMatchOnTargetReached());
+    } else {
+      dispatch(finishCurrentInnings());
+    }
+  };
+
   return (
     <div className={modalOverlayClass}>
       <div className={`${modalPanelClass} w-full max-w-md p-5 sm:p-6 text-white`}>
         <div className={modalHeaderClass}>
           <p className={modalEyebrowClass}>Live Scorer</p>
-          <h2 className={modalTitleClass}>Innings Complete</h2>
+          <h2 className={modalTitleClass}>
+            {isSecondInnings ? 'Match Complete' : 'Innings Complete'}
+          </h2>
         </div>
 
         <div className={`${infoCardClass} mb-4 space-y-2`}>
@@ -56,18 +71,29 @@ export function FinishInningsDialog() {
         </div>
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <button
-            onClick={() => dispatch(startSecondInnings())}
-            className={`w-full px-4 py-2.5 ${primaryButtonClass}`}
-          >
-            Start Second Innings
-          </button>
-          <button
-            onClick={() => dispatch(completeMatchAfterFirstInnings())}
-            className={`w-full px-4 py-2.5 ${secondaryButtonClass}`}
-          >
-            Complete This Match
-          </button>
+          {!isSecondInnings ? (
+            <>
+              <button
+                onClick={() => dispatch(startSecondInnings())}
+                className={`w-full px-4 py-2.5 ${primaryButtonClass}`}
+              >
+                Start Second Innings
+              </button>
+              <button
+                onClick={() => dispatch(completeMatchAfterFirstInnings())}
+                className={`w-full px-4 py-2.5 ${secondaryButtonClass}`}
+              >
+                Complete This Match
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleFinishMatch}
+              className={`w-full px-4 py-2.5 sm:col-span-2 ${primaryButtonClass}`}
+            >
+              View Match Result
+            </button>
+          )}
         </div>
       </div>
     </div>

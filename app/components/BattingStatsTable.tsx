@@ -8,7 +8,7 @@ interface AllTimeBattingStatsTableProps {
   loading: boolean;
 }
 
-type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
+type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'totalZeros' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
 
 const SortIcon = ({ field, sortField, sortDirection }: { field: SortField; sortField: SortField; sortDirection: 'asc' | 'desc' }) => (
   <span className={`ml-0.5 ${sortField === field ? 'text-blue-400' : 'text-gray-500'}`}>
@@ -104,6 +104,9 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
               <th className={thClass} onClick={() => handleSort('totalBalls')}>
                 Balls <SortIcon field="totalBalls" sortField={sortField} sortDirection={sortDirection} />
               </th>
+              <th className={thClass} onClick={() => handleSort('totalZeros')}>
+                0s <SortIcon field="totalZeros" sortField={sortField} sortDirection={sortDirection} />
+              </th>
               <th className={thClass} onClick={() => handleSort('strikeRate')}>
                 SR <SortIcon field="strikeRate" sortField={sortField} sortDirection={sortDirection} />
               </th>
@@ -149,6 +152,7 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
                   <td className={tdClass}>{stats.totalInnings}</td>
                   <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-xs sm:text-sm whitespace-nowrap">{stats.totalRuns}</td>
                   <td className={tdClass}>{stats.totalBalls}</td>
+                  <td className={tdClass}>{stats.totalZeros || 0}</td>
                   <td className={tdClass}>{strikeRate}</td>
                   <td className={tdClass}>{average}</td>
                   <td className={tdClass}>{stats.notOuts}</td>

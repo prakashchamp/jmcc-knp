@@ -3,12 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { Match } from '../lib/cricket-schema';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
+import { formatOversDisplay } from '@/app/lib/ball-display-utils';
 
-interface TeamMatchCardProps {
+interface TeamMatchDetailsProps {
   match: Match;
 }
 
-export function TeamMatchCard({ match }: TeamMatchCardProps) {
+export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
   const router = useRouter();
   const teamName = useTeamName();
 
@@ -121,6 +122,7 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
             <p className="text-lg sm:text-2xl font-black text-white">
               {match.teamRuns ?? 0}<span className="text-white/50 text-sm mx-0.5">/</span>{match.teamWickets ?? 0}
             </p>
+            <p className="text-white/50 text-[10px] mt-0.5">({formatOversDisplay(match.teamOversPlayed ?? match.totalOvers ?? 20)} / {match.totalOvers ?? 20})</p>
           </div>
           <div className="text-white/30 font-bold text-base sm:text-lg">vs</div>
           <div className="text-center">
@@ -128,6 +130,7 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
             <p className="text-lg sm:text-2xl font-black text-white">
               {match.opponentRuns ?? 0}<span className="text-white/50 text-sm mx-0.5">/</span>{match.opponentWickets ?? 0}
             </p>
+            <p className="text-white/50 text-[10px] mt-0.5">({formatOversDisplay(match.opponentOversPlayed ?? match.totalOvers ?? 20)} / {match.totalOvers ?? 20})</p>
           </div>
         </div>
 
@@ -168,7 +171,7 @@ export function TeamMatchCard({ match }: TeamMatchCardProps) {
                   {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
                     <div key={idx}>
                       <p className="font-bold text-white text-xs sm:text-sm truncate">{bowler.playerName}</p>
-                       <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">wickets /</span> {bowler.runs} <span className="text-white/35">runs</span></p>
+                       <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">wickets /</span> {bowler.runs} <span className="text-white/35">runs</span>{bowler.overs ? ` (${bowler.overs} overs)` : ''}</p>
                     </div>
                   )) || (match.bestBowlerName && (
                     <div>

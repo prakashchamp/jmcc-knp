@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { formatOversDisplay } from '@/app/lib/ball-display-utils';
 
 export default function MatchDetailPage() {
   const params = useParams();
@@ -41,9 +42,9 @@ export default function MatchDetailPage() {
   const bowlingPerformances = matchPerformances.filter(p => p.bowling.didBowl || (p.bowling.overs > 0 || p.bowling.runs > 0));
 
   // Sort state
-  const [battingSortField, setBattingSortField] = useState<'playerName' | 'runs' | 'balls' | 'fours' | 'sixes' | 'strikeRate'>('runs');
+  const [battingSortField, setBattingSortField] = useState<'playerName' | 'runs' | 'balls' | 'zeros' | 'fours' | 'sixes' | 'strikeRate'>('runs');
   const [battingSortDir, setBattingSortDir] = useState<'asc' | 'desc'>('desc');
-  const [bowlingSortField, setBowlingSortField] = useState<'playerName' | 'overs' | 'runs' | 'wickets' | 'economy'>('wickets');
+  const [bowlingSortField, setBowlingSortField] = useState<'playerName' | 'overs' | 'maidens' | 'runs' | 'wickets' | 'economy'>('wickets');
   const [bowlingSortDir, setBowlingSortDir] = useState<'asc' | 'desc'>('desc');
 
   // Sort batting performances
@@ -61,6 +62,9 @@ export default function MatchDetailPage() {
       } else if (battingSortField === 'balls') {
         aVal = a.batting.balls;
         bVal = b.batting.balls;
+      } else if (battingSortField === 'zeros') {
+        aVal = a.batting.zeros || 0;
+        bVal = b.batting.zeros || 0;
       } else if (battingSortField === 'fours') {
         aVal = a.batting.fours;
         bVal = b.batting.fours;
@@ -92,6 +96,9 @@ export default function MatchDetailPage() {
       } else if (bowlingSortField === 'overs') {
         aVal = a.bowling.overs;
         bVal = b.bowling.overs;
+      } else if (bowlingSortField === 'maidens') {
+        aVal = a.bowling.maidens || 0;
+        bVal = b.bowling.maidens || 0;
       } else if (bowlingSortField === 'runs') {
         aVal = a.bowling.runs;
         bVal = b.bowling.runs;
@@ -208,6 +215,7 @@ export default function MatchDetailPage() {
               <p className="text-2xl sm:text-4xl font-black text-white">
                 {match.teamRuns ?? 0}<span className="text-slate-400 text-xl sm:text-2xl mx-1">/</span>{match.teamWickets ?? 0}
               </p>
+              <p className="text-slate-400 text-xs mt-1">({formatOversDisplay(match.teamOversPlayed ?? match.totalOvers ?? 20)} / {match.totalOvers ?? 20})</p>
             </div>
             <div className="hidden sm:block h-12 w-px bg-slate-600"></div>
             <div className="text-center">
@@ -215,6 +223,7 @@ export default function MatchDetailPage() {
               <p className="text-2xl sm:text-4xl font-black text-white">
                 {match.opponentRuns ?? 0}<span className="text-slate-400 text-xl sm:text-2xl mx-1">/</span>{match.opponentWickets ?? 0}
               </p>
+              <p className="text-slate-400 text-xs mt-1">({formatOversDisplay(match.opponentOversPlayed ?? match.totalOvers ?? 20)} / {match.totalOvers ?? 20})</p>
             </div>
           </div>
 
@@ -266,6 +275,12 @@ export default function MatchDetailPage() {
                     </th>
                     <th 
                       className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
+                      onClick={() => handleBattingSort('zeros')}
+                    >
+                      0s {battingSortField === 'zeros' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'zeros' && '⇅'}
+                    </th>
+                    <th 
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('fours')}
                     >
                       4s {battingSortField === 'fours' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'fours' && '⇅'}
@@ -290,9 +305,12 @@ export default function MatchDetailPage() {
                       key={perf.id}
                       className={idx % 2 === 0 ? 'bg-slate-800 text-gray-100' : 'bg-slate-700 text-gray-100 hover:bg-slate-600'}
                     >
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{perf.playerName}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">
+                        {perf.playerName}{perf.batting.dismissed === false ? '*' : ''}
+                      </td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{perf.batting.runs}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.balls}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-400">{perf.batting.zeros || 0}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.fours}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.sixes}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-orange-400">{perf.batting.strikeRate.toFixed(1)}</td>
@@ -328,6 +346,12 @@ export default function MatchDetailPage() {
                     </th>
                     <th 
                       className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
+                      onClick={() => handleBowlingSort('maidens')}
+                    >
+                      M {bowlingSortField === 'maidens' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'maidens' && '⇅'}
+                    </th>
+                    <th 
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-900 cursor-pointer select-none hover:bg-yellow-600"
                       onClick={() => handleBowlingSort('runs')}
                     >
                       R {bowlingSortField === 'runs' && (bowlingSortDir === 'asc' ? '↑' : '↓')}{bowlingSortField !== 'runs' && '⇅'}
@@ -354,6 +378,7 @@ export default function MatchDetailPage() {
                     >
                       <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">{perf.playerName}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.overs}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-400">{perf.bowling.maidens || 0}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.runs}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">{perf.bowling.economy.toFixed(1)}</td>

@@ -23,6 +23,8 @@ import type { Ball, LiveMatch, TeamPlayer, InningsState } from '@/app/lib/cricke
 import { getCurrentBowlerStats } from '@/app/lib/bowling-stats-utils';
 import { formatBallDisplay, getBallColor as getDisplayBallColor } from '@/app/lib/ball-display-utils';
 import { useTheme } from '../ThemeProvider';
+import { useWakeLock } from '@/app/lib/hooks/useWakeLock';
+import { useMediaSessionScore } from '@/app/lib/hooks/useMediaSessionScore';
 
 // Landing Page Component
 import { ScorerLandingPage } from './ScorerLandingPage';
@@ -96,8 +98,17 @@ export function LiveScorer(props: LiveScorerProps) {
   const [positionedBatsman1Id, setPositionedBatsman1Id] = useState<string | null>(null);
   const [positionedBatsman2Id, setPositionedBatsman2Id] = useState<string | null>(null);
   const [previousOverNumber, setPreviousOverNumber] = useState(0);
+  const [pendingOverEnd, setPendingOverEnd] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
+
+  // Keep screen awake during live match
+  useWakeLock(liveMatch?.status === 'in-progress');
+
+  // Show score on lock screen
+  const currentInningsData = currentInnings || (liveMatch?.innings && liveMatch.innings[0]);
+  useMediaSessionScore(liveMatch, currentInningsData as any);
+
   const viewTitles: Record<typeof view, string> = {
     scorer: 'Live Scorer',
     batting: 'Batting',
@@ -197,20 +208,17 @@ export function LiveScorer(props: LiveScorerProps) {
       typeof secondInningsTarget === 'number' &&
       currentInnings.totalRuns >= secondInningsTarget
     ) {
-      dispatch(completeMatchOnTargetReached());
-      return;
-    }
-
-    if (!inningsLimitReached) return;
-
-    if (liveMatch.currentInnings === 1) {
       if (dialogState.activeDialog !== 'finishInnings') {
         dispatch(openDialog({ dialog: 'finishInnings' }));
       }
       return;
     }
 
-    dispatch(finishCurrentInnings());
+    if (!inningsLimitReached) return;
+
+    if (dialogState.activeDialog !== 'finishInnings') {
+      dispatch(openDialog({ dialog: 'finishInnings' }));
+    }
   }, [
     liveMatch,
     currentInnings?.totalBalls,
@@ -243,14 +251,35 @@ export function LiveScorer(props: LiveScorerProps) {
       currentInnings.totalBalls % 6 === 0 &&
       currentOverNumber > previousOverNumber
     ) {
-      setPreviousOverNumber(currentOverNumber);
-      
-      // Show over end popup - only if not already showing
       if (dialogState.activeDialog === null) {
+        setPreviousOverNumber(currentOverNumber);
         dispatch(openDialog({ dialog: 'overEnd' }));
+      } else {
+        setPendingOverEnd(true);
       }
     }
   }, [currentInnings?.totalBalls, previousOverNumber, dispatch, dialogState.activeDialog, liveMatch, currentInnings]);
+
+  useEffect(() => {
+    if (!pendingOverEnd || !currentInnings || !liveMatch || liveMatch.status !== 'in-progress') return;
+
+    const currentOverNumber = Math.floor(currentInnings.totalBalls / 6);
+    const inningsLimitReached =
+      currentInnings.totalWickets >= 10 ||
+      currentInnings.totalBalls >= liveMatch.totalOvers * 6;
+
+    if (
+      dialogState.activeDialog === null &&
+      !inningsLimitReached &&
+      currentInnings.totalBalls > 0 &&
+      currentInnings.totalBalls % 6 === 0 &&
+      currentOverNumber > previousOverNumber
+    ) {
+      setPendingOverEnd(false);
+      setPreviousOverNumber(currentOverNumber);
+      dispatch(openDialog({ dialog: 'overEnd' }));
+    }
+  }, [pendingOverEnd, dialogState.activeDialog, currentInnings?.totalBalls, previousOverNumber, dispatch, liveMatch, currentInnings]);
 
   // Keep the active ball slot centered so previous/current/next remain visible
   const ballsContainerRef = useRef<HTMLDivElement>(null);
@@ -699,6 +728,7 @@ export function LiveScorer(props: LiveScorerProps) {
             <div className="w-36">Bowler</div>
             <div className="flex-1"></div>
             <div className="w-10 text-center">O</div>
+            <div className="w-10 text-center">M</div>
             <div className="w-10 text-center">R</div>
             <div className="w-10 text-center">W</div>
             <div className="w-14 text-center">ECO</div>
@@ -712,6 +742,7 @@ export function LiveScorer(props: LiveScorerProps) {
             <div className="w-36 truncate ml-2">{currentBowlerStats?.name || innings.currentBowler?.name || 'Bowler 1'}</div>
             <div className="flex-1"></div>
             <div className="w-10 text-center">{currentBowlerStats?.overs ?? innings.currentBowler?.overs ?? 0}.{currentBowlerStats ? currentBowlerStats.balls % 6 : innings.currentBowler?.balls || 0}</div>
+            <div className="w-10 text-center">{currentBowlerStats?.maidens ?? innings.currentBowler?.maidens ?? 0}</div>
             <div className="w-10 text-center">{currentBowlerStats?.runs ?? innings.currentBowler?.runs ?? 0}</div>
             <div className="w-10 text-center">{currentBowlerStats?.wickets ?? innings.currentBowler?.wickets ?? 0}</div>
             <div className="w-14 text-center">{(currentBowlerStats?.economy ?? innings.currentBowler?.economy ?? 0).toFixed(2)}</div>

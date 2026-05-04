@@ -27,8 +27,10 @@ export function mapMatchToFirestore(match: LiveMatch) {
     first_innings_score: (match as any).firstInningsScore || 0,
     team_runs: (match as any).teamRuns || 0,
     team_wickets: (match as any).teamWickets || 0,
+    team_overs_played: (match as any).teamOversPlayed || 0,
     opponent_runs: (match as any).opponentRuns || 0,
     opponent_wickets: (match as any).opponentWickets || 0,
+    opponent_overs_played: (match as any).opponentOversPlayed || 0,
     created_at: match.createdAt || new Date().toISOString(),
     createdAt: match.createdAt || new Date().toISOString(),
   };
@@ -52,6 +54,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     bat_innings: perf.batting.innings,
     bat_runs: perf.batting.runs,
     bat_balls: perf.batting.balls,
+    bat_zeros: perf.batting.zeros,
     bat_fours: perf.batting.fours,
     bat_sixes: perf.batting.sixes,
     bat_dismissed: perf.batting.dismissed,
@@ -98,6 +101,7 @@ export function mapFirestoreToPerformance(data: any): Performance {
       innings: data.bat_innings || 0,
       runs: data.bat_runs || 0,
       balls: data.bat_balls || 0,
+      zeros: data.bat_zeros || 0,
       fours: data.bat_fours || 0,
       sixes: data.bat_sixes || 0,
       dismissed: data.bat_dismissed || false,
@@ -151,8 +155,10 @@ export function mapFirestoreToMatch(data: any): Match {
     bestBowlerRuns: data.bestBowlerRuns || data.best_bowler_runs || 0,
     teamRuns: data.teamRuns || data.team_runs || 0,
     teamWickets: data.teamWickets || data.team_wickets || 0,
+    teamOversPlayed: data.teamOversPlayed || data.team_overs_played || 0,
     opponentRuns: data.opponentRuns || data.opponent_runs || 0,
     opponentWickets: data.opponentWickets || data.opponent_wickets || 0,
+    opponentOversPlayed: data.opponentOversPlayed || data.opponent_overs_played || 0,
     createdAt: data.createdAt || data.created_at || new Date().toISOString(),
     matchFormat: data.matchFormat || data.match_format || 'Custom',
     totalOvers: data.totalOvers || data.total_overs,
@@ -224,6 +230,7 @@ export function findTopBowlers(performances: Performance[]) {
   if (performances.length === 0) return [];
   
   return [...performances]
+    .filter(perf => perf.bowling.overs > 0)
     .sort((a, b) => {
       // Primary: Wickets
       if (b.bowling.wickets !== a.bowling.wickets) {
@@ -238,5 +245,6 @@ export function findTopBowlers(performances: Performance[]) {
       playerName: perf.playerName,
       wickets: perf.bowling.wickets,
       runs: perf.bowling.runs,
+      overs: perf.bowling.overs,
     }));
 }

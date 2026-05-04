@@ -103,6 +103,14 @@ const teamSlice = createSlice({
       state.pendingCloudPush = true;
       state.error = null;
     },
+    addPlayerLocal: (state, action: PayloadAction<TeamPlayer>) => {
+      if (state.team) {
+        state.team.players = [...(state.team.players || []), action.payload];
+        state.team.updatedAt = new Date().toISOString();
+        state.savedToRedux = true;
+        state.pendingCloudPush = true;
+      }
+    },
     setPendingCloudPush: (state, action: PayloadAction<boolean>) => {
       state.pendingCloudPush = action.payload;
     },
@@ -150,5 +158,5 @@ const teamSlice = createSlice({
   },
 });
 
-export const { setTeam, saveToRedux, setPendingCloudPush, clearTeam, setLoading, setError, rehydrateTeam } = teamSlice.actions;
+export const { setTeam, saveToRedux, addPlayerLocal, setPendingCloudPush, clearTeam, setLoading, setError, rehydrateTeam } = teamSlice.actions;
 export default teamSlice.reducer;

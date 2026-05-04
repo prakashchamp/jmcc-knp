@@ -2,7 +2,7 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { openDialog, closeDialog } from '@/app/lib/redux/slices/scorerSlice';
+import { openDialog, closeDialog, recordStumpedWide, recordStumpedRegular } from '@/app/lib/redux/slices/scorerSlice';
 import {
   modalOverlayClass,
   modalPanelClass,
@@ -32,6 +32,9 @@ export function StumpedDialog() {
   const handleWideYes = () => {
     if (!currentInnings?.striker) return;
 
+    // Record immediately
+    dispatch(recordStumpedWide({ runs: 0 }));
+
     dispatch(closeDialog());
     dispatch(
       openDialog({
@@ -42,7 +45,7 @@ export function StumpedDialog() {
           selectedBatsman: 'striker',
           runs: 0,
           ballType: 'wide',
-          recordOnSelect: true,
+          recordOnSelect: false, // Already recorded
         },
       })
     );
@@ -50,6 +53,9 @@ export function StumpedDialog() {
 
   const handleWideNo = () => {
     if (!currentInnings?.striker) return;
+
+    // Record immediately
+    dispatch(recordStumpedRegular());
 
     dispatch(closeDialog());
     dispatch(
@@ -60,7 +66,7 @@ export function StumpedDialog() {
           outBatsmanId: currentInnings.striker.id,
           selectedBatsman: 'striker',
           ballType: 'regular',
-          recordOnSelect: true,
+          recordOnSelect: false, // Already recorded
         },
       })
     );

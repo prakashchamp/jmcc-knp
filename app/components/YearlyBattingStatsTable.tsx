@@ -8,7 +8,7 @@ interface YearlyBattingStatsTableProps {
   loading: boolean;
 }
 
-type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
+type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'totalZeros' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
 
 export function YearlyBattingStatsTable({ players, loading }: YearlyBattingStatsTableProps) {
   const [sortField, setSortField] = useState<SortField>('totalRuns');
@@ -122,6 +122,14 @@ export function YearlyBattingStatsTable({ players, loading }: YearlyBattingStats
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalZeros')}>
+                0s
+                {sortField === 'totalZeros' ? (
+                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                ) : (
+                  <span className="text-gray-400 ml-1">⇅</span>
+                )}
+              </th>
               <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
                 SR
                 {sortField === 'strikeRate' ? (
@@ -207,6 +215,7 @@ export function YearlyBattingStatsTable({ players, loading }: YearlyBattingStats
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalInnings}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.battingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalBalls}</td>
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.battingStats.totalZeros || 0}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">
                   {player.battingStats.strikeRate.toFixed(1)}
                 </td>

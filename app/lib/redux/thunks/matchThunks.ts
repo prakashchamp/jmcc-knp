@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { addNewTeamPlayer } from '../slices/scorerSlice';
-import { addPlayerAndSync } from '../slices/teamSlice';
+import { addPlayerLocal } from '../slices/teamSlice';
 import { TeamPlayer } from '../../cricket-schema';
 import { generatePlayerId } from '../../player-utils';
 
@@ -21,8 +21,8 @@ export const addNewPlayerToTeamAndMatch = createAsyncThunk(
     // We pass the same ID to keep them in sync
     dispatch(addNewTeamPlayer({ ...newPlayer }));
     
-    // 2. Add to global team roster (Firestore + local Redux team state)
-    await dispatch(addPlayerAndSync(newPlayer));
+    // 2. Add to global team roster (local Redux team state, wait for match upload to sync)
+    dispatch(addPlayerLocal(newPlayer));
     
     return newPlayer;
   }

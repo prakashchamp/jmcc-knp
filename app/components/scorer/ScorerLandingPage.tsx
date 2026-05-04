@@ -11,12 +11,7 @@ import { validateAndClearCorruptedState } from '@/app/lib/redux/store';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { inputClass, primaryButtonClass, secondaryButtonClass } from './dialogs/dialogTheme';
 import { useTheme } from '../ThemeProvider';
-
-// Constant opponent player list
-const OPPONENT_PLAYERS: TeamPlayer[] = Array.from({ length: 11 }, (_, i) => ({
-  id: `opponent-${i + 1}`,
-  name: `Opp Player ${i + 1}`,
-}));
+import { OPPONENT_TEAM_PLAYERS } from '@/app/lib/team-constants';
 
 interface ScorerLandingPageProps {
   onStartNewMatch: (matchDetails: {
@@ -212,6 +207,10 @@ export function ScorerLandingPage({
   const dispatch = useDispatch<AppDispatch>();
   const teamName = useTeamName();
   const { theme, toggleTheme } = useTheme();
+  
+  // Stored matches from IndexedDB
+  const [storedMatches, setStoredMatches] = useState<import('@/app/lib/indexed-db').StoredMatch[]>([]);
+  
   // Navigation states: 'landing' | 'match' | 'players'
   const [step, setStep] = useState<'landing' | 'match' | 'players'>('landing');
   
@@ -221,7 +220,33 @@ export function ScorerLandingPage({
     if (result === 'cleared') {
       console.log('🔄 Corrupted state was cleared. Starting fresh.');
     }
-  }, []);
+    
+    // Load matches from IndexedDB
+    const loadStoredMatches = async () => {
+      try {
+        const { getAllMatchesFromIndexedDB } = await import('@/app/lib/indexed-db');
+        let matches = await getAllMatchesFromIndexedDB();
+        
+        // Optimistic UI: If we have a lastCompletedMatch in Redux that's not in IndexedDB yet (due to async lag), add it
+        if (lastCompletedMatch && lastCompletedMatch.status === 'complete') {
+          const isAlreadyInList = matches.some(m => m.id === lastCompletedMatch.id);
+          if (!isAlreadyInList) {
+            matches.push({
+              id: lastCompletedMatch.id,
+              match: lastCompletedMatch,
+              completedAt: lastCompletedMatch.completedAt || new Date().toISOString(),
+            });
+          }
+        }
+        
+        setStoredMatches(matches);
+      } catch (err) {
+        console.warn('Failed to load stored matches:', err);
+      }
+    };
+    
+    loadStoredMatches();
+  }, [lastCompletedMatch]);
   
   const [formData, setFormData] = useState({
     opponent: '',
@@ -338,6 +363,27 @@ export function ScorerLandingPage({
 
     // Proceed to player selection
     setStep('players');
+
+    // Auto-select players for opponent if applicable
+    const jmccBattsInnings1 =
+      (formData.tossWonBy === 'Us' && formData.tossDecision === 'bat') ||
+      (formData.tossWonBy === 'Them' && formData.tossDecision === 'field');
+    const jmccBatting = startFromSecondInnings ? !jmccBattsInnings1 : jmccBattsInnings1;
+
+    if (!jmccBatting) {
+      // Opponent is batting
+      // Sequential: Player 1 and 2
+      const striker = OPPONENT_TEAM_PLAYERS[0];
+      const nonStriker = OPPONENT_TEAM_PLAYERS[1];
+      setStriker(striker);
+      setNonStriker(nonStriker);
+      
+      // We are bowling, no auto-select for us
+    } else {
+      // We are batting, opponent is bowling
+      const bowler = OPPONENT_TEAM_PLAYERS[0];
+      setBowler(bowler);
+    }
   };
 
   const handlePlayerSelection = (e: React.FormEvent) => {
@@ -437,28 +483,33 @@ export function ScorerLandingPage({
             )}
 
             {/* Completed Matches Button */}
-            {lastCompletedMatch && (
-              <button
-                onClick={() => onViewCompletedMatch?.(lastCompletedMatch)}
-                className="w-full px-6 py-4 bg-emerald-700 hover:bg-emerald-600 text-white text-lg font-bold rounded-lg transition-colors border border-emerald-500/30"
-              >
-                <div className="flex flex-col items-center">
-                  <span>Completed Matches</span>
-                  <span className="text-[10px] font-medium opacity-80 uppercase tracking-wider mt-1">
-                    Last: {lastCompletedMatch.opponent}
-                  </span>
-                </div>
-              </button>
-            )}
+            {/* Completed Matches Section */}
+            <div className="pt-2">
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest opacity-40">Recent Matches (5d)</p>
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                {storedMatches.length > 0 ? (
+                  storedMatches.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()).map((stored) => (
+                    <button
+                      key={stored.id}
+                      onClick={() => onViewCompletedMatch?.(stored.match)}
+                      className="w-full px-4 py-3 bg-emerald-700/20 hover:bg-emerald-700/40 text-emerald-100 rounded-lg transition-all border border-emerald-500/20 flex flex-col items-start"
+                    >
+                      <div className="flex justify-between w-full items-center">
+                        <span className="font-bold text-sm">vs {stored.match.opponent}</span>
+                        <span className="text-[10px] opacity-60">{new Date(stored.completedAt).toLocaleDateString()}</span>
+                      </div>
+                      <span className="text-[10px] opacity-80 mt-0.5">{stored.match.winMargin || 'Result pending'}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-6 py-8 bg-gray-800/30 rounded-lg border border-border/50 text-center">
+                    <p className="text-sm text-gray-500 font-medium italic">No recent local matches</p>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {!lastCompletedMatch && (
-              <button
-                disabled
-                className="w-full px-6 py-4 bg-gray-700 text-gray-500 text-lg font-bold rounded-lg cursor-not-allowed opacity-50"
-              >
-                Completed Matches
-              </button>
-            )}
+
 
             {/* Back to Home Button */}
             <button
@@ -626,11 +677,11 @@ export function ScorerLandingPage({
     const bowlingTeamName = jmccBatting ? formData.opponent : teamName;
     const strikerOptions = jmccBatting
       ? teamPlayers.filter((p) => p.id !== nonStriker?.id)
-      : OPPONENT_PLAYERS.filter((p) => p.id !== nonStriker?.id);
+      : OPPONENT_TEAM_PLAYERS.filter((p) => p.id !== nonStriker?.id);
     const nonStrikerOptions = jmccBatting
       ? teamPlayers.filter((p) => p.id !== striker?.id)
-      : OPPONENT_PLAYERS.filter((p) => p.id !== striker?.id);
-    const bowlerOptions = jmccBatting ? OPPONENT_PLAYERS : teamPlayers;
+      : OPPONENT_TEAM_PLAYERS.filter((p) => p.id !== striker?.id);
+    const bowlerOptions = jmccBatting ? OPPONENT_TEAM_PLAYERS : teamPlayers;
 
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">

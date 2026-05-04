@@ -25,15 +25,12 @@ export function BatsmanRetiredDialog() {
 
   if (!liveMatch || !currentInnings) return null;
 
-  // Get available players (not currently batting - striker and non-striker, and not dismissed)
-  // Show all players regardless of role
+  // Get available players (not currently batting - striker and non-striker, and not dismissed, except retired-hurt)
   const battingTeamPlayers = currentInnings.battingTeam === 'Us' ? liveMatch.teamPlayers : OPPONENT_TEAM_PLAYERS;
   const availableBatsmen = CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings);
 
+  // excludeIds is now handled internally by getAvailableBatsmen
   const excludeIds: string[] = [];
-  if (currentInnings.striker) excludeIds.push(currentInnings.striker.id);
-  if (currentInnings.nonStriker) excludeIds.push(currentInnings.nonStriker.id);
-  currentInnings.dismissedBatsmen.forEach((d) => excludeIds.push(d.id));
 
   const handleSelectBatsman = (batsman: TeamPlayer) => {
     if (!batsman || !currentInnings.striker) return;

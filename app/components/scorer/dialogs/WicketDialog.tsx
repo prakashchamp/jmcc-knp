@@ -2,7 +2,7 @@
 
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
-import { openDialog, closeDialog } from '@/app/lib/redux/slices/scorerSlice';
+import { openDialog, closeDialog, recordQuickWicket, recordRetiredOut } from '@/app/lib/redux/slices/scorerSlice';
 import { DismissalMode } from '@/app/lib/cricket-scorer-types';
 import {
   modalOverlayClass,
@@ -63,6 +63,9 @@ export function WicketDialog() {
   const handleQuickDismissal = (mode: 'bowled' | 'caught' | 'lbw' | 'hit-wicket') => {
     if (!currentInnings?.striker) return;
 
+    // Record the wicket immediately
+    dispatch(recordQuickWicket({ dismissalMode: mode }));
+
     dispatch(closeDialog());
     dispatch(
       openDialog({
@@ -71,7 +74,7 @@ export function WicketDialog() {
           dismissalMode: mode,
           outBatsmanId: currentInnings.striker.id,
           selectedBatsman: 'striker',
-          recordOnSelect: true,
+          recordOnSelect: false, // Already recorded
         },
       })
     );
@@ -84,6 +87,9 @@ export function WicketDialog() {
     } else if (mode === 'retired-out') {
       if (!currentInnings?.striker) return;
 
+      // Record immediately
+      dispatch(recordRetiredOut());
+
       dispatch(closeDialog());
       dispatch(
         openDialog({
@@ -92,7 +98,7 @@ export function WicketDialog() {
             dismissalMode: 'retired-out',
             outBatsmanId: currentInnings.striker.id,
             selectedBatsman: 'striker',
-            recordOnSelect: true,
+            recordOnSelect: false, // Already recorded
           },
         })
       );

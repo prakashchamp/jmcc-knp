@@ -7,6 +7,7 @@ import * as admin from 'firebase-admin';
  * Send a push notification to all users subscribed to the 'match_updates' topic.
  */
 export async function sendMatchUpdateNotification(title: string, body: string, data?: Record<string, string>) {
+  return { success: true, message: 'Push notifications temporarily disabled' };
   try {
     getFirebaseAdmin(); // Ensure initialized
     const messaging = admin.messaging();

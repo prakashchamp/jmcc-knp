@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { closeDialog, changeBowler, addNewTeamPlayer } from '@/app/lib/redux/slices/scorerSlice';
@@ -49,6 +49,33 @@ export function NewBowlerDialog() {
       player.id !== previousBowlerId &&
       player.name !== previousBowlerName
   );
+
+  // Prevent multiple auto-selections
+  const hasAutoSelected = useRef(false);
+
+  // Auto-select and close for opponents (1-5 rotation)
+  useEffect(() => {
+    if (currentInnings.battingTeam === 'Us' && liveMatch && !hasAutoSelected.current) {
+      // Find where we are in the 1-5 sequence (opp-1 to opp-5)
+      let nextIndex = 0; // Default to Player 1
+      if (previousBowlerId) {
+        const match = previousBowlerId.match(/opp-(\d+)/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num >= 1 && num <= 5) {
+            nextIndex = num % 5; // 1->2(index 1), 2->3(2), 3->4(3), 4->5(4), 5->1(0)
+          }
+        }
+      }
+      
+      const nextBowler = OPPONENT_TEAM_PLAYERS[nextIndex];
+      if (nextBowler) {
+        hasAutoSelected.current = true;
+        dispatch(changeBowler({ bowlerId: nextBowler.id, bowlerName: nextBowler.name }));
+        dispatch(closeDialog());
+      }
+    }
+  }, [currentInnings.battingTeam, previousBowlerId, dispatch, liveMatch]);
 
   const handleSelectBowler = (bowler: TeamPlayer) => {
     if (!bowler) return;

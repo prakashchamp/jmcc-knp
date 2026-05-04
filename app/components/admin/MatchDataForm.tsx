@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
+import type { RootState } from '@/app/lib/redux/store';
 
 function getISTYearMonth(dateString: string) {
   const dateObj = new Date(dateString);
@@ -29,9 +31,38 @@ interface MatchDataFormProps {
   onSuccess: () => void;
 }
 
+function normalizePlayerName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
 export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
   const [match, setMatch] = useState<Partial<Match>>(matchData.match);
-  const [performances, setPerformances] = useState<Partial<Performance>[]>(matchData.performances);
+  const teamRoster = useSelector((state: RootState) => state.team.team?.players || []);
+  const playerOptions = teamRoster.map((player) => ({ value: player.id, label: player.name }));
+
+  const findRosterPlayerId = (name: string) => {
+    const normalized = normalizePlayerName(name);
+    if (!normalized) return undefined;
+
+    const exactMatch = teamRoster.find((player) => normalizePlayerName(player.name) === normalized);
+    if (exactMatch) return exactMatch.id;
+
+    const nameParts = normalized.split(' ');
+    const lastName = nameParts[nameParts.length - 1];
+    if (!lastName) return undefined;
+
+    const lastNameMatch = teamRoster.find((player) => normalizePlayerName(player.name).split(' ').pop() === lastName);
+    if (lastNameMatch) return lastNameMatch.id;
+
+    return undefined;
+  };
+
+  const initialPerformances = matchData.performances.map((perf) => ({
+    ...perf,
+    playerId: perf.playerId || findRosterPlayerId(perf.playerName || '') || '',
+  }));
+
+  const [performances, setPerformances] = useState<Partial<Performance>[]>(initialPerformances);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -75,6 +106,30 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
     setPerformances(updated);
   };
 
+  const handlePlayerSelect = (index: number, value: string) => {
+    const selectedPlayer = teamRoster.find((player) => player.id === value);
+    const updated = [...performances];
+    updated[index] = {
+      ...(updated[index] || {}),
+      playerId: selectedPlayer?.id || '',
+      playerName: selectedPlayer?.name || value,
+    };
+    setPerformances(updated);
+  };
+
+  const playerOptionsForPerformance = (perf: Partial<Performance>) => {
+    const playerName = perf.playerName?.trim() || '';
+    const isRosterMatch = teamRoster.some(
+      (player) => normalizePlayerName(player.name) === normalizePlayerName(playerName)
+    );
+
+    const options = [...playerOptions];
+    if (playerName && !isRosterMatch) {
+      options.unshift({ value: playerName, label: playerName });
+    }
+    return options;
+  };
+
   const handleAddPerformance = () => {
     setPerformances((prev) => [
       {
@@ -86,6 +141,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           innings: 0,
           runs: 0,
           balls: 0,
+          zeros: 0,
           fours: 0,
           sixes: 0,
           dismissed: false,
@@ -157,8 +213,10 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         bestBowlerRuns: match.bestBowlerRuns || 0,
         teamRuns: Math.max(0, Number(match.teamRuns || 0)),
         teamWickets: Math.max(0, Number(match.teamWickets || 0)),
+        teamOversPlayed: Math.max(0, Number(match.teamOversPlayed || 0)),
         opponentRuns: Math.max(0, Number(match.opponentRuns || 0)),
         opponentWickets: Math.max(0, Number(match.opponentWickets || 0)),
+        opponentOversPlayed: Math.max(0, Number(match.opponentOversPlayed || 0)),
         createdAt: now,
         topBatters: [],
         topBowlers: [],
@@ -191,6 +249,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               ...(perf.batting || {}),
               runs: battingRuns,
               balls: battingBalls,
+              zeros: perf.batting?.zeros || 0,
               fours: battingFours,
               sixes: battingSixes,
               dismissed: !!perf.batting?.dismissed,
@@ -284,6 +343,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               type="text"
               value={match.opponent || ''}
               onChange={(e) => handleMatchChange('opponent', e.target.value)}
+              onFocus={(e) => e.target.select()}
               className="input-base"
             />
           </div>
@@ -349,6 +409,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                 type="number"
                 value={match.teamRuns ?? ''}
                 onChange={(e) => handleMatchChange('teamRuns', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Runs"
                 className="input-base"
               />
@@ -359,6 +420,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                 type="number"
                 value={match.teamWickets ?? ''}
                 onChange={(e) => handleMatchChange('teamWickets', e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Wkts"
                 className="input-base"
               />
@@ -384,6 +446,35 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                 value={match.opponentWickets ?? ''}
                 onChange={(e) => handleMatchChange('opponentWickets', e.target.value)}
                 placeholder="Wkts"
+                onFocus={(e) => e.target.select()}
+                className="input-base"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label-text mb-1.5 block">Team Overs Played</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                value={match.teamOversPlayed ?? ''}
+                onChange={(e) => handleMatchChange('teamOversPlayed', e.target.value)}
+                placeholder="Overs (e.g., 20.3)"
+                onFocus={(e) => e.target.select()}
+                className="input-base"
+              />
+            </div>
+            <div>
+              <label className="label-text mb-1.5 block">Opponent Overs Played</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                value={match.opponentOversPlayed ?? ''}
+                onChange={(e) => handleMatchChange('opponentOversPlayed', e.target.value)}
+                placeholder="Overs (e.g., 20.3)"
                 onFocus={(e) => e.target.select()}
                 className="input-base"
               />
@@ -447,12 +538,14 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
                 <div className="col-span-2 sm:col-span-3 lg:col-span-4">
-                  <label className="label-text mb-1 block">Player Name</label>
-                  <input
-                    type="text"
-                    value={perf.playerName || ''}
-                    onChange={(e) => handlePerformanceChange(idx, 'playerName', e.target.value)}
-                    className="input-base py-2 text-sm"
+                  <CustomSelect
+                    id={`player-select-${idx}`}
+                    label="Player Name"
+                    placeholder={perf.playerName || 'Select player'}
+                    options={playerOptionsForPerformance(perf)}
+                    value={perf.playerId || perf.playerName || ''}
+                    onChange={(value) => handlePlayerSelect(idx, value)}
+                    className="w-full"
                   />
                 </div>
 

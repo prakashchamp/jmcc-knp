@@ -52,8 +52,10 @@ export interface Match {
 
   teamRuns?: number;
   teamWickets?: number;
+  teamOversPlayed?: number; // Overs played by team (e.g., 20.3 for 20 overs 3 balls)
   opponentRuns?: number;
   opponentWickets?: number;
+  opponentOversPlayed?: number; // Overs played by opponent (e.g., 20.3 for 20 overs 3 balls)
 
   topBatters: Array<{
     playerId: string;
@@ -67,6 +69,7 @@ export interface Match {
     playerName: string;
     wickets: number;
     runs: number;
+    overs?: number;
   }>;
 
   // Deprecated: kept for backward compatibility
@@ -98,6 +101,7 @@ export interface Batting {
   innings: number; // 0 | 1
   runs: number;
   balls: number;
+  zeros: number;
   fours: number;
   sixes: number;
   dismissed: boolean;
@@ -168,9 +172,10 @@ export interface PlayerBattingStats {
   totalBalls: number;
   strikeRate: number; // (runs / balls) * 100
   
-  // Boundary counts
+  // Boundary and Dot counts
   totalFours: number;
   totalSixes: number;
+  totalZeros: number;
   
   // Milestone counts
   thirties: number; // 30-49 runs
@@ -189,6 +194,7 @@ export interface PlayerBowlingStats {
   // Wickets and Runs
   totalWickets: number;
   totalRuns: number;
+  totalMaidens: number;
   bestHaul: number;
   
   // Overs and Balls

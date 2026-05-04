@@ -17,33 +17,33 @@ interface MatchResultPanelProps {
   onOpenView: (view: ReviewView) => void;
 }
 
+const formatDate = (dateInput: string) => {
+  const date = new Date(dateInput);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: MatchResultPanelProps) {
   const dispatch = useDispatch<AppDispatch>();
   const currentInnings = useSelector((state: RootState) => state.scorer.currentInnings);
   const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
   const usInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Us');
   const themInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Them');
-  const [showShareMenu, setShowShareMenu] = useState(false);
+  // const [showShareMenu, setShowShareMenu] = useState(false);
 
   const summaryLine = liveMatch.winMargin || (liveMatch.result === 'tie' ? 'Match tied' : 'Match complete');
 
-  const formatDate = (dateInput: string) => {
-    const date = new Date(dateInput);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
   const getOvers = (balls: number) => `${Math.floor(balls / 6)}.${balls % 6}`;
 
-  const getExtras = (innings: typeof usInnings) => {
+  const getExtras = (innings: InningsState | null | undefined) => {
     if (!innings) return 0;
     const ballExtras = innings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0);
     return ballExtras + (innings.penaltyExtras || 0);
   };
 
-  const handleExportMatchInfoPdf = async () => {
+  const generateMatchPdf = async () => {
     const { jsPDF } = await import('jspdf');
 
     const formattedDate = formatDate(liveMatch.createdAt || new Date().toISOString());
@@ -105,7 +105,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
       y += 32;
     };
 
-    const getTeamName = (team: 'Us' | 'Them') => (team === 'Us' ? teamName : liveMatch.opponent);
+    const getTeamNameStr = (team: 'Us' | 'Them') => (team === 'Us' ? teamName : liveMatch.opponent);
 
     const getMergedInnings = (): InningsState[] => {
       const inningsList = liveMatch.innings ? [...liveMatch.innings] : [];
@@ -290,8 +290,8 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         return;
       }
 
-      const battingName = getTeamName(innings.battingTeam);
-      const bowlingName = getTeamName(innings.battingTeam === 'Us' ? 'Them' : 'Us');
+      const battingName = getTeamNameStr(innings.battingTeam);
+      const bowlingName = getTeamNameStr(innings.battingTeam === 'Us' ? 'Them' : 'Us');
       drawInfoBox([
         { label: 'Batting Team', value: battingName },
         { label: 'Bowling Team', value: bowlingName },
@@ -303,22 +303,24 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         batsman.name,
         String(batsman.runs),
         String(batsman.balls),
+        String(batsman.zeros || 0),
         String(batsman.fours),
         String(batsman.sixes),
         batsman.balls > 0 ? ((batsman.runs / batsman.balls) * 100).toFixed(1) : '0.0',
       ]);
 
-      drawTable('Batting', ['Name', 'R', 'B', '4s', '6s', 'SR'], batters, [0.52, 0.08, 0.08, 0.08, 0.08, 0.16]);
+      drawTable('Batting', ['Name', 'R', 'B', '0s', '4s', '6s', 'SR'], batters, [0.46, 0.08, 0.08, 0.08, 0.07, 0.07, 0.16]);
 
       const bowlers = getBowlerStats(innings).map((bowler) => [
         bowler.name,
         `${bowler.overs}.${bowler.balls % 6}`,
+        String(bowler.maidens || 0),
         String(bowler.runs),
         String(bowler.wickets),
         bowler.economy.toFixed(2),
       ]);
 
-      drawTable('Bowling', ['Name', 'O', 'R', 'W', 'ECO'], bowlers, [0.56, 0.11, 0.11, 0.11, 0.11]);
+      drawTable('Bowling', ['Name', 'O', 'M', 'R', 'W', 'ECO'], bowlers, [0.48, 0.11, 0.09, 0.11, 0.11, 0.10]);
       drawExtrasBox(innings);
       y += 6;
     };
@@ -377,8 +379,6 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
 
     renderInningsSection('First Innings', firstInnings);
 
-    // Keep second innings as its own area: if remaining space is not enough,
-    // move the entire section start to the next page.
     const secondInningsMinStartSpace = 360;
     if (y + secondInningsMinStartSpace > pageHeight - margin) {
       addNewPage();
@@ -386,32 +386,40 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
 
     renderInningsSection('Second Innings', secondInnings);
 
+    return { doc, filename, shareText: title };
+  };
+
+  const handleExportMatchInfoPdf = async () => {
+    const { doc, filename } = await generateMatchPdf();
     doc.save(filename);
   };
 
-  const handleShare = async (platform?: string) => {
-    const formattedDate = formatDate(liveMatch.createdAt || new Date().toISOString());
-    const shareText = `${teamName} vs ${liveMatch.opponent} - ${formattedDate}`;
-    const matchUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}?matchId=${liveMatch.id}`;
+  const handleSharePdfToWhatsApp = async () => {
+    try {
+      const { doc, filename, shareText } = await generateMatchPdf();
+      const pdfBlob = doc.output('blob');
+      const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
-    if (platform === 'copy') {
-      try {
-        await navigator.clipboard.writeText(matchUrl);
-        alert('Match link copied to clipboard!');
-      } catch {
-        alert('Failed to copy link');
+      if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({
+          files: [pdfFile],
+          title: shareText,
+          text: `Scorecard for ${shareText}`,
+        });
+      } else {
+        // Fallback: Download the file and tell user
+        doc.save(filename);
+        alert('PDF generated and downloaded. You can now share it manually to WhatsApp.');
       }
-    } else if (platform === 'whatsapp') {
-      const message = `Check out this match: ${shareText}\n${matchUrl}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-    } else if (platform === 'twitter') {
-      const message = `Just finished: ${shareText} 🏏 #Cricket`;
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(matchUrl)}`, '_blank');
-    } else if (platform === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(matchUrl)}`, '_blank');
+    } catch (error) {
+      console.error('Error sharing PDF:', error);
+      alert('Failed to share PDF. It has been downloaded instead.');
+      const { doc, filename } = await generateMatchPdf();
+      doc.save(filename);
     }
-    setShowShareMenu(false);
   };
+
+  // handleShare removed as we are standardizing on WhatsApp PDF share
 
   return (
     <div className="h-full overflow-y-auto bg-slate-950 px-4 py-5 sm:px-6">
@@ -474,53 +482,18 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
           >
             Export Match Info PDF
           </button>
-          <div className="relative">
-            <button
-              onClick={() => setShowShareMenu(!showShareMenu)}
-              className="w-full rounded-lg border border-purple-500/60 bg-purple-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-purple-600 flex items-center justify-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C9.017 13.742 9.5 14 10 14h4c.5 0 .983-.258 1.316-.658m-9.317-2.692a3 3 0 00-.684-2.65m13.001 0a3 3 0 00-.684 2.65m0 0A3 3 0 0015 12h-4a3 3 0 00-3 3v1m6-6l-2.293-2.293a1 1 0 00-1.414 0l-2.293 2.293m17.658 0a2 2 0 10-2.828 2.828l2.828-2.828zm-2.828 2.828l-2.293-2.293a1 1 0 00-1.414 0l-2.293 2.293m0-6l2.293-2.293a1 1 0 011.414 0l2.293 2.293" />
-              </svg>
-              Share
-            </button>
-            {showShareMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 rounded-lg border border-slate-600 bg-slate-800 shadow-lg z-10">
-                <button
-                  onClick={() => handleShare('copy')}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 first:rounded-t-lg flex items-center gap-2"
-                >
-                  📋 Copy Link
-                </button>
-                <button
-                  onClick={() => handleShare('whatsapp')}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 flex items-center gap-2"
-                >
-                  💬 WhatsApp
-                </button>
-                <button
-                  onClick={() => handleShare('twitter')}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 flex items-center gap-2"
-                >
-                  𝕏 Twitter
-                </button>
-                <button
-                  onClick={() => handleShare('facebook')}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-slate-700 last:rounded-b-lg flex items-center gap-2"
-                >
-                  f Facebook
-                </button>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={handleSharePdfToWhatsApp}
+            className="w-full rounded-lg border border-purple-500/60 bg-purple-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-purple-600 flex items-center justify-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            Share to WhatsApp
+          </button>
           <button
             onClick={() => {
-              const hasBowlingStats = liveMatch.innings.some(i => i.battingTeam === 'Them' && i.bowlerStats && i.bowlerStats.length > 0);
-              if (!hasBowlingStats) {
-                dispatch(openDialog({ dialog: 'manualBowling' }));
-              } else {
-                dispatch(openDialog({ dialog: 'uploadConfirm' }));
-              }
+              dispatch(openDialog({ dialog: 'uploadConfirm' }));
             }}
             className="rounded-lg border border-emerald-500/60 bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600 flex items-center justify-center gap-2"
           >

@@ -10,6 +10,7 @@ interface PlayerBattingRaw {
   playerName: string;
   runs: number;
   balls: number;
+  zeros: number;
   fours: number;
   sixes: number;
   wickets: Array<{ dismissalMode: DismissalMode }>;
@@ -47,6 +48,7 @@ function calculateBattingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
         playerName: ball.batter.name,
         runs: 0,
         balls: 0,
+        zeros: 0,
         fours: 0,
         sixes: 0,
         wickets: [],
@@ -66,6 +68,11 @@ function calculateBattingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
     // Count ball faced (not counting wides/no-balls)
     if (!ball.extra || (ball.extra.type !== 'wide' && ball.extra.type !== 'no-ball')) {
       batterStat.balls += 1;
+
+      // Count dot balls (0 runs off the bat)
+      if (ballRuns === 0) {
+        batterStat.zeros += 1;
+      }
 
       // Count fours and sixes (only on legal deliveries)
       if (ballRuns === 4) {
@@ -167,6 +174,7 @@ function createBattingInterface(
     innings: currentInnings === 1 ? 0 : 1,
     runs: playerStats.runs,
     balls: playerStats.balls,
+    zeros: playerStats.zeros,
     fours: playerStats.fours,
     sixes: playerStats.sixes,
     dismissed: isDismissed,
@@ -244,6 +252,7 @@ export function calculatePerformances(
       playerName: player.name,
       runs: 0,
       balls: 0,
+      zeros: 0,
       fours: 0,
       sixes: 0,
       wickets: [],
@@ -301,6 +310,7 @@ export function getPlayerCurrentStats(
 
   let battingRuns = 0;
   let battingBalls = 0;
+  let battingZeros = 0;
   let battingFours = 0;
   let battingSixes = 0;
   let battingOut = false;
@@ -319,6 +329,10 @@ export function getPlayerCurrentStats(
 
       if (!ball.extra || (ball.extra.type !== 'wide' && ball.extra.type !== 'no-ball')) {
         battingBalls += 1;
+
+        if (ball.runs.batter === 0) {
+          battingZeros += 1;
+        }
 
         if (ball.runs.batter === 4) {
           battingFours += 1;
@@ -356,6 +370,7 @@ export function getPlayerCurrentStats(
     batting: {
       runs: battingRuns,
       balls: battingBalls,
+      zeros: battingZeros,
       fours: battingFours,
       sixes: battingSixes,
       strikeRate: battingStrikeRate,

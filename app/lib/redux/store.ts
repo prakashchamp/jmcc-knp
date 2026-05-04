@@ -38,8 +38,27 @@ export const store = configureStore({
               match: state.match,
             };
             localStorage.setItem('jmcc_match_state', JSON.stringify(persistedState));
+
+            // Persistence logic for IndexedDB (Recent Matches)
+            const completionActions = [
+              'scorer/finishCurrentInnings',
+              'scorer/completeMatchAfterFirstInnings',
+              'scorer/completeMatchOnTargetReached',
+              'scorer/clearMatch'
+            ];
+
+            if (completionActions.includes(action.type)) {
+              const lastCompletedMatch = state.scorer.lastCompletedMatch;
+              if (lastCompletedMatch && lastCompletedMatch.status === 'complete') {
+                // Lazy import to avoid server-side issues
+                import('@/app/lib/indexed-db').then(({ saveMatchToIndexedDB, cleanupOldMatches }) => {
+                  saveMatchToIndexedDB(lastCompletedMatch);
+                  cleanupOldMatches();
+                });
+              }
+            }
           } catch (error) {
-            console.warn('Failed to save state to localStorage:', error);
+            console.warn('Failed to persist state:', error);
           }
         }
 

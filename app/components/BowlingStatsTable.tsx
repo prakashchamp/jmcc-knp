@@ -8,7 +8,7 @@ interface AllTimeBowlingStatsTableProps {
   loading: boolean;
 }
 
-type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
+type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalMaidens' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
 
 const SortIcon = ({ field, sortField, sortDirection }: { field: BowlingSortField; sortField: BowlingSortField; sortDirection: 'asc' | 'desc' }) => (
   <span className={`ml-0.5 ${sortField === field ? 'text-yellow-300' : 'text-white/50'}`}>
@@ -104,6 +104,9 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
               <th className={thClass} onClick={() => handleSort('totalOvers')}>
                 Overs <SortIcon field="totalOvers" sortField={sortField} sortDirection={sortDirection} />
               </th>
+              <th className={thClass} onClick={() => handleSort('totalMaidens')}>
+                M <SortIcon field="totalMaidens" sortField={sortField} sortDirection={sortDirection} />
+              </th>
               <th className={thClass} onClick={() => handleSort('totalWickets')}>
                 Wkts <SortIcon field="totalWickets" sortField={sortField} sortDirection={sortDirection} />
               </th>
@@ -143,6 +146,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
                   <td className={tdClass}>{stats.totalMatches}</td>
                   <td className={tdClass}>{stats.totalInnings}</td>
                   <td className={tdClass}>{stats.totalOvers.toFixed(1)}</td>
+                  <td className={tdClass}>{stats.totalMaidens}</td>
                   <td className="px-2 sm:px-4 py-2 sm:py-2.5 text-center font-semibold text-xs sm:text-sm whitespace-nowrap">{stats.totalWickets}</td>
                   <td className={tdClass}>{stats.totalRuns}</td>
                   <td className={tdClass}>{economy}</td>

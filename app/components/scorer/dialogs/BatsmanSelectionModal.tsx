@@ -1,18 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
 import {
   closeDialog,
   replaceBatsman,
   addNewTeamPlayer,
-  createUndoSnapshot,
-  recordQuickWicket,
-  recordStumpedWide,
-  recordStumpedRegular,
-  recordRunOutBall,
-  recordRetiredOut,
 } from '@/app/lib/redux/slices/scorerSlice';
 import { CricketScoringEngine } from '@/app/lib/scoring-engine';
 import type { DismissalMode, TeamPlayer } from '@/app/lib/cricket-scorer-types';
@@ -55,6 +49,7 @@ export function BatsmanSelectionModal() {
     (state: RootState) => state.scorer
   );
   const [newPlayerName, setNewPlayerName] = useState('');
+  const [selectedBatter, setSelectedBatter] = useState<TeamPlayer | null>(null);
 
   // Type-safe dialog data
   const dialogData = dialogState.dialogData as BatsmanSelectDialogData;
@@ -69,140 +64,54 @@ export function BatsmanSelectionModal() {
       ? CricketScoringEngine.getAvailableBatsmen(battingTeamPlayers, currentInnings)
       : [];
 
-  const excludeIds = currentInnings
-    ? [
-        ...(currentInnings.striker ? [currentInnings.striker.id] : []),
-        ...(currentInnings.nonStriker ? [currentInnings.nonStriker.id] : []),
-        ...currentInnings.dismissedBatsmen.map((dismissedBatter) => dismissedBatter.id),
-      ]
-    : [];
+  // Prevent multiple auto-selections
+  const hasAutoSelected = useRef(false);
+
+  // Reset ref when dialog opens
+  useEffect(() => {
+    if (dialogState.activeDialog === 'batsmanSelect') {
+      hasAutoSelected.current = false;
+    }
+  }, [dialogState.activeDialog]);
+
+  // Auto-select first available batter for opponents (sequential)
+  useEffect(() => {
+    if (dialogState.activeDialog === 'batsmanSelect' && 
+        currentInnings?.battingTeam === 'Them' && 
+        availableBatters.length > 0 && 
+        !hasAutoSelected.current) {
+      const nextBatter = availableBatters[0];
+      if (nextBatter) {
+        hasAutoSelected.current = true;
+        handleSelectBatsman(nextBatter);
+      }
+    }
+  }, [dialogState.activeDialog, currentInnings?.battingTeam, availableBatters.length]);
+
+  // excludeIds is now handled internally by getAvailableBatsmen
+  const excludeIds: string[] = [];
 
   if (dialogState.activeDialog !== 'batsmanSelect') {
     return null;
   }
 
-  useEffect(() => {
-    if (!currentInnings || !dialogData.recordOnSelect) return;
 
-    // If we are on 9 wickets, this action records the 10th wicket.
-    // In that case we should not wait for a replacement batsman selection.
-    if (currentInnings.totalWickets < 9) return;
+
+  const handleSelectBatsman = (batter: TeamPlayer) => {
+    if (!currentInnings) return;
 
     const outBatsmanId = dialogData.outBatsmanId;
     if (!outBatsmanId) return;
 
-    dispatch(createUndoSnapshot());
-
-    switch (dialogData.dismissalMode) {
-      case 'bowled':
-      case 'caught':
-      case 'lbw':
-      case 'hit-wicket':
-        dispatch(recordQuickWicket({ dismissalMode: dialogData.dismissalMode }));
-        break;
-      case 'stumped':
-        if (dialogData.ballType === 'wide') {
-          dispatch(recordStumpedWide({ runs: dialogData.runs ?? 0 }));
-        } else {
-          dispatch(recordStumpedRegular());
-        }
-        break;
-      case 'run-out':
-      case 'handled-ball':
-      case 'obstructing-field':
-        dispatch(
-          recordRunOutBall({
-            dismissalMode: dialogData.dismissalMode,
-            ballType: dialogData.ballType ?? 'regular',
-            runs: dialogData.runs ?? 0,
-            batsmanIdToMarkOut: outBatsmanId,
-          })
-        );
-        break;
-      case 'retired-out':
-        dispatch(recordRetiredOut());
-        break;
-      default:
-        break;
-    }
-
-    dispatch(closeDialog());
-  }, [
-    currentInnings,
-    dialogData.recordOnSelect,
-    dialogData.dismissalMode,
-    dialogData.ballType,
-    dialogData.runs,
-    dialogData.outBatsmanId,
-    dispatch,
-  ]);
-
-  const handleSelectBatsman = (batter: TeamPlayer) => {
-    if (!currentInnings) {
-      console.error('No current innings');
-      return;
-    }
-
-    const outBatsmanId = dialogData.outBatsmanId;
-
-    if (!outBatsmanId) {
-      console.error('No out batsman ID in dialog data');
-      return;
-    }
-
-    const isPendingRecord = Boolean(dialogData.recordOnSelect);
     const isStriker = dialogData.selectedBatsman
       ? dialogData.selectedBatsman === 'striker'
       : currentInnings.striker?.id === outBatsmanId;
 
-    if (isPendingRecord) {
-      dispatch(createUndoSnapshot());
-
-      switch (dialogData.dismissalMode) {
-        case 'bowled':
-        case 'caught':
-        case 'lbw':
-        case 'hit-wicket':
-          dispatch(recordQuickWicket({ dismissalMode: dialogData.dismissalMode }));
-          break;
-        case 'stumped':
-          if (dialogData.ballType === 'wide') {
-            dispatch(recordStumpedWide({ runs: dialogData.runs ?? 0 }));
-          } else {
-            dispatch(recordStumpedRegular());
-          }
-          break;
-        case 'run-out':
-        case 'handled-ball':
-        case 'obstructing-field':
-          dispatch(
-            recordRunOutBall({
-              dismissalMode: dialogData.dismissalMode,
-              ballType: dialogData.ballType ?? 'regular',
-              runs: dialogData.runs ?? 0,
-              batsmanIdToMarkOut: outBatsmanId,
-            })
-          );
-          break;
-        case 'retired-out':
-          dispatch(recordRetiredOut());
-          break;
-        default:
-          break;
-      }
-    } else {
-      const outBatsman = currentInnings.dismissedBatsmen.find((b) => b.id === outBatsmanId);
-      if (!outBatsman) {
-        console.error('Out batsman not found in dismissed list');
-        return;
-      }
-    }
-
     dispatch(
       replaceBatsman({
-        outBatsmanId,
-        newBatsman: batter,
         isStriker,
+        newBatsman: batter,
+        outBatsmanId,
       })
     );
 
@@ -236,7 +145,7 @@ export function BatsmanSelectionModal() {
           <BatterDropdownSelect
             label="Select New Batsman:"
             placeholder="Choose batsman"
-            selectedBatter={null}
+            selectedBatter={selectedBatter}
             batters={availableBatters}
             excludeIds={excludeIds}
             onSelect={handleSelectBatsman}

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
-import { createNewPlayer, generatePlayerId } from '@/app/lib/player-utils';
+import { createNewPlayer } from '@/app/lib/player-utils';
 import { CustomSelect } from '@/app/components/CustomSelect';
 
 interface ParsedData {
@@ -16,6 +16,7 @@ interface ManualScorecardEntryProps {
 }
 
 interface BattingRow {
+  playerId?: string;
   playerName: string;
   runs: number | '';
   balls: number | '';
@@ -25,6 +26,7 @@ interface BattingRow {
 }
 
 interface BowlingRow {
+  playerId?: string;
   playerName: string;
   overs: string; // Keep as string for decimal handling during input, parse on submit
   runs: number | '';
@@ -71,38 +73,120 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
     setBowlingRows(newRows);
   };
 
+  const normalizePlayerName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');
+
+  const findRosterPlayer = (name: string) => {
+    const normalized = normalizePlayerName(name);
+    return players.find((p) => normalizePlayerName(p.playerName) === normalized)
+      || players.find((p) => normalizePlayerName(p.playerName).endsWith(normalized))
+      || players.find((p) => normalizePlayerName(p.playerName).startsWith(normalized));
+  };
+
+  const buildPlayerOptionValue = (playerId: string) => `player:${playerId}`;
+  const buildCustomOptionValue = (playerName: string) => `custom:${playerName}`;
+
+  const handlePlayerSelection = (index: number, isBatting: boolean, rawValue: string) => {
+    const newRows = isBatting ? [...battingRows] : [...bowlingRows];
+    const row = { ...newRows[index] } as BattingRow | BowlingRow;
+
+    if (rawValue.startsWith('player:')) {
+      const selectedId = rawValue.replace('player:', '');
+      const selectedPlayer = players.find((p) => p.playerId === selectedId);
+      if (selectedPlayer) {
+        row.playerId = selectedPlayer.playerId;
+        row.playerName = selectedPlayer.playerName;
+      }
+    } else if (rawValue.startsWith('custom:')) {
+      const customName = rawValue.replace('custom:', '');
+      row.playerId = undefined;
+      row.playerName = customName;
+    } else {
+      row.playerId = undefined;
+      row.playerName = rawValue;
+    }
+
+    newRows[index] = row;
+    if (isBatting) {
+      setBattingRows(newRows as BattingRow[]);
+    } else {
+      setBowlingRows(newRows as BowlingRow[]);
+    }
+  };
+
+  const playerOptions = players.map((player) => ({
+    value: buildPlayerOptionValue(player.playerId),
+    label: player.playerName,
+  }));
+
+  const playerOptionsForRow = (row: BattingRow | BowlingRow) => {
+    const options = [...playerOptions];
+    if (row.playerName.trim()) {
+      const match = findRosterPlayer(row.playerName);
+      if (!match) {
+        options.unshift({
+          value: buildCustomOptionValue(row.playerName),
+          label: row.playerName,
+        });
+      }
+    }
+    return options;
+  };
+
+  const getSelectedPlayerValue = (row: BattingRow | BowlingRow) => {
+    if (row.playerId) {
+      return buildPlayerOptionValue(row.playerId);
+    }
+    if (row.playerName.trim()) {
+      const match = findRosterPlayer(row.playerName);
+      if (match) {
+        return buildPlayerOptionValue(match.playerId);
+      }
+      return buildCustomOptionValue(row.playerName);
+    }
+    return '';
+  };
+
   const handleSubmit = () => {
     const performances: Partial<Performance>[] = [];
 
     // Map player name to performance object to merge batting and bowling stats for the same player
     const perfMap = new Map<string, Partial<Performance>>();
 
-    const getOrCreatePerf = (name: string) => {
+    const getOrCreatePerf = (name: string, playerId?: string) => {
       const trimmedName = name.trim();
       if (!perfMap.has(trimmedName)) {
       // Check if player already exists
       const existingPlayer = players.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
-      let playerId: string;
+      let resolvedPlayerId = playerId;
       let playerName = trimmedName;
 
       if (existingPlayer) {
-        playerId = existingPlayer.playerId;
-      } else {
+        resolvedPlayerId = existingPlayer.playerId;
+        playerName = existingPlayer.playerName;
+      } else if (playerId) {
+        const rosterEntry = players.find((p) => p.playerId === playerId);
+        if (rosterEntry) {
+          playerName = rosterEntry.playerName;
+        }
+      }
+
+      if (!resolvedPlayerId) {
         // Get existing names for collision detection
         const existingNames = new Set(players.map(p => p.playerName.toLowerCase().trim()));
         const newPlayer = createNewPlayer(trimmedName, existingNames);
-        playerId = newPlayer.id;
+        resolvedPlayerId = newPlayer.id;
         playerName = newPlayer.name;
       }
 
       perfMap.set(trimmedName, {
         playerName,
-        playerId,
+        playerId: resolvedPlayerId,
         batting: {
           didBat: false,
           innings: 0,
           runs: 0,
           balls: 0,
+          zeros: 0,
           fours: 0,
           sixes: 0,
           dismissed: false,
@@ -132,7 +216,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
 
     battingRows.forEach(row => {
       if (!row.playerName.trim()) return;
-      const perf = getOrCreatePerf(row.playerName);
+      const perf = getOrCreatePerf(row.playerName, row.playerId);
       
       const runs = row.runs === '' ? 0 : Number(row.runs);
       const balls = row.balls === '' ? 0 : Number(row.balls);
@@ -143,6 +227,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
         innings: 1,
         runs: runs,
         balls: balls,
+        zeros: 0, // Not captured in manual entry yet
         fours: row.fours === '' ? 0 : Number(row.fours),
         sixes: row.sixes === '' ? 0 : Number(row.sixes),
         dismissed: row.dismissed,
@@ -156,7 +241,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
 
     bowlingRows.forEach(row => {
       if (!row.playerName.trim()) return;
-      const perf = getOrCreatePerf(row.playerName);
+      const perf = getOrCreatePerf(row.playerName, row.playerId);
       
       const overs = parseFloat(row.overs) || 0;
       const runs = row.runs === '' ? 0 : Number(row.runs);
@@ -267,13 +352,15 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
             <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-end bg-gray-700 p-3 rounded-lg border border-gray-600">
               <div className="w-full md:w-48 relative flex-shrink-0">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Player</label>
-                <input
-                  type="text"
-                  value={row.playerName}
-                  onChange={(e) => updateBattingRow(idx, 'playerName', e.target.value)}
-                  list="players-list"
-                  placeholder="Player name"
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm"
+                <CustomSelect
+                  id={`batting-player-${idx}`}
+                  label=""
+                  value={getSelectedPlayerValue(row)}
+                  placeholder="Select or enter player"
+                  options={playerOptionsForRow(row)}
+                  onChange={(value) => handlePlayerSelection(idx, true, value)}
+                  className="w-full"
+                  allowCustom
                 />
               </div>
               
@@ -337,13 +424,15 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
             <div key={idx} className="flex flex-wrap md:flex-nowrap gap-3 items-end bg-gray-700 p-3 rounded-lg border border-gray-600">
               <div className="w-full md:w-48 relative flex-shrink-0">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Player</label>
-                <input
-                  type="text"
-                  value={row.playerName}
-                  onChange={(e) => updateBowlingRow(idx, 'playerName', e.target.value)}
-                  list="players-list"
-                  placeholder="Player name"
-                  className="w-full px-3 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm"
+                <CustomSelect
+                  id={`bowling-player-${idx}`}
+                  label=""
+                  value={getSelectedPlayerValue(row)}
+                  placeholder="Select or enter player"
+                  options={playerOptionsForRow(row)}
+                  onChange={(value) => handlePlayerSelection(idx, false, value)}
+                  className="w-full"
+                  allowCustom
                 />
               </div>
               

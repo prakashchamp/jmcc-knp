@@ -16,13 +16,18 @@ interface CustomSelectProps {
   className?: string;
   placeholder?: string;
   disabled?: boolean;
+  allowCustom?: boolean;
 }
 
-export function CustomSelect({ id, label, options, value, onChange, className = '', placeholder, disabled = false }: CustomSelectProps) {
+export function CustomSelect({ id, label, options, value, onChange, className = '', placeholder, disabled = false, allowCustom = false }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [customText, setCustomText] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find((o) => o.value === value);
+  const customValue = value.startsWith('custom:') ? value.replace('custom:', '') : '';
+
+  const customLabel = !selected && customValue ? customValue : undefined;
 
   // Close on outside click
   useEffect(() => {
@@ -35,6 +40,17 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [isOpen]);
+
+  useEffect(() => {
+    setCustomText(customValue);
+  }, [customValue]);
+
+  const selectCustomValue = () => {
+    const trimmed = customText.trim();
+    if (!trimmed) return;
+    onChange(`custom:${trimmed}`);
+    setIsOpen(false);
+  };
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -54,7 +70,7 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
         aria-haspopup="listbox"
         className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
       >
-        <span className="truncate">{selected?.label ?? placeholder ?? 'Select...'}</span>
+        <span className="truncate">{selected?.label ?? customLabel ?? placeholder ?? 'Select...'}</span>
         <svg
           className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
@@ -67,32 +83,58 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
 
       {/* Options panel — absolutely positioned so it never goes out of view */}
       {isOpen && (
-        <ul
-          role="listbox"
-          className="absolute left-0 right-0 top-full z-[9999] mt-1 max-h-60 overflow-y-auto rounded-lg border border-gray-600 bg-gray-800 shadow-xl shadow-black/40"
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <li
-                key={opt.value}
-                role="option"
-                aria-selected={isSelected}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
+        <div className="absolute left-0 right-0 top-full z-[9999] mt-1 max-h-[50vh] overflow-hidden rounded-lg border border-gray-600 bg-gray-800 shadow-xl shadow-black/40">
+          {allowCustom && (
+            <div className="border-b border-gray-700 px-4 py-3">
+              <input
+                type="text"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    selectCustomValue();
+                  }
                 }}
-                className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors select-none ${
-                  isSelected
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-200 hover:bg-gray-700'
-                }`}
+                placeholder={placeholder || 'Enter custom value'}
+                className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={selectCustomValue}
+                className="mt-2 w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500"
               >
-                {opt.label}
-              </li>
-            );
-          })}
-        </ul>
+                Create new player
+              </button>
+            </div>
+          )}
+          <ul
+            role="listbox"
+            className="max-h-56 overflow-y-auto"
+          >
+            {options.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <li
+                  key={opt.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                  className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors select-none ${
+                    isSelected
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-200 hover:bg-gray-700'
+                  }`}
+                >
+                  {opt.label}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       )}
     </div>
   );

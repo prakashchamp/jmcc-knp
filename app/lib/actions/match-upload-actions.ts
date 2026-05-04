@@ -197,6 +197,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
     });
 
     // Trigger Push Notification & Cache Clearing
+    /*
     try {
       await sendMatchUpdateNotification(
         'New Match Data!',
@@ -206,6 +207,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
     } catch (e) {
       console.error('Notification Error:', e);
     }
+    */
 
     return { success: true, matchId };
   } catch (error: any) {
@@ -287,12 +289,16 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
   const ourInnings = match.innings.find(i => i.battingTeam === 'Us');
   const opponentInnings = match.innings.find(i => i.battingTeam === 'Them');
   
-  const teamRuns = ourInnings?.totalRuns || 0;
-  const teamWickets = ourInnings?.totalWickets || 0;
-  const opponentRuns = opponentInnings?.totalRuns || 0;
-  const opponentWickets = opponentInnings?.totalWickets || 0;
+  const teamRuns = (match as any).teamRuns !== undefined ? (match as any).teamRuns : (ourInnings?.totalRuns || 0);
+  const teamWickets = (match as any).teamWickets !== undefined ? (match as any).teamWickets : (ourInnings?.totalWickets || 0);
+  const opponentRuns = (match as any).opponentRuns !== undefined ? (match as any).opponentRuns : (opponentInnings?.totalRuns || 0);
+  const opponentWickets = (match as any).opponentWickets !== undefined ? (match as any).opponentWickets : (opponentInnings?.totalWickets || 0);
 
   // 2. Prepare Match Data
+  const firstInnings = match.innings.find(i => i.inningsNumber === 1);
+  const derivedFirstInningsTeam = firstInnings?.battingTeam === 'Us' ? 'JMCC Spartans' : match.opponent;
+  const derivedFirstInningsScore = firstInnings?.totalRuns || 0;
+
   const matchData = {
     ...mapMatchToFirestore(match),
     top_batters: topBatters,
@@ -309,8 +315,12 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     team_wickets: teamWickets,
     opponent_runs: opponentRuns,
     opponent_wickets: opponentWickets,
+    first_innings_team: (match as any).firstInningsTeam || derivedFirstInningsTeam,
+    first_innings_score: (match as any).firstInningsScore !== undefined ? (match as any).firstInningsScore : derivedFirstInningsScore,
     completed_at: completedAt,
-    raw_data: JSON.stringify(match),
+    // Do not persist ball-by-ball raw data to Firestore.
+    // Live scorer keeps ball-by-ball state in Redux for scoring review,
+    // but aggregate stats and review screens use derived performance data.
   };
 
   try {
@@ -401,6 +411,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     });
 
     // Trigger Push Notification & Cache Clearing
+    /*
     try {
       await sendMatchUpdateNotification(
         'Match Updated!',
@@ -410,6 +421,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     } catch (e) {
       console.error('Notification Error:', e);
     }
+    */
 
     return { success: true, matchId };
   } catch (error: any) {
@@ -446,6 +458,7 @@ function calculatePerformancesFromStats(match: LiveMatch): Performance[] {
         innings: batStats ? 1 : 0,
         runs: batStats?.runs || 0,
         balls: batStats?.balls || 0,
+        zeros: batStats?.zeros || 0,
         fours: batStats?.fours || 0,
         sixes: batStats?.sixes || 0,
         dismissed: batStats?.status === 'out',
@@ -458,8 +471,8 @@ function calculatePerformancesFromStats(match: LiveMatch): Performance[] {
       bowling: {
         didBowl: !!bowlStats,
         innings: bowlStats ? 1 : 0,
-        overs: bowlStats?.overs || 0,
-        balls: 0, // Overs field already includes ball info (e.g. 3.2)
+        overs: (bowlStats?.overs || 0) + ((bowlStats?.balls || 0) / 10),
+        balls: ((bowlStats?.overs || 0) * 6) + (bowlStats?.balls || 0),
         runs: bowlStats?.runs || 0,
         wickets: bowlStats?.wickets || 0,
         maidens: bowlStats?.maidens || 0,
@@ -488,7 +501,7 @@ function calculateUpdatedStats(
     player_id: perf.playerId,
     player_name: perf.playerName,
     matches: 0,
-    bat_innings: 0, bat_runs: 0, bat_balls: 0, bat_fours: 0, bat_sixes: 0, 
+    bat_innings: 0, bat_runs: 0, bat_balls: 0, bat_zeros: 0, bat_fours: 0, bat_sixes: 0, 
     bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0, 
     bat_thirties: 0, bat_fifties: 0, bat_hundreds: 0,
     bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0, 
@@ -506,6 +519,7 @@ function calculateUpdatedStats(
     stats.bat_innings += 1;
     stats.bat_runs += perf.batting.runs;
     stats.bat_balls += perf.batting.balls;
+    stats.bat_zeros += perf.batting.zeros || 0;
     stats.bat_fours += perf.batting.fours;
     stats.bat_sixes += perf.batting.sixes;
     if (perf.batting.dismissed) stats.bat_dismissed += 1;

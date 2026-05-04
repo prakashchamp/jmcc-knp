@@ -109,6 +109,7 @@ export function PlayerStatsDetail({ player, loading }: PlayerStatsDetailProps) {
         <h4 className="text-sm sm:text-lg font-semibold text-gray-100 mb-3 sm:mb-4">Overs Bowled</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <StatItem label="Overs" value={player.bowlingStats!.totalOvers} />
+          <StatItem label="Maidens" value={player.bowlingStats!.totalMaidens} />
           <StatItem label="Balls" value={player.bowlingStats!.totalBalls} />
         </div>
       </div>

@@ -316,32 +316,43 @@ export class CricketScoringEngine {
 
   /**
    * Get available batsmen for replacement.
-   * Only include players who are not currently batting and who are not dismissed/out.
-   * Retired hurt batters remain eligible for return, while any player who is out or retired out is excluded.
+   * Only include players who are:
+   * 1. Not currently at the crease (striker or non-striker)
+   * 2. AND (Have not batted yet OR retired hurt)
    */
   static getAvailableBatsmen(allPlayers: TeamPlayer[], innings: InningsState): TeamPlayer[] {
-    const activeBatsmanIds = new Set<string>();
-    if (innings.striker) activeBatsmanIds.add(innings.striker.id);
-    if (innings.nonStriker) activeBatsmanIds.add(innings.nonStriker.id);
+    const atCreaseIds = new Set<string>();
+    if (innings.striker) atCreaseIds.add(innings.striker.id);
+    if (innings.nonStriker) atCreaseIds.add(innings.nonStriker.id);
 
-    const dismissedOutIds = new Set<string>();
+    const alreadyBattedIds = new Set<string>();
+    const retiredHurtIds = new Set<string>();
 
     innings.batsmanStats.forEach((batsman) => {
-      if (batsman.status === 'out') {
-        dismissedOutIds.add(batsman.id);
-      }
-      if (batsman.dismissal?.mode && batsman.dismissal.mode !== 'retired-hurt') {
-        dismissedOutIds.add(batsman.id);
+      alreadyBattedIds.add(batsman.id);
+      if (batsman.dismissal?.mode === 'retired-hurt') {
+        retiredHurtIds.add(batsman.id);
       }
     });
 
+    // Also check dismissedBatsmen just in case they are not in batsmanStats
     innings.dismissedBatsmen.forEach((dismissed) => {
-      dismissedOutIds.add(dismissed.id);
+      alreadyBattedIds.add(dismissed.id);
+      if (dismissed.dismissal?.mode === 'retired-hurt') {
+        retiredHurtIds.add(dismissed.id);
+      }
     });
 
     return allPlayers.filter((player) => {
-      if (activeBatsmanIds.has(player.id)) return false;
-      if (dismissedOutIds.has(player.id)) return false;
+      // 1. Cannot be currently at the crease
+      if (atCreaseIds.has(player.id)) return false;
+      
+      // 2. If they have already batted, they MUST be retired hurt to be shown again
+      if (alreadyBattedIds.has(player.id)) {
+        return retiredHurtIds.has(player.id);
+      }
+      
+      // 3. Otherwise they haven't batted yet (Available)
       return true;
     });
   }

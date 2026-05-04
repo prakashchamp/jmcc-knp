@@ -30,16 +30,58 @@ export function UploadConfirmDialog() {
   // Form states for overrides
   const [date, setDate] = useState(liveMatch?.completedAt || new Date().toISOString());
   const [opponent, setOpponent] = useState(liveMatch?.opponent || '');
-  const [tossWonBy, setTossWonBy] = useState(liveMatch?.tossWonBy || 'Us');
-  const [winMargin, setWinMargin] = useState(liveMatch?.winMargin || '');
+  const [venue, setVenue] = useState<'Home' | 'Away' | 'Neutral'>(liveMatch?.venue as any || 'Neutral');
+  const [tossWonBy, setTossWonBy] = useState<'Us' | 'Them'>(liveMatch?.tossWonBy || 'Us');
+  const [result, setResult] = useState<'won' | 'lost' | 'tie' | 'no_result' | 'abandoned'>(liveMatch?.result as any || 'won');
   
-  // Calculate first innings defaults
-  const firstInnings = liveMatch?.innings.find(i => i.inningsNumber === 1);
-  const defaultFirstInningsTeam = firstInnings?.battingTeam === 'Us' ? teamName : opponent;
-  const defaultFirstInningsScore = firstInnings?.totalRuns || 0;
+  const [teamRuns, setTeamRuns] = useState(liveMatch?.innings.reduce((acc, i) => i.battingTeam === 'Us' ? acc + i.totalRuns : acc, 0) || 0);
+  const [teamWickets, setTeamWickets] = useState(liveMatch?.innings.reduce((acc, i) => i.battingTeam === 'Us' ? acc + i.totalWickets : acc, 0) || 0);
+  const [opponentRuns, setOpponentRuns] = useState(liveMatch?.innings.reduce((acc, i) => i.battingTeam === 'Them' ? acc + i.totalRuns : acc, 0) || 0);
+  const [opponentWickets, setOpponentWickets] = useState(liveMatch?.innings.reduce((acc, i) => i.battingTeam === 'Them' ? acc + i.totalWickets : acc, 0) || 0);
+
+  const [winMarginValue, setWinMarginValue] = useState<string>(() => {
+    const margin = (liveMatch?.winMargin || '').trim();
+    const parsed = margin.match(/^(\d+)/);
+    return parsed?.[1] ?? '';
+  });
+
+  const [winMarginUnit, setWinMarginUnit] = useState<'runs' | 'wickets'>(() => {
+    const margin = (liveMatch?.winMargin || '').trim();
+    const parsed = margin.match(/(runs|wickets)$/i);
+    return (parsed?.[1]?.toLowerCase() as 'runs' | 'wickets') || 'runs';
+  });
   
-  const [firstInningsTeam, setFirstInningsTeam] = useState(defaultFirstInningsTeam);
-  const [firstInningsScore, setFirstInningsScore] = useState(defaultFirstInningsScore);
+  // Auto-calculate result and win margin
+  useEffect(() => {
+    if (teamRuns === 0 && opponentRuns === 0) return;
+
+    const firstInnings = liveMatch?.innings.find(i => i.inningsNumber === 1);
+    const battedFirst = firstInnings?.battingTeam; // 'Us' or 'Them'
+
+    if (teamRuns > opponentRuns) {
+      setResult('won');
+      if (battedFirst === 'Us') {
+        setWinMarginValue((teamRuns - opponentRuns).toString());
+        setWinMarginUnit('runs');
+      } else {
+        setWinMarginValue((10 - teamWickets).toString());
+        setWinMarginUnit('wickets');
+      }
+    } else if (opponentRuns > teamRuns) {
+      setResult('lost');
+      if (battedFirst === 'Them') {
+        setWinMarginValue((opponentRuns - teamRuns).toString());
+        setWinMarginUnit('runs');
+      } else {
+        setWinMarginValue((10 - opponentWickets).toString());
+        setWinMarginUnit('wickets');
+      }
+    } else if (teamRuns === opponentRuns && teamRuns > 0) {
+      setResult('tie');
+      setWinMarginValue('0');
+      setWinMarginUnit('runs');
+    }
+  }, [teamRuns, opponentRuns, teamWickets, opponentWickets, liveMatch]);
 
   const handleConfirm = async () => {
     setIsUploading(true);
@@ -48,10 +90,14 @@ export function UploadConfirmDialog() {
       const overrides = {
         date,
         opponent,
+        venue,
         tossWonBy,
-        winMargin,
-        firstInningsTeam,
-        firstInningsScore
+        result,
+        winMargin: winMarginValue ? `${winMarginValue} ${winMarginUnit}` : '',
+        teamRuns,
+        teamWickets,
+        opponentRuns,
+        opponentWickets,
       };
 
       const resultAction = await dispatch(uploadMatchToFirestore(overrides));
@@ -84,7 +130,7 @@ export function UploadConfirmDialog() {
           <h2 className={modalTitleClass}>Upload to Firestore?</h2>
         </div>
 
-        <div className="mb-6 space-y-4">
+        <div className="mb-6 space-y-5">
           <p className="text-sm text-slate-400">
             {success 
               ? `Successfully uploaded match data and ${teamName} player performances.` 
@@ -92,73 +138,153 @@ export function UploadConfirmDialog() {
           </p>
 
           {!success && (
-            <div className="space-y-3 bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Match Date</label>
-                <input
-                  type="date"
-                  value={date.split('T')[0]}
-                  onChange={(e) => setDate(new Date(e.target.value).toISOString())}
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Opponent</label>
+                  <label className="label-text mb-1.5 block">Match Date</label>
+                  <input
+                    type="date"
+                    value={date.split('T')[0]}
+                    onChange={(e) => setDate(new Date(e.target.value).toISOString())}
+                    className="input-base py-2 text-sm"
+                  />
+                </div>
+                
+                <div>
+                  <label className="label-text mb-1.5 block">Opponent</label>
                   <input
                     type="text"
                     value={opponent}
                     onChange={(e) => setOpponent(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                    className="input-base py-2 text-sm"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Toss Won By</label>
-                <CustomSelect
-                  id="upload-toss-won-by"
-                  value={tossWonBy}
-                  placeholder="Select toss winner"
-                  options={[
-                    { value: 'Us', label: 'Us' },
-                    { value: 'Them', label: 'Them' },
-                  ]}
-                  onChange={(value) => setTossWonBy(value as 'Us' | 'Them')}
-                  className="w-full"
-                />
-              </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">1st Innings Team</label>
-                  <input
-                    type="text"
-                    value={firstInningsTeam}
-                    onChange={(e) => setFirstInningsTeam(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  <CustomSelect
+                    id="upload-venue"
+                    label="Venue"
+                    value={venue}
+                    options={[
+                      { value: 'Home', label: 'Home' },
+                      { value: 'Away', label: 'Away' },
+                      { value: 'Neutral', label: 'Neutral' },
+                    ]}
+                    onChange={(value) => setVenue(value as any)}
+                    className="max-w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">1st Innings Score</label>
-                  <input
-                    type="number"
-                    value={firstInningsScore}
-                    onChange={(e) => setFirstInningsScore(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
+                  <CustomSelect
+                    id="upload-toss-won-by"
+                    label="Toss Won By"
+                    value={tossWonBy}
+                    options={[
+                      { value: 'Us', label: 'Us' },
+                      { value: 'Them', label: 'Them' },
+                    ]}
+                    onChange={(value) => setTossWonBy(value as 'Us' | 'Them')}
+                    className="max-w-full"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Win Margin</label>
-                <input
-                  type="text"
-                  value={winMargin}
-                  onChange={(e) => setWinMargin(e.target.value)}
-                  placeholder="e.g. 24 runs, 5 wickets"
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded text-slate-200 text-sm focus:border-emerald-500 focus:outline-none"
-                />
+                <label className="label-text mb-1.5 block">Match Result</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { val: 'won', label: 'Win' },
+                    { val: 'lost', label: 'Loss' },
+                    { val: 'tie', label: 'Tie' },
+                    { val: 'no_result', label: 'N/R' },
+                  ].map((res) => (
+                    <button
+                      key={res.val}
+                      type="button"
+                      onClick={() => setResult(res.val as any)}
+                      className={`flex-1 py-2 px-2 rounded-lg font-bold text-xs transition-all border ${
+                        result === res.val
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                          : 'bg-card border-border hover:bg-foreground/5'
+                      }`}
+                    >
+                      {res.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="label-text mb-1.5 block">Team Runs</label>
+                    <input
+                      type="number"
+                      value={teamRuns}
+                      onChange={(e) => setTeamRuns(parseInt(e.target.value) || 0)}
+                      className="input-base py-2 text-sm text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="label-text mb-1.5 block">Wkts</label>
+                    <input
+                      type="number"
+                      value={teamWickets}
+                      onChange={(e) => setTeamWickets(parseInt(e.target.value) || 0)}
+                      className="input-base py-2 text-sm text-center"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="label-text mb-1.5 block">Opp Runs</label>
+                    <input
+                      type="number"
+                      value={opponentRuns}
+                      onChange={(e) => setOpponentRuns(parseInt(e.target.value) || 0)}
+                      className="input-base py-2 text-sm text-center"
+                    />
+                  </div>
+                  <div>
+                    <label className="label-text mb-1.5 block">Wkts</label>
+                    <input
+                      type="number"
+                      value={opponentWickets}
+                      onChange={(e) => setOpponentWickets(parseInt(e.target.value) || 0)}
+                      className="input-base py-2 text-sm text-center"
+                    />
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="label-text mb-1.5 block">Win Margin</label>
+                  <input
+                    type="number"
+                    value={winMarginValue}
+                    onChange={(e) => setWinMarginValue(e.target.value.replace(/\D/g, ''))}
+                    placeholder="0"
+                    className="input-base py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <CustomSelect
+                    id="upload-margin-type"
+                    label="Margin Type"
+                    value={winMarginUnit}
+                    options={[
+                      { value: 'runs', label: 'Runs' },
+                      { value: 'wickets', label: 'Wickets' },
+                    ]}
+                    onChange={(value) => setWinMarginUnit(value as 'runs' | 'wickets')}
+                    className="max-w-full"
+                  />
+                </div>
               </div>
             </div>
           )}

@@ -439,6 +439,19 @@ export const scorerSlice = createSlice({
 
       // Check if over completed (6 balls)
       if (innings.totalBalls % 6 === 0) {
+        // Check for maiden over
+        const ballsInOver = innings.ballHistory.filter(b => b.over === currentOver);
+        const runsConceded = ballsInOver.reduce((acc, b) => {
+          // Bowler concedes batter runs and extras (except byes/leg-byes)
+          const isExtraNotConceded = b.extra?.type === 'bye' || b.extra?.type === 'leg-bye';
+          const extrasConceded = isExtraNotConceded ? 0 : b.runs.extras;
+          return acc + b.runs.batter + extrasConceded;
+        }, 0);
+
+        if (runsConceded === 0) {
+          innings.currentBowler.maidens += 1;
+        }
+
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
@@ -529,6 +542,18 @@ export const scorerSlice = createSlice({
 
       // Check if over completed (6 legal balls)
       if (innings.totalBalls % 6 === 0 && innings.currentBowler) {
+        // Check for maiden over
+        const ballsInOver = innings.ballHistory.filter(b => b.over === currentOver);
+        const runsConceded = ballsInOver.reduce((acc, b) => {
+          const isExtraNotConceded = b.extra?.type === 'bye' || b.extra?.type === 'leg-bye';
+          const extrasConceded = isExtraNotConceded ? 0 : b.runs.extras;
+          return acc + b.runs.batter + extrasConceded;
+        }, 0);
+
+        if (runsConceded === 0) {
+          innings.currentBowler.maidens += 1;
+        }
+
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
@@ -619,6 +644,18 @@ export const scorerSlice = createSlice({
 
       // Check if over completed (6 legal balls)
       if (innings.totalBalls % 6 === 0 && innings.currentBowler) {
+        // Check for maiden over
+        const ballsInOver = innings.ballHistory.filter(b => b.over === currentOver);
+        const runsConceded = ballsInOver.reduce((acc, b) => {
+          const isExtraNotConceded = b.extra?.type === 'bye' || b.extra?.type === 'leg-bye';
+          const extrasConceded = isExtraNotConceded ? 0 : b.runs.extras;
+          return acc + b.runs.batter + extrasConceded;
+        }, 0);
+
+        if (runsConceded === 0) {
+          innings.currentBowler.maidens += 1;
+        }
+
         innings.currentBowler.overs += 1;
         innings.currentBowler.balls = 0;
 
@@ -1564,6 +1601,18 @@ export const scorerSlice = createSlice({
 
         // Check if over completed (6 balls)
         if (innings.totalBalls % 6 === 0) {
+          // Check for maiden over
+          const ballsInOver = innings.ballHistory.filter(b => b.over === currentOver);
+          const runsConceded = ballsInOver.reduce((acc, b) => {
+            const isExtraNotConceded = b.extra?.type === 'bye' || b.extra?.type === 'leg-bye';
+            const extrasConceded = isExtraNotConceded ? 0 : b.runs.extras;
+            return acc + b.runs.batter + extrasConceded;
+          }, 0);
+
+          if (runsConceded === 0 && innings.currentBowler) {
+            innings.currentBowler.maidens += 1;
+          }
+
           innings.currentBowler.overs += 1;
           innings.currentBowler.balls = 0;
 
@@ -2045,19 +2094,22 @@ export const scorerSlice = createSlice({
       
       const { bowlerId, bowlerName } = action.payload;
       
-      // Set new bowler
+      // Set new bowler — restore existing accumulated stats if bowler already bowled
       if (bowlerName && state.currentInnings) {
-        state.currentInnings.currentBowler = {
-          id: bowlerId,
-          name: bowlerName,
-          overs: 0,
-          balls: 0,
-          runs: 0,
-          wickets: 0,
-          maidens: 0,
-          economy: 0,
-          extras: 0,
-        };
+        const existingStats = state.currentInnings.bowlerStats.find(b => b.id === bowlerId);
+        state.currentInnings.currentBowler = existingStats
+          ? { ...existingStats }
+          : {
+              id: bowlerId,
+              name: bowlerName,
+              overs: 0,
+              balls: 0,
+              runs: 0,
+              wickets: 0,
+              maidens: 0,
+              economy: 0,
+              extras: 0,
+            };
       }
 
       // Reset undo stack at the end of over - UNDO only works within an over
@@ -2115,7 +2167,9 @@ export const scorerSlice = createSlice({
       match.status = 'complete';
       match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
-      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      const finalMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      state.liveMatch = finalMatch;
+      state.lastCompletedMatch = finalMatch;
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2155,7 +2209,9 @@ export const scorerSlice = createSlice({
       match.status = 'complete';
       match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
-      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      const finalMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      state.liveMatch = finalMatch;
+      state.lastCompletedMatch = finalMatch;
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2183,7 +2239,9 @@ export const scorerSlice = createSlice({
       match.status = 'complete';
       match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();
-      state.lastCompletedMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      const finalMatch = mergeInningsIntoMatch(match, state.currentInnings);
+      state.liveMatch = finalMatch;
+      state.lastCompletedMatch = finalMatch;
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
@@ -2197,23 +2255,25 @@ export const scorerSlice = createSlice({
 
       const { bowlerId, bowlerName } = action.payload;
       
-      // Preserve the current over stats and ball count
+      // Inherit current over's in-progress stats from the outgoing bowler
       const currentBalls = state.currentInnings.currentBowler?.balls || 0;
       const currentRuns = state.currentInnings.currentBowler?.runs || 0;
       const currentWickets = state.currentInnings.currentBowler?.wickets || 0;
       const currentExtras = state.currentInnings.currentBowler?.extras || 0;
 
-      // Update bowler
+      // Restore incoming bowler's accumulated stats (overs, maidens) from bowlerStats
+      const existingStats = state.currentInnings.bowlerStats.find(b => b.id === bowlerId);
+
       state.currentInnings.currentBowler = {
         id: bowlerId,
         name: bowlerName,
-        overs: 0,
+        overs: existingStats?.overs || 0,
         balls: currentBalls,
-        runs: currentRuns,
-        wickets: currentWickets,
-        maidens: 0,
-        economy: currentRuns > 0 ? parseFloat((currentRuns / (currentBalls / 6)).toFixed(2)) : 0,
-        extras: currentExtras,
+        runs: (existingStats?.runs || 0) + currentRuns,
+        wickets: (existingStats?.wickets || 0) + currentWickets,
+        maidens: existingStats?.maidens || 0,
+        economy: 0, // Recomputed after next ball
+        extras: (existingStats?.extras || 0) + currentExtras,
       };
     },
 
