@@ -435,12 +435,13 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
     const perfMap = new Map<string, Partial<Performance>>();
 
     const getOrCreatePerf = (name: string, selectedPlayerId?: string) => {
-      const trimmedName = name.trim();
-      if (!perfMap.has(trimmedName)) {
-        // Check if player already exists
-        const existingPlayer = allPlayers.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
+      const normalizedName = normalizePlayerName(name);
+      if (!perfMap.has(normalizedName)) {
+        const existingPlayer = allPlayers.find(
+          (p) => normalizePlayerName(p.playerName) === normalizedName
+        );
         let playerId = selectedPlayerId;
-        let playerName = trimmedName;
+        let playerName = name.trim();
 
         if (existingPlayer) {
           playerId = existingPlayer.playerId;
@@ -453,14 +454,13 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         }
 
         if (!playerId) {
-          // Get existing names for collision detection
-          const existingNames = new Set(allPlayers.map(p => p.playerName.toLowerCase().trim()));
-          const newPlayer = createNewPlayer(trimmedName, existingNames);
+          const existingNames = new Set(allPlayers.map((p) => normalizePlayerName(p.playerName)));
+          const newPlayer = createNewPlayer(playerName, existingNames);
           playerId = newPlayer.id;
           playerName = newPlayer.name;
         }
 
-        perfMap.set(trimmedName, {
+        perfMap.set(normalizedName, {
           playerName,
           playerId,
           batting: {
@@ -493,7 +493,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           }
         });
       }
-      return perfMap.get(trimmedName)!;
+      return perfMap.get(normalizedName)!;
     };
 
     battingRows.forEach(row => {

@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import { useAllTeams } from '@/app/lib/hooks/useTeam';
+import { useTeam, useAllTeams } from '@/app/lib/hooks/useTeam';
+import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
 import { TeamPlayer } from '@/app/lib/cricket-schema';
 import { createNewPlayer } from '@/app/lib/player-utils';
 import Link from 'next/link';
@@ -28,15 +30,18 @@ import { Header } from '@/app/components/Header';
  * - Push to Firestore
  */
 export default function TeamSetupPage() {
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { teams: existingTeams, loading: teamsLoading } = useAllTeams();
   const reduxTeam = useSelector((state: RootState) => state.team.team);
   const savedToRedux = useSelector((state: RootState) => state.team.savedToRedux);
   const pendingCloudPush = useSelector((state: RootState) => state.team.pendingCloudPush);
+  const { players: statsPlayers, loading: statsLoading } = useAllPlayers();
 
   const [selectedTeamId, setSelectedTeamId] = useState<string | undefined>();
   const [teamName, setTeamName] = useState('');
   const [players, setPlayers] = useState<TeamPlayer[]>([]);
+  const [hasPendingChanges, setHasPendingChanges] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerJerseyNumber, setNewPlayerJerseyNumber] = useState('');
   const [saving, setSaving] = useState(false);
@@ -60,7 +65,12 @@ export default function TeamSetupPage() {
   // Auto-select team if one exists (single team only policy)
   useEffect(() => {
     if (existingTeams.length > 0 && !selectedTeamId) {
-      handleSelectTeam(existingTeams[0].id);
+      const singleton = existingTeams.find(t => t.id === SINGLETON_TEAM_ID);
+      if (singleton) {
+        handleSelectTeam(singleton.id);
+      } else {
+        handleSelectTeam(existingTeams[0].id);
+      }
     }
   }, [existingTeams, selectedTeamId]);
 
@@ -79,8 +89,12 @@ export default function TeamSetupPage() {
       return;
     }
 
-    // Get existing player names for collision detection
-    const existingNames = new Set(players.map(p => p.name.toLowerCase().trim()));
+    const normalizedNewName = newPlayerName.trim().toLowerCase().replace(/\s+/g, ' ');
+    const existingNames = new Set(players.map(p => p.name.toLowerCase().trim().replace(/\s+/g, ' ')));
+    if (existingNames.has(normalizedNewName)) {
+      setMessage({ type: 'error', text: 'Player name already exists' });
+      return;
+    }
 
     const newPlayer = createNewPlayer(newPlayerName.trim(), existingNames, newPlayerJerseyNumber ? parseInt(newPlayerJerseyNumber) : undefined);
 
@@ -103,7 +117,32 @@ export default function TeamSetupPage() {
     if (playerToDelete) {
       setPlayers(players.filter((p) => p.id !== playerToDelete.id));
       setPlayerToDelete(null);
+      setHasPendingChanges(true);
     }
+  };
+
+  const handleReconstructRoster = () => {
+    if (statsPlayers.length === 0) return;
+    
+    const newPlayers: TeamPlayer[] = statsPlayers.map(p => ({
+      id: p.playerId,
+      name: p.playerName,
+    }));
+    
+    // Merge with existing
+    const existingIds = new Set(players.map(p => p.id));
+    const mergedPlayers = [...players];
+    
+    newPlayers.forEach(p => {
+      if (!existingIds.has(p.id)) {
+        mergedPlayers.push(p);
+      }
+    });
+    
+    setPlayers(mergedPlayers);
+    if (!teamName) setTeamName('JMCC Spartans');
+    setHasPendingChanges(true);
+    setMessage({ type: 'success', text: `Reconstructed roster with ${newPlayers.length} players from existing stats.` });
   };
 
   const handleSaveTeamToRedux = () => {
@@ -169,11 +208,19 @@ export default function TeamSetupPage() {
             <h1 className="text-xl sm:text-3xl font-bold mb-1">Team Setup</h1>
             <p className="text-slate-400 text-xs sm:text-sm">Manage your team and players</p>
           </div>
-          <Link href="/" className="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Back to home">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </Link>
+          <div className="flex gap-2">
+            <button 
+              onClick={() => router.push('/admin')}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Back to Admin
+            </button>
+            {/* <Link href="/" className="p-2 text-slate-400 hover:text-white transition-colors" aria-label="Back to home">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-8 sm:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </Link> */}
+          </div>
         </div>
 
         {/* Status & Messages */}
@@ -218,15 +265,31 @@ export default function TeamSetupPage() {
           <div className="space-y-3">
             <div className="flex justify-between items-center px-1">
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Players ({players.length})</label>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                </svg>
-                Add Player
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Add Player
+                </button>
+                
+                {players.length === 0 && statsPlayers.length > 0 && (
+                  <button
+                    onClick={handleReconstructRoster}
+                    disabled={statsLoading}
+                    className="text-[10px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
+                    title="Reconstruct roster from existing match statistics"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`w-3 h-3 ${statsLoading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reconstruct
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 custom-scrollbar">

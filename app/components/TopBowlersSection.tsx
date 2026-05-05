@@ -31,19 +31,15 @@ export function TopBowlersSection() {
     );
   }
 
-  if (!bowlers || bowlers.length === 0) {
-    return (
-      <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 shadow-lg">
-        <p className="text-gray-400">No bowling data available</p>
-      </div>
-    );
+  if (!bowlers || bowlers.length === 0 || !bowlers.some(b => b.totalInnings > 0)) {
+    return null;
   }
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-md p-8 backdrop-blur-sm border border-gray-700">
       <h2 className="text-2xl font-bold text-gray-100 mb-6">Top Bowlers (All Time)</h2>
       <div className="space-y-4">
-        {bowlers.map((bowler, index) => (
+        {bowlers.filter(b => b.totalInnings > 0).map((bowler, index) => (
           <StatCard
             key={bowler.playerId}
             rank={(index + 1) as 1 | 2 | 3}

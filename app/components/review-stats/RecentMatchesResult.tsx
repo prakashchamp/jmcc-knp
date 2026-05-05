@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Match } from '@/app/lib/cricket-schema';
 import { formatOversDisplay } from '@/app/lib/ball-display-utils';
+import { formatDate } from '@/app/lib/date-utils';
 
 interface RecentMatchesResultProps {
   matches: Match[];
@@ -86,16 +87,6 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
     }
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      weekday: 'short',
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
 
   return (
     <section>

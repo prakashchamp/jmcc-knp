@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { updateMatchAction } from '@/app/lib/actions/match-update-actions';
-import { generatePlayerId } from '@/app/lib/player-utils';
+import { generatePlayerId, generatePlayerIdFromName } from '@/app/lib/player-utils';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { BatterDropdownSelect } from '@/app/components/scorer/dialogs/BatterDropdownSelect';
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,7 @@ interface NewPlayerForm {
   battingBalls: number | '';
   battingFours: number | '';
   battingSixes: number | '';
+  battingDismissed: boolean;
   bowlingOvers: number | '';
   bowlingMaidens: number | '';
   bowlingWickets: number | '';
@@ -47,6 +48,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
     battingBalls: '',
     battingFours: '',
     battingSixes: '',
+    battingDismissed: false,
     bowlingOvers: '',
     bowlingMaidens: '',
     bowlingWickets: '',
@@ -116,7 +118,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
 
     // Use selected player or create new one from name
     const player = selectedPlayer || {
-      id: generatePlayerId(),
+      id: generatePlayerIdFromName(newPlayerName.trim()),
       name: newPlayerName.trim(),
     };
 
@@ -146,13 +148,13 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
           zeros: 0,
           fours: Number(newPlayerData.battingFours || 0),
           sixes: Number(newPlayerData.battingSixes || 0),
-          dismissed: false,
-          isDuck: false,
-          isThirty: false,
-          isFifty: false,
-          isHundred: false,
-          didBat: battingRunsValue > 0 || battingBallsValue > 0,
-          innings: battingRunsValue > 0 || battingBallsValue > 0 ? 1 : 0,
+          dismissed: newPlayerData.battingDismissed,
+          isDuck: battingRunsValue === 0 && newPlayerData.battingDismissed,
+          isThirty: battingRunsValue >= 30 && battingRunsValue < 50,
+          isFifty: battingRunsValue >= 50 && battingRunsValue < 100,
+          isHundred: battingRunsValue >= 100,
+          didBat: battingRunsValue > 0 || battingBallsValue > 0 || newPlayerData.battingDismissed,
+          innings: battingRunsValue > 0 || battingBallsValue > 0 || newPlayerData.battingDismissed ? 1 : 0,
           strikeRate: battingBallsValue > 0 ? (battingRunsValue / battingBallsValue) * 100 : 0,
         };
       } else {
@@ -190,6 +192,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         battingBalls: '',
         battingFours: '',
         battingSixes: '',
+        battingDismissed: false,
         bowlingOvers: '',
         bowlingMaidens: '',
         bowlingWickets: '',
@@ -214,13 +217,13 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         zeros: 0,
         fours: Number(newPlayerData.battingFours || 0),
         sixes: Number(newPlayerData.battingSixes || 0),
-        dismissed: false,
-        isDuck: false,
-        isThirty: false,
-        isFifty: false,
-        isHundred: false,
-        didBat: battingRunsValue > 0 || battingBallsValue > 0,
-        innings: battingRunsValue > 0 || battingBallsValue > 0 ? 1 : 0,
+        dismissed: newPlayerData.battingDismissed,
+        isDuck: battingRunsValue === 0 && newPlayerData.battingDismissed,
+        isThirty: battingRunsValue >= 30 && battingRunsValue < 50,
+        isFifty: battingRunsValue >= 50 && battingRunsValue < 100,
+        isHundred: battingRunsValue >= 100,
+        didBat: battingRunsValue > 0 || battingBallsValue > 0 || newPlayerData.battingDismissed,
+        innings: battingRunsValue > 0 || battingBallsValue > 0 || newPlayerData.battingDismissed ? 1 : 0,
         strikeRate: battingBallsValue > 0 ? (battingRunsValue / battingBallsValue) * 100 : 0,
       } : {
         didBat: false,
@@ -276,6 +279,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
       battingBalls: '',
       battingFours: '',
       battingSixes: '',
+      battingDismissed: false,
       bowlingOvers: '',
       bowlingMaidens: '',
       bowlingWickets: '',
@@ -321,7 +325,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
             fours: battingFours,
             sixes: battingSixes,
             didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
-            innings: (battingRuns > 0 || battingBalls > 0) ? 1 : 0,
+            innings: (battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed) ? 1 : 0,
             strikeRate: battingBalls > 0 ? (battingRuns / battingBalls) * 100 : 0,
           },
           bowling: {
@@ -553,6 +557,33 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
                         />
                       </div>
+                      <div className="col-span-2 sm:col-span-4">
+                        <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Status</label>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handlePerformanceChange(idx, 'batting', 'dismissed', false)}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                              !perf.batting?.dismissed
+                                ? 'bg-emerald-600 border-emerald-600 text-white'
+                                : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-750'
+                            }`}
+                          >
+                            Not Out
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handlePerformanceChange(idx, 'batting', 'dismissed', true)}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                              perf.batting?.dismissed
+                                ? 'bg-red-600 border-red-600 text-white'
+                                : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-750'
+                            }`}
+                          >
+                            Out
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
@@ -672,7 +703,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   onCreateNew={(name) => {
                     // Create new player and select it
                     const newPlayer: TeamPlayer = {
-                      id: generatePlayerId(),
+                      id: generatePlayerIdFromName(name.trim()),
                       name: name.trim(),
                     };
                     setSelectedPlayer(newPlayer);
@@ -726,6 +757,22 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                             onChange={(e) => setNewPlayerData({ ...newPlayerData, battingSixes: e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value)) })}
                             className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-emerald-500"
                           />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="flex items-center gap-2 cursor-pointer group mt-2">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                checked={!newPlayerData.battingDismissed}
+                                onChange={(e) => setNewPlayerData({ ...newPlayerData, battingDismissed: !e.target.checked })}
+                                className="sr-only peer"
+                              />
+                              <div className="w-10 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                            </div>
+                            <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">
+                              Not Out
+                            </span>
+                          </label>
                         </div>
                       </div>
                     </div>

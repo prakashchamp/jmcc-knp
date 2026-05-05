@@ -1,16 +1,34 @@
-import { LiveMatch } from './cricket-scorer-types';
+import { LiveMatch, InningsState } from './cricket-scorer-types';
 import { Performance, Match } from './cricket-schema';
+
+/**
+ * Convert totalBalls to overs format (e.g., 25 balls = 4.1 overs)
+ */
+function ballsToOvers(totalBalls: number): number {
+  const fullOvers = Math.floor(totalBalls / 6);
+  const remainingBalls = totalBalls % 6;
+  return fullOvers + (remainingBalls / 10);
+}
 
 /**
  * Maps Redux LiveMatch to Firestore 'matches' collection schema
  */
 export function mapMatchToFirestore(match: LiveMatch) {
   const players = match.teamPlayers || [];
+
+  // Calculate overs played from innings data
+  const usInnings = match.innings.find(i => i.battingTeam === 'Us');
+  const themInnings = match.innings.find(i => i.battingTeam === 'Them');
   
-  // Find best performers from current match state
-  // This assumes the performances have already been calculated or we calculate them here
-  // For simplicity in the mapper, we'll take best performers as arguments or calculate them outside
-  
+  const teamOversPlayed = usInnings ? ballsToOvers(usInnings.totalBalls) : 0;
+  const opponentOversPlayed = themInnings ? ballsToOvers(themInnings.totalBalls) : 0;
+
+  // Get runs and wickets from innings data
+  const teamRuns = usInnings?.totalRuns || 0;
+  const teamWickets = usInnings?.totalWickets || 0;
+  const opponentRuns = themInnings?.totalRuns || 0;
+  const opponentWickets = themInnings?.totalWickets || 0;
+
   return {
     date: match.createdAt, // Will be converted to Timestamp by Firestore if passed as Date/ISO
     year: match.createdAt ? new Date(match.createdAt).getUTCFullYear().toString() : new Date().getUTCFullYear().toString(),
@@ -25,12 +43,12 @@ export function mapMatchToFirestore(match: LiveMatch) {
     total_overs: match.totalOvers,
     first_innings_team: (match as any).firstInningsTeam || '',
     first_innings_score: (match as any).firstInningsScore || 0,
-    team_runs: (match as any).teamRuns || 0,
-    team_wickets: (match as any).teamWickets || 0,
-    team_overs_played: (match as any).teamOversPlayed || 0,
-    opponent_runs: (match as any).opponentRuns || 0,
-    opponent_wickets: (match as any).opponentWickets || 0,
-    opponent_overs_played: (match as any).opponentOversPlayed || 0,
+    team_runs: teamRuns,
+    team_wickets: teamWickets,
+    team_overs_played: teamOversPlayed,
+    opponent_runs: opponentRuns,
+    opponent_wickets: opponentWickets,
+    opponent_overs_played: opponentOversPlayed,
     created_at: match.createdAt || new Date().toISOString(),
     createdAt: match.createdAt || new Date().toISOString(),
   };
@@ -48,7 +66,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     year: perf.year,
     month: perf.month,
     opponent: perf.opponent,
-    
+
     // Batting
     bat_did_bat: perf.batting.didBat,
     bat_innings: perf.batting.innings,
@@ -63,7 +81,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     bat_is_fifty: perf.batting.isFifty,
     bat_is_hundred: perf.batting.isHundred,
     bat_strike_rate: perf.batting.strikeRate,
-    
+
     // Bowling
     bowl_did_bowl: perf.bowling.didBowl,
     bowl_innings: perf.bowling.innings,
@@ -76,7 +94,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     bowl_is_four_fer: perf.bowling.isFourFer,
     bowl_is_five_fer: perf.bowling.isFiveFer,
     bowl_economy: perf.bowling.economy,
-    
+
     created_at: perf.createdAt || new Date().toISOString(),
     createdAt: perf.createdAt || new Date().toISOString(),
   };
@@ -172,7 +190,7 @@ export function mapFirestoreToMatch(data: any): Match {
  */
 export function findBestBatter(performances: Performance[]) {
   if (performances.length === 0) return null;
-  
+
   return [...performances].sort((a, b) => {
     // Primary: Runs
     if (b.batting.runs !== a.batting.runs) {
@@ -188,7 +206,7 @@ export function findBestBatter(performances: Performance[]) {
  */
 export function findTopBatters(performances: Performance[]) {
   if (performances.length === 0) return [];
-  
+
   return [...performances]
     .sort((a, b) => {
       // Primary: Runs
@@ -212,7 +230,7 @@ export function findTopBatters(performances: Performance[]) {
  */
 export function findBestBowler(performances: Performance[]) {
   if (performances.length === 0) return null;
-  
+
   return [...performances].sort((a, b) => {
     // Primary: Wickets
     if (b.bowling.wickets !== a.bowling.wickets) {
@@ -228,7 +246,7 @@ export function findBestBowler(performances: Performance[]) {
  */
 export function findTopBowlers(performances: Performance[]) {
   if (performances.length === 0) return [];
-  
+
   return [...performances]
     .filter(perf => perf.bowling.overs > 0)
     .sort((a, b) => {

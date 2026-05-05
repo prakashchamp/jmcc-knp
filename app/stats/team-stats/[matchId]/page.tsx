@@ -7,6 +7,7 @@ import { Match, Performance } from '@/app/lib/cricket-schema';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 import { formatOversDisplay } from '@/app/lib/ball-display-utils';
+import { formatDate } from '@/app/lib/date-utils';
 
 export default function MatchDetailPage() {
   const params = useParams();
@@ -149,16 +150,6 @@ export default function MatchDetailPage() {
     );
   }
 
-  const formatDate = (matchData: Match) => {
-    const date = (matchData as any).createdAt?.toDate?.() || new Date((matchData as any).createdAt || new Date());
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric',
-      weekday: 'long'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
 
   const handleBattingSort = (field: typeof battingSortField) => {
     if (battingSortField === field) {
@@ -230,7 +221,7 @@ export default function MatchDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
               <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Date</p>
-              <p className="text-sm sm:text-base font-semibold text-white mt-1">{formatDate(match)}</p>
+              <p className="text-sm sm:text-base font-semibold text-white mt-1">{formatDate(match.date)}</p>
             </div>
             <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
               <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Venue</p>

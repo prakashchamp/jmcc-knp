@@ -208,22 +208,7 @@ export async function getAllTimePlayerStatsClient(forceRefresh = false) {
   }
 }
 
-/**
- * Fetch all players using Client SDK
- */
-export async function getPlayersClient() {
-  try {
-    const collRef = collection(db, 'players');
-    const querySnapshot = await getDocs(collRef);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (error) {
-    console.error("Client SDK: Error fetching players:", error);
-    throw error;
-  }
-}
+
 
 /**
  * Fetch recent matches with performances using Client SDK

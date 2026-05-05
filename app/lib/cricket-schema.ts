@@ -4,18 +4,10 @@
  */
 
 // ============================================================================
-// PLAYERS
-// ============================================================================
-
-export interface Player {
-  id: string;
-  name: string;
-  createdAt: string; // ISO 8601
-}
-
-// ============================================================================
 // TEAM MANAGEMENT (Cricket Scorer)
 // ============================================================================
+// NOTE: Players stored in teams.players (single source of truth)
+// Legacy "players" collection should be deleted from Firestore
 
 export interface TeamPlayer {
   id: string;

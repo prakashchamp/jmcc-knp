@@ -31,19 +31,15 @@ export function TopBattersSection() {
     );
   }
 
-  if (!batters || batters.length === 0) {
-    return (
-      <div className="bg-gray-700 rounded-lg p-3 sm:p-6 border border-gray-600">
-        <p className="text-gray-400 text-xs sm:text-sm">No batting data available</p>
-      </div>
-    );
+  if (!batters || batters.length === 0 || !batters.some(b => b.totalInnings > 0)) {
+    return null;
   }
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-md p-4 sm:p-8 backdrop-blur-sm border border-gray-700">
       <h2 className="text-lg sm:text-2xl font-bold text-gray-100 mb-4 sm:mb-6">Top Batters (All Time)</h2>
       <div className="space-y-3 sm:space-y-4">
-        {batters.map((batter, index) => (
+        {batters.filter(b => b.totalInnings > 0).map((batter, index) => (
           <StatCard
             key={batter.playerId}
             rank={(index + 1) as 1 | 2 | 3}

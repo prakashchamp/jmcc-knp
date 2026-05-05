@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Match, Performance } from '@/app/lib/cricket-schema';
-import { useAllPlayers } from '@/app/lib/hooks/useAllPlayers';
+import { useTeamPlayers } from '@/app/lib/hooks/useTeam';
 import { createNewPlayer } from '@/app/lib/player-utils';
 import { CustomSelect } from '@/app/components/CustomSelect';
 
@@ -35,7 +35,12 @@ interface BowlingRow {
 }
 
 export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps) {
-  const { players } = useAllPlayers();
+  const { players: teamPlayers } = useTeamPlayers();
+  
+  const players = teamPlayers.map(p => ({
+    playerId: p.id,
+    playerName: p.name,
+  }));
   
   const [battingRows, setBattingRows] = useState<BattingRow[]>([
     { playerName: '', runs: '', balls: '', fours: '', sixes: '', dismissed: false }
@@ -153,41 +158,41 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
     const perfMap = new Map<string, Partial<Performance>>();
 
     const getOrCreatePerf = (name: string, playerId?: string) => {
-      const trimmedName = name.trim();
-      if (!perfMap.has(trimmedName)) {
-      // Check if player already exists
-      const existingPlayer = players.find(p => p.playerName.toLowerCase() === trimmedName.toLowerCase());
-      let resolvedPlayerId = playerId;
-      let playerName = trimmedName;
+      const normalizedName = normalizePlayerName(name);
+      if (!perfMap.has(normalizedName)) {
+        const existingPlayer = players.find(
+          (p) => normalizePlayerName(p.playerName) === normalizedName
+        );
+        let resolvedPlayerId = playerId;
+        let playerName = name.trim();
 
-      if (existingPlayer) {
-        resolvedPlayerId = existingPlayer.playerId;
-        playerName = existingPlayer.playerName;
-      } else if (playerId) {
-        const rosterEntry = players.find((p) => p.playerId === playerId);
-        if (rosterEntry) {
-          playerName = rosterEntry.playerName;
+        if (existingPlayer) {
+          resolvedPlayerId = existingPlayer.playerId;
+          playerName = existingPlayer.playerName;
+        } else if (playerId) {
+          const rosterEntry = players.find((p) => p.playerId === playerId);
+          if (rosterEntry) {
+            playerName = rosterEntry.playerName;
+          }
         }
-      }
 
-      if (!resolvedPlayerId) {
-        // Get existing names for collision detection
-        const existingNames = new Set(players.map(p => p.playerName.toLowerCase().trim()));
-        const newPlayer = createNewPlayer(trimmedName, existingNames);
-        resolvedPlayerId = newPlayer.id;
-        playerName = newPlayer.name;
-      }
+        if (!resolvedPlayerId) {
+          const existingNames = new Set(players.map((p) => normalizePlayerName(p.playerName)));
+          const newPlayer = createNewPlayer(playerName, existingNames);
+          resolvedPlayerId = newPlayer.id;
+          playerName = newPlayer.name;
+        }
 
-      perfMap.set(trimmedName, {
-        playerName,
-        playerId: resolvedPlayerId,
-        batting: {
-          didBat: false,
-          innings: 0,
-          runs: 0,
-          balls: 0,
-          zeros: 0,
-          fours: 0,
+        perfMap.set(normalizedName, {
+          playerName,
+          playerId: resolvedPlayerId,
+          batting: {
+            didBat: false,
+            innings: 0,
+            runs: 0,
+            balls: 0,
+            zeros: 0,
+            fours: 0,
           sixes: 0,
           dismissed: false,
           isDuck: false,
@@ -211,7 +216,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
         }
       });
       }
-      return perfMap.get(trimmedName)!;
+      return perfMap.get(normalizedName)!;
     };
 
     battingRows.forEach(row => {

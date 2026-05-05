@@ -35,6 +35,7 @@ export function Header() {
 
   const menuItems = [
     { label: 'Home', value: 'home' },
+    { label: 'Live Scorer', value: 'scorer' },
     { label: 'Monthly Stats', value: 'monthly' },
     { label: 'Yearly Stats', value: 'yearly' },
     { label: 'All Time Stats', value: 'all-time' },
@@ -50,6 +51,9 @@ export function Header() {
     switch (value) {
       case 'home':
         router.push('/');
+        break;
+      case 'scorer':
+        router.push('/scorer');
         break;
       case 'monthly':
         router.push('/stats/monthly');
@@ -101,7 +105,11 @@ export function Header() {
       {/* Top Header Section */}
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 max-w-7xl mx-auto">
         {/* Logo */}
-        <div className="flex-shrink-0">
+        <button
+          onClick={() => router.push('/scorer')}
+          className="flex-shrink-0 hover:opacity-80 transition-opacity"
+          aria-label="Go to Live Scorer"
+        >
           <Image
             src="/jmcc.jpg"
             alt="JMCC Spartans Logo"
@@ -110,7 +118,7 @@ export function Header() {
             className="sm:w-12 sm:h-12 rounded-full object-cover shadow-md aspect-square"
             priority
           />
-        </div>
+        </button>
 
         {/* Team Name - Centered */}
         <div className="flex-1 text-center">

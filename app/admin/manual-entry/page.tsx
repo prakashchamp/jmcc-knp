@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/app/components/Header';
 import { ScorecardUpload } from '@/app/components/admin/ScorecardUpload';
 import { MatchDataForm } from '@/app/components/admin/MatchDataForm';
@@ -16,6 +17,7 @@ interface ParsedData {
 
 export default function ManualEntryPage() {
   useAdminAuth();
+  const router = useRouter();
   const [step, setStep] = useState<AdminStep>('entry');
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
 
@@ -35,9 +37,17 @@ export default function ManualEntryPage() {
 
       <main className="page-container">
         {/* Page Title */}
-        <div className="page-header">
-          <h1 className="page-title text-white">Manual Entry</h1>
-          <p className="hint-text mt-1 sm:mt-2">Enter match data manually or via screenshot</p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="page-title text-white">Manual Entry</h1>
+            <p className="hint-text mt-1 sm:mt-2">Enter match data manually or via screenshot</p>
+          </div>
+          <button 
+            onClick={() => router.push('/admin')}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+          >
+            Back to Admin
+          </button>
         </div>
 
         {/* Steps */}

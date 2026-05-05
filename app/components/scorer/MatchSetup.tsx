@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { TeamPlayer } from '@/app/lib/cricket-scorer-types';
-import { generatePlayerId } from '@/app/lib/player-utils';
+import { generatePlayerId, generatePlayerIdFromName } from '@/app/lib/player-utils';
 import { CustomSelect } from '@/app/components/CustomSelect';
 
 // Constant opponent player list
@@ -62,7 +62,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewStriker = () => {
     if (newStrikerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: generatePlayerId(),
+        id: generatePlayerIdFromName(newStrikerName.trim()),
         name: newStrikerName.trim(),
       };
       setStriker(newPlayer);
@@ -74,7 +74,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewNonStriker = () => {
     if (newNonStrikerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: generatePlayerId(),
+        id: generatePlayerIdFromName(newNonStrikerName.trim()),
         name: newNonStrikerName.trim(),
       };
       setNonStriker(newPlayer);
@@ -86,7 +86,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
   const handleCreateNewBowler = () => {
     if (newBowlerName.trim()) {
       const newPlayer: TeamPlayer = {
-        id: generatePlayerId(),
+        id: generatePlayerIdFromName(newBowlerName.trim()),
         name: newBowlerName.trim(),
       };
       setBowler(newPlayer);

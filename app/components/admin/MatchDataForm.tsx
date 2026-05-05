@@ -81,6 +81,9 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
   const handleMatchChange = (field: keyof Match, value: any) => {
     let finalValue = value;
+    if (field === 'teamOversPlayed' || field === 'opponentOversPlayed') {
+      value = value.replace(',', '.');
+    }
     if (typeof value === 'number' || (!isNaN(Number(value)) && value !== '')) {
       const numValue = Number(value);
       if (numValue < 0) finalValue = 0;
@@ -217,6 +220,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
         opponentRuns: Math.max(0, Number(match.opponentRuns || 0)),
         opponentWickets: Math.max(0, Number(match.opponentWickets || 0)),
         opponentOversPlayed: Math.max(0, Number(match.opponentOversPlayed || 0)),
+        totalOvers: match.totalOvers,
         createdAt: now,
         topBatters: [],
         topBowlers: [],
@@ -345,6 +349,20 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               onChange={(e) => handleMatchChange('opponent', e.target.value)}
               onFocus={(e) => e.target.select()}
               className="input-base"
+            />
+          </div>
+
+          <div>
+            <label className="label-text mb-1.5 block">Total Overs</label>
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={match.totalOvers || ''}
+              onChange={(e) => handleMatchChange('totalOvers', e.target.value ? Number(e.target.value) : undefined)}
+              onFocus={(e) => e.target.select()}
+              className="input-base"
+              placeholder="e.g., 20 for T20, 50 for ODI"
             />
           </div>
 
@@ -567,6 +585,20 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
                 <div>
                   <label className="label-text mb-1 block">6s</label>
                   <input type="number" value={perf.batting?.sixes ?? ''} placeholder="0" onFocus={(e) => e.target.select()} onChange={(e) => handlePerformanceChange(idx, 'batting', { ...perf.batting, sixes: e.target.value })} className="input-base py-2 text-sm text-center" />
+                </div>
+
+                <div>
+                  <CustomSelect
+                    id={`batting-status-${idx}`}
+                    label="Status"
+                    value={perf.batting?.dismissed ? 'out' : 'not_out'}
+                    options={[
+                      { value: 'not_out', label: 'Not Out' },
+                      { value: 'out', label: 'Out' },
+                    ]}
+                    onChange={(val) => handlePerformanceChange(idx, 'batting', { ...perf.batting, dismissed: val === 'out' })}
+                    className="w-full"
+                  />
                 </div>
 
                 <div>

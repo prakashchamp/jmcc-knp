@@ -83,9 +83,9 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
 
       {/* Options panel — absolutely positioned so it never goes out of view */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-[9999] mt-1 max-h-[50vh] overflow-hidden rounded-lg border border-gray-600 bg-gray-800 shadow-xl shadow-black/40">
+        <div className="absolute left-0 right-0 top-full z-[9999] mt-1 max-h-[70vh] flex flex-col overflow-hidden rounded-lg border border-gray-600 bg-gray-800 shadow-xl shadow-black/40">
           {allowCustom && (
-            <div className="border-b border-gray-700 px-4 py-3">
+            <div className="border-b border-gray-700 px-4 py-3 shrink-0">
               <input
                 type="text"
                 value={customText}
@@ -110,7 +110,7 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
           )}
           <ul
             role="listbox"
-            className="max-h-56 overflow-y-auto"
+            className="overflow-y-auto"
           >
             {options.map((opt) => {
               const isSelected = opt.value === value;

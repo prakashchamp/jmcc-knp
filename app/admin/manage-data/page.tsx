@@ -7,6 +7,8 @@ import { getAllMatchesAction } from '@/app/lib/actions/stats-actions';
 import { deleteMatchAction } from '@/app/lib/actions/match-delete-actions';
 import { Match } from '@/app/lib/cricket-schema';
 import { CustomSelect } from '@/app/components/CustomSelect';
+import { BackToAdminButton } from '@/app/components/admin/BackToAdminButton';
+import { formatDate } from '@/app/lib/date-utils';
 
 export default function ManageDataPage() {
   const router = useRouter();
@@ -57,7 +59,7 @@ export default function ManageDataPage() {
   const filteredMatches = useMemo(() => {
     if (selectedMonth === 'all') return matches;
     return matches.filter(m => {
-      const matchMonth = m.month || (m as any).created_at ? `${new Date((m as any).created_at).getFullYear()}-${String(new Date((m as any).created_at).getMonth() + 1).padStart(2, '0')}` : null;
+      const matchMonth = m.month;
       return matchMonth === selectedMonth;
     });
   }, [matches, selectedMonth]);
@@ -147,7 +149,7 @@ export default function ManageDataPage() {
                   filteredMatches.map(match => (
                     <tr key={match.id} className="hover:bg-gray-700/30 transition-colors group">
                       <td className="px-4 py-3 text-white">
-                        {match.date ? new Date(match.date).toLocaleDateString() : 'Unknown'}
+                        {formatDate(match.date)}
                       </td>
                       <td className="px-4 py-3 text-gray-300 font-medium">
                         {match.opponent || 'Unknown'}

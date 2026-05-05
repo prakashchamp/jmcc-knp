@@ -31,44 +31,59 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
   const { year, month } = getISTYearMonth(match.date);
 
   try {
-    // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
-    // Targeted player lookup instead of full collection fetch
-    const namesToLookup = performances.map(p => p.playerName.trim());
-    const uniqueNames = Array.from(new Set(namesToLookup));
+    // RESOLVE TRUE PLAYER IDs FROM TEAM
+    // Fetch JMCC team and get players from team.players
+    const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+    const teamData = teamDoc.data();
+    const teamPlayers = teamData?.players || [];
     const existingPlayers = new Map<string, string>();
     const existingNames = new Set<string>();
 
-    if (uniqueNames.length > 0) {
-      // Chunk names into groups of 30 for 'in' query
-      for (let i = 0; i < uniqueNames.length; i += 30) {
-        const chunk = uniqueNames.slice(i, i + 30);
-        const playersSnapshot = await db.collection('players')
-          .where('name', 'in', chunk)
-          .get();
-        
-        playersSnapshot.docs.forEach(doc => {
-          const data = doc.data();
-          const nameKey = data.name.toLowerCase().trim();
-          existingPlayers.set(nameKey, doc.id);
-          existingNames.add(nameKey);
-        });
-      }
-    }
+    teamPlayers.forEach((player: any) => {
+      const nameKey = player.name.toLowerCase().trim();
+      existingPlayers.set(nameKey, player.id);
+      existingNames.add(nameKey);
+    });
 
+    // Add new players to team if needed
+    const newPlayersToAdd: any[] = [];
     for (const perf of performances) {
       const nameKey = perf.playerName.toLowerCase().trim();
-      const trueId = existingPlayers.get(nameKey);
-      if (trueId) {
-        perf.playerId = trueId;
-      } else {
-        // Create new player with collision handling
+      let trueId = existingPlayers.get(nameKey);
+
+      // If name didn't match, check if the provided playerId exists
+      if (!trueId && perf.playerId) {
+        const playerById = teamPlayers.find((p: any) => p.id === perf.playerId);
+        if (playerById) {
+          trueId = playerById.id;
+        }
+      }
+
+      if (!trueId) {
+        // Create new player
         const newPlayer = createNewPlayer(perf.playerName, existingNames);
         perf.playerId = newPlayer.id;
-        perf.playerName = newPlayer.name; // Update name if collision occurred
+        perf.playerName = newPlayer.name;
         existingPlayers.set(newPlayer.name.toLowerCase().trim(), newPlayer.id);
         existingNames.add(newPlayer.name.toLowerCase().trim());
+        newPlayersToAdd.push(newPlayer);
+      } else {
+        perf.playerId = trueId;
       }
       perf.id = `${matchId}_${perf.playerId}`;
+    }
+
+    // Update team with new players if any
+    if (newPlayersToAdd.length > 0) {
+      const updatedPlayers = [...teamPlayers, ...newPlayersToAdd].map(p => {
+        const clean: any = { id: p.id, name: p.name };
+        if (p.jerseyNumber !== undefined) clean.jerseyNumber = p.jerseyNumber;
+        return clean;
+      });
+      await db.collection('teams').doc('jmcc_spartans_singleton').update({
+        players: updatedPlayers,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
     }
 
     await db.runTransaction(async (transaction) => {
@@ -82,8 +97,6 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
       // Collect all stats references
       const statsToUpdate: { ref: admin.firestore.DocumentReference, perf: Performance, scope: any }[] = [];
       for (const perf of performances) {
-        if (!perf.batting.didBat && !perf.bowling.didBowl) continue;
-
         const scopes = [
           { coll: 'player_stats_alltime', id: perf.playerId },
           { coll: 'player_stats_yearly', id: `${perf.playerId}_${year}`, year },
@@ -100,53 +113,20 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
       }
 
       // 1. PERFORM ALL READS
-      const statsDocs = statsToUpdate.length > 0 
+      const statsDocs = statsToUpdate.length > 0
         ? await transaction.getAll(...statsToUpdate.map(s => s.ref))
         : [];
-
-      // Get unique players from performances
-      const uniquePlayers = Array.from(new Map(performances.map(p => [p.playerId, p.playerName])).entries());
-      const playerRefs = uniquePlayers.map(([id]) => db.collection('players').doc(id));
-      const playerDocs = playerRefs.length > 0 ? await transaction.getAll(...playerRefs) : [];
 
       // Get singleton team
       const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
       const teamDoc = await transaction.get(teamRef);
 
       // 2. PERFORM ALL WRITES
-      // Create missing players and collect them
-      const newTeamPlayers: any[] = [];
-      playerDocs.forEach((doc, index) => {
-        if (!doc.exists) {
-          const [playerId, playerName] = uniquePlayers[index];
-          transaction.set(doc.ref, {
-            name: playerName,
-            created_at: admin.firestore.FieldValue.serverTimestamp(),
-            updated_at: admin.firestore.FieldValue.serverTimestamp(),
-          });
-          newTeamPlayers.push({ id: playerId, name: playerName });
-        }
-      });
-
-      // Update singleton team with new players
-      if (newTeamPlayers.length > 0 && teamDoc.exists) {
-        const teamData = teamDoc.data() as any;
-        const existingPlayers = teamData.players || [];
-        const existingPlayerIds = new Set(existingPlayers.map((p: any) => p.id));
-        
-        const playersToAdd = newTeamPlayers.filter(p => !existingPlayerIds.has(p.id));
-        if (playersToAdd.length > 0) {
-          transaction.update(teamRef, {
-            players: [...existingPlayers, ...playersToAdd],
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
 
       // Calculate top batters and bowlers
       const topBatters = findTopBatters(performances);
       const topBowlers = findTopBowlers(performances);
-      
+
       // Save match with snake_case fields
       const mappedMatch = {
         ...mapMatchToFirestore({
@@ -159,6 +139,8 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
           result: match.result,
           winMargin: match.winMargin,
           totalOvers: match.totalOvers || 20,
+          teamOversPlayed: match.teamOversPlayed,
+          opponentOversPlayed: match.opponentOversPlayed,
           status: 'complete'
         } as any),
         top_batters: topBatters,
@@ -179,7 +161,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         opponent_wickets: match.opponentWickets || 0,
         created_at: match.createdAt || new Date().toISOString(),
       };
-      
+
       transaction.set(matchRef, mappedMatch);
 
       // Save performances with snake_case fields
@@ -234,44 +216,38 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
   // 1. Calculate Performances
   const performances = calculatePerformancesFromStats(match);
 
-  // RESOLVE TRUE PLAYER IDs BEFORE TRANSACTION
-  // Targeted player lookup instead of full collection fetch
-  const namesToLookup = performances.map(p => p.playerName.trim());
-  const uniqueNames = Array.from(new Set(namesToLookup));
+  // RESOLVE TRUE PLAYER IDs FROM TEAM
+  // Fetch JMCC team and get players from team.players
+  const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+  const teamData = teamDoc.data();
+  const teamPlayers = teamData?.players || [];
   const existingPlayers = new Map<string, string>();
   const existingNames = new Set<string>();
 
-  if (uniqueNames.length > 0) {
-    for (let i = 0; i < uniqueNames.length; i += 30) {
-      const chunk = uniqueNames.slice(i, i + 30);
-      const playersSnapshot = await db.collection('players')
-        .where('name', 'in', chunk)
-        .get();
-      
-      playersSnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        const nameKey = data.name.toLowerCase().trim();
-        existingPlayers.set(nameKey, doc.id);
-        existingNames.add(nameKey);
-      });
-    }
-  }
+  teamPlayers.forEach((player: any) => {
+    const nameKey = player.name.toLowerCase().trim();
+    existingPlayers.set(nameKey, player.id);
+    existingNames.add(nameKey);
+  });
 
+  // Add new players to team if needed
+  const newPlayersToAdd: any[] = [];
   for (const perf of performances) {
     const nameKey = perf.playerName.toLowerCase().trim();
     const trueId = existingPlayers.get(nameKey);
-    if (trueId) {
-      perf.playerId = trueId;
-    } else {
-      // Create new player with collision handling
+    if (!trueId) {
+      // Create new player
       const newPlayer = createNewPlayer(perf.playerName, existingNames);
       perf.playerId = newPlayer.id;
-      perf.playerName = newPlayer.name; // Update name if collision occurred
+      perf.playerName = newPlayer.name;
       existingPlayers.set(newPlayer.name.toLowerCase().trim(), newPlayer.id);
       existingNames.add(newPlayer.name.toLowerCase().trim());
+      newPlayersToAdd.push(newPlayer);
+    } else {
+      perf.playerId = trueId;
     }
     perf.id = `${matchId}_${perf.playerId}`;
-    
+
     // Also update match teamPlayers with true ID so match data is consistent
     const teamPlayer = match.teamPlayers.find(p => p.name.toLowerCase().trim() === nameKey);
     if (teamPlayer) {
@@ -280,15 +256,28 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     }
   }
 
+  // Update team with new players if any
+  if (newPlayersToAdd.length > 0) {
+    const updatedPlayers = [...teamPlayers, ...newPlayersToAdd].map(p => {
+      const clean: any = { id: p.id, name: p.name };
+      if (p.jerseyNumber !== undefined) clean.jerseyNumber = p.jerseyNumber;
+      return clean;
+    });
+    await db.collection('teams').doc('jmcc_spartans_singleton').update({
+      players: updatedPlayers,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+  }
+
   const topBatters = findTopBatters(performances);
   const topBowlers = findTopBowlers(performances);
   const bestBatter = findBestBatter(performances);
   const bestBowler = findBestBowler(performances);
-  
+
   // Extract team and opponent scores
   const ourInnings = match.innings.find(i => i.battingTeam === 'Us');
   const opponentInnings = match.innings.find(i => i.battingTeam === 'Them');
-  
+
   const teamRuns = (match as any).teamRuns !== undefined ? (match as any).teamRuns : (ourInnings?.totalRuns || 0);
   const teamWickets = (match as any).teamWickets !== undefined ? (match as any).teamWickets : (ourInnings?.totalWickets || 0);
   const opponentRuns = (match as any).opponentRuns !== undefined ? (match as any).opponentRuns : (opponentInnings?.totalRuns || 0);
@@ -335,8 +324,6 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
       // Collect all stats references to read them in one batch
       const statsToUpdate: { ref: admin.firestore.DocumentReference, perf: Performance, scope: any }[] = [];
       for (const perf of performances) {
-        if (!perf.batting.didBat && !perf.bowling.didBowl) continue;
-
         const scopes = [
           { coll: 'player_stats_alltime', id: perf.playerId },
           { coll: 'player_stats_yearly', id: `${perf.playerId}_${year}`, year },
@@ -353,51 +340,19 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
       }
 
       // 1. PERFORM ALL READS
-      const statsDocs = statsToUpdate.length > 0 
+      const statsDocs = statsToUpdate.length > 0
         ? await transaction.getAll(...statsToUpdate.map(s => s.ref))
         : [];
-      
-      const playerRefs = match.teamPlayers.map(p => db.collection('players').doc(p.id));
-      const playerDocs = playerRefs.length > 0 ? await transaction.getAll(...playerRefs) : [];
 
       // Get singleton team
       const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
       const teamDoc = await transaction.get(teamRef);
 
       // 2. PERFORM ALL WRITES
-      // Create missing players and collect them
-      const newTeamPlayers: any[] = [];
-      playerDocs.forEach((doc, index) => {
-        if (!doc.exists) {
-          const player = match.teamPlayers[index];
-          transaction.set(doc.ref, {
-            name: player.name,
-            created_at: admin.firestore.FieldValue.serverTimestamp(),
-            updated_at: admin.firestore.FieldValue.serverTimestamp(),
-          });
-          newTeamPlayers.push({ id: player.id, name: player.name });
-        }
-      });
-
-      // Update singleton team with new players
-      if (newTeamPlayers.length > 0 && teamDoc.exists) {
-        const teamData = teamDoc.data() as any;
-        const existingPlayers = teamData.players || [];
-        const existingPlayerIds = new Set(existingPlayers.map((p: any) => p.id));
-        
-        const playersToAdd = newTeamPlayers.filter(p => !existingPlayerIds.has(p.id));
-        if (playersToAdd.length > 0) {
-          transaction.update(teamRef, {
-            players: [...existingPlayers, ...playersToAdd],
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
 
       transaction.set(matchRef, matchData);
 
       for (const perf of performances) {
-        if (!perf.batting.didBat && !perf.bowling.didBowl) continue;
         const perfRef = db.collection('performances').doc(`${matchId}_${perf.playerId}`);
         transaction.set(perfRef, mapPerformanceToFirestore(perf));
       }
@@ -501,10 +456,10 @@ function calculateUpdatedStats(
     player_id: perf.playerId,
     player_name: perf.playerName,
     matches: 0,
-    bat_innings: 0, bat_runs: 0, bat_balls: 0, bat_zeros: 0, bat_fours: 0, bat_sixes: 0, 
-    bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0, 
+    bat_innings: 0, bat_runs: 0, bat_balls: 0, bat_zeros: 0, bat_fours: 0, bat_sixes: 0,
+    bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0,
     bat_thirties: 0, bat_fifties: 0, bat_hundreds: 0,
-    bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0, 
+    bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0,
     bowl_wickets: 0, bowl_maidens: 0, bowl_best_wickets: 0, bowl_best_runs: 0,
     bowl_three_fers: 0, bowl_four_fers: 0, bowl_five_fers: 0,
   };
@@ -524,13 +479,13 @@ function calculateUpdatedStats(
     stats.bat_sixes += perf.batting.sixes;
     if (perf.batting.dismissed) stats.bat_dismissed += 1;
     else stats.bat_not_out += 1;
-    
+
     stats.bat_highest = Math.max(stats.bat_highest || 0, perf.batting.runs);
     if (perf.batting.isDuck) stats.bat_ducks += 1;
     if (perf.batting.isThirty) stats.bat_thirties += 1;
     if (perf.batting.isFifty) stats.bat_fifties += 1;
     if (perf.batting.isHundred) stats.bat_hundreds += 1;
-    
+
     // Recompute average/SR
     const dismissals = stats.bat_dismissed || 0;
     stats.bat_average = dismissals > 0 ? stats.bat_runs / dismissals : stats.bat_runs;
@@ -541,16 +496,16 @@ function calculateUpdatedStats(
     stats.bowl_innings += 1;
     stats.bowl_runs += perf.bowling.runs;
     stats.bowl_wickets += perf.bowling.wickets;
-    
+
     // Calculate total balls from fractional overs
     const wholeOvers = Math.floor(perf.bowling.overs);
     const extraBalls = Math.round((perf.bowling.overs % 1) * 10);
     const matchBalls = wholeOvers * 6 + extraBalls;
-    
+
     stats.bowl_balls += matchBalls;
     stats.bowl_overs = Math.floor(stats.bowl_balls / 6) + (stats.bowl_balls % 6) / 10;
     stats.bowl_maidens += perf.bowling.maidens;
-    
+
     // Best Bowling logic
     if (perf.bowling.wickets > (stats.bowl_best_wickets || 0)) {
       stats.bowl_best_wickets = perf.bowling.wickets;

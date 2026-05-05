@@ -31,7 +31,15 @@ export function useAllPlayers(forceRefresh = false) {
           a.playerName.localeCompare(b.playerName)
         );
 
-        setPlayers(sortedPlayers as unknown as PlayerStats[]);
+        const uniquePlayers = new Map<string, PlayerStats>();
+        sortedPlayers.forEach((player) => {
+          const normalizedName = player.playerName.trim().toLowerCase().replace(/\s+/g, ' ');
+          if (!uniquePlayers.has(normalizedName)) {
+            uniquePlayers.set(normalizedName, player);
+          }
+        });
+
+        setPlayers(Array.from(uniquePlayers.values()) as unknown as PlayerStats[]);
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load players');

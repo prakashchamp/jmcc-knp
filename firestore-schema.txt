@@ -1,8 +1,3 @@
-players/
-  {playerId}/                         // auto-generated ID
-    name:           "Rohit Sharma"    // string
-    created_at:     Timestamp         // timestamp
-
 matches/
   {matchId}/                          // auto-generated ID
     date:               Timestamp     // timestamp
@@ -15,12 +10,12 @@ matches/
     result:             "won"         // string: won | lost | tie | no_result
     win_margin:         "24 runs"     // string: "24 runs" | "5 wickets" | ""
 
-    best_batter_id:     "playerId"    // string: ref to players doc
+    best_batter_id:     "playerId"    // string: ref to team player id
     best_batter_name:   "R. Sharma"   // string: denormalized
     best_batter_runs:   87            // number
     best_batter_balls:  52            // number
 
-    best_bowler_id:     "playerId"    // string: ref to players doc
+    best_bowler_id:     "playerId"    // string: ref to team player id
     best_bowler_name:   "B. Kumar"    // string: denormalized
     best_bowler_wickets: 3            // number
     best_bowler_runs:   22            // number

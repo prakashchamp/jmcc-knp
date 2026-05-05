@@ -198,3 +198,42 @@ export function useAllTeams() {
     fetchTeams,
   };
 }
+
+/**
+ * Hook to get all players from the JMCC team
+ */
+export function useTeamPlayers() {
+  const [players, setPlayers] = useState<TeamPlayer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const result = await getServerDocument<Team>('teams', 'jmcc_spartans_singleton');
+        if (result) {
+          setPlayers(result.data.players || []);
+        } else {
+          setPlayers([]);
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('Failed to fetch team players');
+        setError(error);
+        setPlayers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  return {
+    players,
+    loading,
+    error,
+  };
+}

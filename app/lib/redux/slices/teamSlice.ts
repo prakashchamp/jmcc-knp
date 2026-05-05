@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Team, TeamPlayer } from '@/app/lib/cricket-schema';
 import { RootState } from '@/app/lib/redux/store';
-import { getServerCollection, setServerDocument } from '@/app/lib/actions/firebase-actions';
+import { getServerCollection, getServerDocument, setServerDocument } from '@/app/lib/actions/firebase-actions';
 
 export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
 
@@ -13,11 +13,11 @@ export const fetchTeam = createAsyncThunk(
   'team/fetchTeam',
   async (_, { rejectWithValue }) => {
     try {
-      const teams = await getServerCollection<Team>('teams');
-      if (teams.length > 0) {
+      const result = await getServerDocument<Team>('teams', SINGLETON_TEAM_ID);
+      if (result) {
         return {
-          ...teams[0].data,
-          id: teams[0].id,
+          ...result.data,
+          id: result.id,
         };
       }
       return null;

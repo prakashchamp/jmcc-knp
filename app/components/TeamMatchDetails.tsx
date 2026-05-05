@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Match } from '../lib/cricket-schema';
 import { useTeamName } from '@/app/lib/hooks/useTeamName';
 import { formatOversDisplay } from '@/app/lib/ball-display-utils';
+import { formatDate } from '@/app/lib/date-utils';
 
 interface TeamMatchDetailsProps {
   match: Match;
@@ -13,65 +14,54 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
   const router = useRouter();
   const teamName = useTeamName();
 
-  // Format date to readable format
-  const formatDate = (dateString: any) => {
-    const date = dateString?.toDate?.() || new Date(dateString || new Date());
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      weekday: 'short'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
 
   // Determine result status color and text
   const getResultStyle = (result: string) => {
     switch (result) {
       case 'won':
-        return { 
-          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg', 
+        return {
+          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg',
           borderColor: 'border-slate-600',
           headerBg: 'bg-gradient-to-r from-green-600 to-green-500',
-          textColor: 'text-green-300', 
-          badgeBg: 'bg-green-600/90 backdrop-blur-sm', 
-          badgeText: 'text-white' 
+          textColor: 'text-green-300',
+          badgeBg: 'bg-green-600/90 backdrop-blur-sm',
+          badgeText: 'text-white'
         };
       case 'lost':
-        return { 
-          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg', 
+        return {
+          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg',
           borderColor: 'border-slate-600',
           headerBg: 'bg-gradient-to-r from-red-600 to-red-500',
-          textColor: 'text-red-300', 
-          badgeBg: 'bg-red-600/90 backdrop-blur-sm', 
-          badgeText: 'text-white' 
+          textColor: 'text-red-300',
+          badgeBg: 'bg-red-600/90 backdrop-blur-sm',
+          badgeText: 'text-white'
         };
       case 'tie':
-        return { 
-          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg', 
+        return {
+          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg',
           borderColor: 'border-slate-600',
           headerBg: 'bg-gradient-to-r from-yellow-600 to-yellow-500',
-          textColor: 'text-yellow-300', 
-          badgeBg: 'bg-yellow-600/90 backdrop-blur-sm', 
-          badgeText: 'text-white' 
+          textColor: 'text-yellow-300',
+          badgeBg: 'bg-yellow-600/90 backdrop-blur-sm',
+          badgeText: 'text-white'
         };
       case 'no_result':
-        return { 
-          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg', 
+        return {
+          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg',
           borderColor: 'border-slate-600',
           headerBg: 'bg-gradient-to-r from-slate-600 to-slate-500',
-          textColor: 'text-slate-300', 
-          badgeBg: 'bg-slate-600/90 backdrop-blur-sm', 
-          badgeText: 'text-white' 
+          textColor: 'text-slate-300',
+          badgeBg: 'bg-slate-600/90 backdrop-blur-sm',
+          badgeText: 'text-white'
         };
       default:
-        return { 
-          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg', 
+        return {
+          bgColor: 'bg-gradient-to-br from-slate-700 to-slate-800 backdrop-blur-sm shadow-lg',
           borderColor: 'border-slate-600',
           headerBg: 'bg-gradient-to-r from-slate-600 to-slate-500',
-          textColor: 'text-slate-300', 
-          badgeBg: 'bg-slate-600/90 backdrop-blur-sm', 
-          badgeText: 'text-white' 
+          textColor: 'text-slate-300',
+          badgeBg: 'bg-slate-600/90 backdrop-blur-sm',
+          badgeText: 'text-white'
         };
     }
   };
@@ -95,7 +85,7 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
   };
 
   return (
-    <div 
+    <div
       onClick={() => router.push(`/stats/team-stats/${match.id}`)}
       className={`${resultStyle.bgColor} border ${resultStyle.borderColor} rounded-lg overflow-hidden hover:shadow-2xl transition-all cursor-pointer hover:scale-105 transform transition-transform`}
     >
@@ -103,7 +93,7 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
       <div className={`${resultStyle.headerBg} px-4 sm:px-6 py-2 sm:py-3 flex justify-between items-center`}>
         <div className="flex-1">
           <p className="text-white font-bold text-base sm:text-lg">{getResultLabel(match.result)}</p>
-          <p className="text-white/80 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{formatDate((match as any).createdAt)}</p>
+          <p className="text-white/80 text-[10px] sm:text-xs mt-0.5 sm:mt-1">{formatDate(match.date)}</p>
         </div>
       </div>
 
@@ -159,7 +149,7 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
                   )) || (match.bestBatterName && (
                     <div>
                       <p className="font-bold text-white text-xs sm:text-sm truncate">{match.bestBatterName}</p>
-                       <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBatterRuns} <span className="text-white/35">runs</span> ({match.bestBatterBalls} <span className="text-white/35">balls</span>)</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBatterRuns} <span className="text-white/35">runs</span> ({match.bestBatterBalls} <span className="text-white/35">balls</span>)</p>
                     </div>
                   ))}
                 </div>
@@ -171,12 +161,12 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
                   {match.topBowlers?.slice(0, 2).map((bowler, idx) => (
                     <div key={idx}>
                       <p className="font-bold text-white text-xs sm:text-sm truncate">{bowler.playerName}</p>
-                       <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">wickets /</span> {bowler.runs} <span className="text-white/35">runs</span>{bowler.overs ? ` (${bowler.overs} overs)` : ''}</p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{bowler.wickets} <span className="text-white/35">wickets /</span> {bowler.runs} <span className="text-white/35">runs</span>{bowler.overs ? ` (${bowler.overs} overs)` : ''}</p>
                     </div>
                   )) || (match.bestBowlerName && (
                     <div>
                       <p className="font-bold text-white text-xs sm:text-sm truncate">{match.bestBowlerName}</p>
-                       <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBowlerWickets} <span className="text-white/35">wickets /</span> {match.bestBowlerRuns} <span className="text-white/35">runs</span></p>
+                      <p className="text-white/55 text-[10px] sm:text-xs">{match.bestBowlerWickets} <span className="text-white/35">wickets /</span> {match.bestBowlerRuns} <span className="text-white/35">runs</span></p>
                     </div>
                   ))}
                 </div>
