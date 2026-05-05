@@ -178,8 +178,6 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
       });
     });
 
-    // Trigger Push Notification & Cache Clearing
-    /*
     try {
       await sendMatchUpdateNotification(
         'New Match Data!',
@@ -189,7 +187,6 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
     } catch (e) {
       console.error('Notification Error:', e);
     }
-    */
 
     return { success: true, matchId };
   } catch (error: any) {
@@ -365,8 +362,6 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
       });
     });
 
-    // Trigger Push Notification & Cache Clearing
-    /*
     try {
       await sendMatchUpdateNotification(
         'Match Updated!',
@@ -376,7 +371,6 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     } catch (e) {
       console.error('Notification Error:', e);
     }
-    */
 
     return { success: true, matchId };
   } catch (error: any) {

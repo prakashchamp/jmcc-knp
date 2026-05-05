@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Team, TeamPlayer } from '@/app/lib/cricket-schema';
 import { RootState } from '@/app/lib/redux/store';
-import { getServerCollection, getServerDocument, setServerDocument } from '@/app/lib/actions/firebase-actions';
+import { getServerCollection, getServerDocument, syncTeamAndCascade } from '@/app/lib/actions/firebase-actions';
 
 export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
 
@@ -28,14 +28,14 @@ export const fetchTeam = createAsyncThunk(
 );
 
 /**
- * Sync team data to Firestore
- * Uses Server Action to bypass rules
+ * Sync team data to Firestore with cascade
+ * Uses Server Action to bypass rules and perform DB transactions
  */
 export const syncTeam = createAsyncThunk(
   'team/syncTeam',
   async (team: Team, { rejectWithValue }) => {
     try {
-      const result = await setServerDocument('teams', team.id, team, true);
+      const result = await syncTeamAndCascade(team);
       if (result.success) {
         return team;
       }

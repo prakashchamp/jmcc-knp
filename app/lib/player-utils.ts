@@ -7,9 +7,9 @@ export function normalizePlayerName(name: string) {
 export function generatePlayerIdFromName(name: string): string {
   const normalized = normalizePlayerName(name);
   const slug = normalized
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return slug;
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+  return `player_${slug}`;
 }
 
 /**

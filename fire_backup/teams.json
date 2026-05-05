@@ -1,0 +1,92 @@
+[
+  {
+    "id": "jmcc_spartans_singleton",
+    "data": {
+      "createdAt": "2026-05-05T05:45:38.848Z",
+      "name": "JMCC Spartans",
+      "id": "jmcc_spartans_singleton",
+      "players": [
+        {
+          "id": "prakash",
+          "name": "Prakash",
+          "jerseyNumber": 21
+        },
+        {
+          "id": "karthi",
+          "name": "Karthi",
+          "jerseyNumber": 17
+        },
+        {
+          "id": "nagaraj",
+          "name": "Nagaraj",
+          "jerseyNumber": 10
+        },
+        {
+          "id": "tamil",
+          "name": "Tamil",
+          "jerseyNumber": 18
+        },
+        {
+          "id": "elango",
+          "name": "Elango",
+          "jerseyNumber": 24
+        },
+        {
+          "id": "nithish",
+          "name": "Nithish",
+          "jerseyNumber": 3
+        },
+        {
+          "id": "jeev",
+          "name": "Jeev",
+          "jerseyNumber": 17
+        },
+        {
+          "id": "giri",
+          "name": "Giri",
+          "jerseyNumber": 8
+        },
+        {
+          "id": "siva-shankar",
+          "name": "Siva Shankar",
+          "jerseyNumber": 12
+        },
+        {
+          "id": "madhan",
+          "name": "Madhan",
+          "jerseyNumber": 7
+        },
+        {
+          "id": "kavi",
+          "name": "Kavi",
+          "jerseyNumber": 143
+        },
+        {
+          "id": "balu",
+          "name": "Bala"
+        },
+        {
+          "id": "s-v-balu",
+          "name": "S.V.Balu"
+        },
+        {
+          "id": "gokul",
+          "name": "Gokul"
+        },
+        {
+          "id": "sabari",
+          "name": "Sabari"
+        },
+        {
+          "id": "logesh",
+          "name": "Logesh"
+        },
+        {
+          "id": "appuzzz",
+          "name": "Appuzzz"
+        }
+      ],
+      "updatedAt": "2026-05-05T08:28:39.011Z"
+    }
+  }
+]
