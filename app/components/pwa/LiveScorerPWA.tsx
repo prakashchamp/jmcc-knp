@@ -10,7 +10,7 @@ interface LiveScorerPWAProps {
   abcTeamPlayers: TeamPlayer[];
   oversPerMatch: number;
   onBallDelivery: (ballData: any) => void;
-  onInningsComplete: () => void;
+  onInningsComplete: (finalInnings: InningsScorecard) => void;
   isLoading?: boolean;
 }
 
@@ -55,78 +55,118 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
   const rotateStrike = () => setStrikerIndex(idx => (idx === 0 ? 1 : 0));
 
   // ── Ball handlers ─────────────────────────────────────────────────────────
+  const notifyParent = (ballData: any, nextInnings: InningsScorecard) => {
+    onBallDelivery({ ...ballData, updatedInnings: nextInnings });
+  };
+
+  const buildCurrentInnings = (
+    nextBatsmen: BatsmanScorecard[],
+    nextBowlers: BowlerScorecard[],
+    nextTotalRuns: number,
+    nextTotalWickets: number,
+    nextTotalOversPlayed: number,
+    nextExtras: InningsScorecard['extras']
+  ): InningsScorecard => ({
+    ...innings,
+    batsmen: nextBatsmen,
+    bowlers: nextBowlers,
+    totalRuns: nextTotalRuns,
+    totalWickets: nextTotalWickets,
+    totalOversPlayed: nextTotalOversPlayed,
+    extras: nextExtras,
+  });
+
   const handleRunBall = (runs: number) => {
     if (!striker) {
       showToast('No striker selected', 'warning');
       return;
     }
 
-    // Update striker stats
-    setBatsmen(prev => {
-      const next = prev.map(b => ({ ...b }));
-      const s = next[strikerIndex];
-      s.runs += runs;
-      s.balls += 1;
-      s.strikeRate = (s.runs / s.balls) * 100;
-      if (runs === 4) s.fours += 1;
-      if (runs === 6) s.sixes += 1;
+    const nextBatsmen = batsmen.map((b, idx) => {
+      if (idx !== strikerIndex) return { ...b };
+      const next = { ...b };
+      next.runs += runs;
+      next.balls += 1;
+      next.strikeRate = (next.runs / next.balls) * 100;
+      if (runs === 4) next.fours += 1;
+      if (runs === 6) next.sixes += 1;
       return next;
     });
 
-    setTotalRuns(r => r + runs);
+    const nextTotalRuns = totalRuns + runs;
+    const nextBallsInOver = ballsInOver + 1;
+    const nextTotalOversPlayed = nextBallsInOver >= 6 ? Math.floor(totalOversPlayed) + 1 : totalOversPlayed;
 
-    const newBallsInOver = ballsInOver + 1;
+    setBatsmen(nextBatsmen);
+    setTotalRuns(nextTotalRuns);
     setCurrentBalls(prev => [...prev, { type: 'run', runs }]);
-    setBallsInOver(newBallsInOver);
+    setBallsInOver(nextBallsInOver);
 
-    // Rotate strike on odd runs
     const oddRuns = runs % 2 === 1;
     if (oddRuns) rotateStrike();
 
-    // End of over: rotate strike
-    if (newBallsInOver >= 6) {
+    if (nextBallsInOver >= 6) {
       handleOverEnd();
     }
 
-    onBallDelivery({ type: 'run', runs });
+    const nextInnings = buildCurrentInnings(
+      nextBatsmen,
+      bowlers,
+      nextTotalRuns,
+      totalWickets,
+      nextTotalOversPlayed,
+      extras
+    );
+
+    notifyParent({ type: 'run', runs }, nextInnings);
     showToast(`${runs} runs`, 'success');
   };
 
   const handleExtraBall = (extraType: 'wide' | 'no-ball' | 'bye' | 'leg-bye', runs: number = 1) => {
-    setTotalRuns(r => r + runs);
+    const nextTotalRuns = totalRuns + runs;
+    let nextBatsmen = batsmen;
+    let nextBallsInOver = ballsInOver;
+    let nextTotalOversPlayed = totalOversPlayed;
 
-    setExtras(prev => {
-      const next = { ...prev };
-      if (extraType === 'wide') next.wides += 1;
-      else if (extraType === 'no-ball') next.noBalls += 1;
-      else if (extraType === 'bye') next.byes += 1;
-      else if (extraType === 'leg-bye') next.legByes += 1;
-      return next;
-    });
+    const nextExtras = { ...extras };
+    if (extraType === 'wide') nextExtras.wides += 1;
+    else if (extraType === 'no-ball') nextExtras.noBalls += 1;
+    else if (extraType === 'bye') nextExtras.byes += 1;
+    else if (extraType === 'leg-bye') nextExtras.legByes += 1;
 
-    // Bye/leg-bye: striker faces the delivery
     if (extraType !== 'wide' && extraType !== 'no-ball') {
-      setBatsmen(prev => {
-        const next = prev.map(b => ({ ...b }));
-        next[strikerIndex].balls += 1;
-        next[strikerIndex].strikeRate =
-          next[strikerIndex].balls > 0
-            ? (next[strikerIndex].runs / next[strikerIndex].balls) * 100
-            : 0;
+      nextBatsmen = batsmen.map((b, idx) => {
+        if (idx !== strikerIndex) return { ...b };
+        const next = { ...b };
+        next.balls += 1;
+        next.strikeRate = next.balls > 0 ? (next.runs / next.balls) * 100 : 0;
         return next;
       });
+      nextBallsInOver = ballsInOver + 1;
+      if (nextBallsInOver >= 6) {
+        nextTotalOversPlayed = Math.floor(totalOversPlayed) + 1;
+      }
     }
 
+    setTotalRuns(nextTotalRuns);
+    setExtras(nextExtras);
     setCurrentBalls(prev => [...prev, { type: 'extra', extraType, runs }]);
-
-    // Wide / no-ball = illegal delivery → does NOT count toward over
     if (extraType !== 'wide' && extraType !== 'no-ball') {
-      const newBallsInOver = ballsInOver + 1;
-      setBallsInOver(newBallsInOver);
-      if (newBallsInOver >= 6) handleOverEnd(false);
+      setBatsmen(nextBatsmen);
+      setBallsInOver(nextBallsInOver);
+      if (nextBallsInOver >= 6) handleOverEnd(false);
     }
 
-    onBallDelivery({ type: 'extra', extraType, runs });
+    const nextInnings = buildCurrentInnings(
+      nextBatsmen,
+      bowlers,
+      nextTotalRuns,
+      totalWickets,
+      nextTotalOversPlayed,
+      nextExtras
+    );
+
+    notifyParent({ type: 'extra', extraType, runs }, nextInnings);
     showToast(`${extraType} (+${runs})`, 'success');
     setShowExtrasModal(false);
     setSelectedExtra(null);
@@ -138,39 +178,52 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       return;
     }
 
-    // Mark striker out
-    const newWickets = totalWickets + 1;
-    setTotalWickets(newWickets);
+    const nextWickets = totalWickets + 1;
+    const nextBallsInOver = ballsInOver + 1;
+    const nextTotalOversPlayed = nextBallsInOver >= 6 ? Math.floor(totalOversPlayed) + 1 : totalOversPlayed;
 
-    // Find next JMCC player not yet in batsmen list
-    const nextBatsman = abcTeamPlayers.find(
-      p => !batsmen.some(b => b.id === p.id)
-    );
-
-    setBatsmen(prev => {
-      const next = prev.map(b => ({ ...b }));
-      next[strikerIndex].status = 'out';
-      if (nextBatsman) {
-        next[strikerIndex] = {
-          id: nextBatsman.id,
-          name: nextBatsman.name,
-          runs: 0, balls: 0, fours: 0, sixes: 0, status: 'not-out', strikeRate: 0,
-        };
-      }
+    const nextBatsmen = batsmen.map((b, idx) => {
+      if (idx !== strikerIndex) return { ...b };
+      const next = { ...b };
+      next.status = 'out';
       return next;
     });
 
-    const newBallsInOver = ballsInOver + 1;
-    setCurrentBalls(prev => [...prev, { type: 'wicket' }]);
-    setBallsInOver(newBallsInOver);
+    const nextBatsman = abcTeamPlayers.find((p) => !nextBatsmen.some((b) => b.id === p.id));
+    if (nextBatsman) {
+      nextBatsmen[strikerIndex] = {
+        id: nextBatsman.id,
+        name: nextBatsman.name,
+        runs: 0,
+        balls: 0,
+        fours: 0,
+        sixes: 0,
+        status: 'not-out',
+        strikeRate: 0,
+      };
+    }
 
-    if (newWickets >= 10) {
+    setTotalWickets(nextWickets);
+    setBatsmen(nextBatsmen);
+    setCurrentBalls(prev => [...prev, { type: 'wicket' }]);
+    setBallsInOver(nextBallsInOver);
+
+    if (nextWickets >= 10) {
       handleInningsEnd();
-    } else if (newBallsInOver >= 6) {
+    } else if (nextBallsInOver >= 6) {
       handleOverEnd(false);
     }
 
-    onBallDelivery({ type: 'wicket' });
+    const nextInnings = buildCurrentInnings(
+      nextBatsmen,
+      bowlers,
+      totalRuns,
+      nextWickets,
+      nextTotalOversPlayed,
+      extras
+    );
+
+    notifyParent({ type: 'wicket' }, nextInnings);
     showToast(`Wicket! ${striker.name} is out`, 'warning');
     setShowWicketModal(false);
   };
@@ -192,9 +245,17 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
   };
 
   const handleInningsEnd = () => {
+    const finalInnings = buildCurrentInnings(
+      batsmen,
+      bowlers,
+      totalRuns,
+      totalWickets,
+      totalOversPlayed,
+      extras
+    );
     showToast('Innings Complete!', 'success');
     setTimeout(() => {
-      onInningsComplete();
+      onInningsComplete(finalInnings);
     }, 1500);
   };
 

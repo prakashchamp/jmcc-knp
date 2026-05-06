@@ -6,6 +6,19 @@ import { getServerCollection, getServerDocument, syncTeamAndCascade } from '@/ap
 export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
 
 /**
+ * Set team with optional sync to Firestore
+ */
+export const setTeam = createAsyncThunk(
+  'team/setTeam',
+  async ({ team, skipSync = false }: { team: Team; skipSync?: boolean }, { dispatch }) => {
+    dispatch(setTeamInternal(team));
+    if (!skipSync && navigator.onLine) {
+      dispatch(syncTeam(team));
+    }
+  }
+);
+
+/**
  * Fetch the primary team from Firestore
  * Uses Server Action to bypass rules
  */
@@ -93,7 +106,7 @@ const teamSlice = createSlice({
   name: 'team',
   initialState,
   reducers: {
-    setTeam: (state, action: PayloadAction<Team>) => {
+    setTeamInternal: (state, action: PayloadAction<Team>) => {
       state.team = action.payload;
       state.error = null;
     },
@@ -158,5 +171,5 @@ const teamSlice = createSlice({
   },
 });
 
-export const { setTeam, saveToRedux, addPlayerLocal, setPendingCloudPush, clearTeam, setLoading, setError, rehydrateTeam } = teamSlice.actions;
+export const { setTeamInternal, saveToRedux, addPlayerLocal, setPendingCloudPush, clearTeam, setLoading, setError, rehydrateTeam } = teamSlice.actions;
 export default teamSlice.reducer;

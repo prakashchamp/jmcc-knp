@@ -9,7 +9,7 @@ import { TeamPlayer } from '@/app/lib/cricket-schema';
 import { createNewPlayer } from '@/app/lib/player-utils';
 import Link from 'next/link';
 import { setTeam, saveToRedux, setPendingCloudPush, syncTeam, SINGLETON_TEAM_ID } from '@/app/lib/redux/slices/teamSlice';
-import { AppDispatch, RootState } from '@/app/lib/redux/store';
+import { AppDispatch, RootState, store } from '@/app/lib/redux/store';
 import {
   modalOverlayClass,
   modalPanelClass,
@@ -78,7 +78,7 @@ export default function TeamSetupPage() {
     setSelectedTeamId(teamId);
     const selectedTeamData = existingTeams.find((t) => t.id === teamId);
     if (selectedTeamData) {
-      dispatch(setTeam(selectedTeamData));
+      store.dispatch(setTeam({ team: selectedTeamData, skipSync: false }));
     }
     setMessage(null);
   };

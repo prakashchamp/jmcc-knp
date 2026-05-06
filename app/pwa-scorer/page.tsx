@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/app/lib/redux/store';
+import Link from 'next/link';
+import { RootState, loadStateFromLocalStorage, store } from '@/app/lib/redux/store';
+import { rehydrateTeam, setTeam } from '@/app/lib/redux/slices/teamSlice';
+import { getPrimaryTeamFromIndexedDB } from '@/app/lib/indexed-db';
+import { queueOfflineMatch, getPendingOfflineMatchIds } from '@/app/lib/pwa-offline';
 import { MatchSetupForm } from '@/app/components/pwa/MatchSetupForm';
 import { InningsSetupScreen } from '@/app/components/pwa/InningsSetupScreen';
 import { LiveScorerPWA } from '@/app/components/pwa/LiveScorerPWA';
@@ -16,22 +20,118 @@ type ScreenType = 'splash' | 'match-setup' | 'innings-setup' | 'live-scoring' | 
 export default function PWAScorerPage() {
   const dispatch = useDispatch();
   const { team: abcTeam } = useSelector((state: RootState) => state.team);
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('splash');
   const [currentMatch, setCurrentMatch] = useState<PWAMatch | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentInningsData, setCurrentInningsData] = useState<InningsScorecard | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [triedRestoreState, setTriedRestoreState] = useState(false);
+  const [offlinePendingCount, setOfflinePendingCount] = useState(0);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [pendingScreen, setPendingScreen] = useState<ScreenType | null>(null);
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>('match-setup');
 
   // Get team players
   const teamPlayers = abcTeam?.players || [];
 
-  // Splash screen timeout
   useEffect(() => {
-    if (currentScreen === 'splash') {
-      const timer = setTimeout(() => {
-        setCurrentScreen('match-setup');
-      }, 2000); // 2 seconds splash
-      return () => clearTimeout(timer);
+    const updateOnlineStatus = () => setIsOnline(navigator.onLine);
+    updateOnlineStatus();
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
+    return () => {
+      window.removeEventListener('online', updateOnlineStatus);
+      window.removeEventListener('offline', updateOnlineStatus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!abcTeam && !triedRestoreState && typeof window !== 'undefined') {
+      const restoreTeam = async () => {
+        const savedState = loadStateFromLocalStorage();
+        if (savedState?.team) {
+          dispatch(rehydrateTeam(savedState.team));
+          setTriedRestoreState(true);
+          return;
+        }
+
+        const indexedTeam = await getPrimaryTeamFromIndexedDB();
+        if (indexedTeam) {
+          store.dispatch(setTeam({ team: indexedTeam, skipSync: true }));
+        }
+        setTriedRestoreState(true);
+
+        // Load current match from localStorage
+        const savedMatch = localStorage.getItem('pwa_current_match');
+        if (savedMatch) {
+          try {
+            const match = JSON.parse(savedMatch);
+            setCurrentMatch(match);
+          } catch (error) {
+            console.error('Failed to load saved match:', error);
+            setPendingScreen('match-setup');
+          }
+        } else {
+          setPendingScreen('match-setup');
+        }
+      };
+      restoreTeam();
     }
+  }, [abcTeam, dispatch, triedRestoreState]);
+
+  useEffect(() => {
+    setOfflinePendingCount(getPendingOfflineMatchIds().length);
+  }, [isOnline]);
+
+  // Save current match to localStorage
+  useEffect(() => {
+    if (currentMatch) {
+      localStorage.setItem('pwa_current_match', JSON.stringify(currentMatch));
+    } else {
+      localStorage.removeItem('pwa_current_match');
+    }
+  }, [currentMatch]);
+
+  // Set screen based on current match
+  useEffect(() => {
+    if (currentMatch) {
+      if (currentMatch.matchCompleted) {
+        setCurrentScreen('match-result');
+      } else if (currentMatch.currentInnings === 2 && !currentMatch.inningsData.innings2) {
+        setCurrentScreen('end-of-innings');
+      } else if (currentMatch.inningsData.innings1 && !currentMatch.inningsData.innings1.batsmen.length) {
+        setCurrentScreen('innings-setup');
+      } else {
+        setCurrentScreen('live-scoring');
+        const inningsKey = currentMatch.currentInnings === 1 ? 'innings1' : 'innings2';
+        const innings = currentMatch.inningsData[inningsKey as keyof typeof currentMatch.inningsData];
+        if (innings) {
+          setCurrentInningsData(innings);
+        }
+      }
+    }
+  }, [currentMatch]);
+
+  // Set pending screen
+  useEffect(() => {
+    if (triedRestoreState && pendingScreen) {
+      setCurrentScreen(pendingScreen);
+      setPendingScreen(null);
+    }
+  }, [triedRestoreState, pendingScreen]);
+
+  // Prevent page refresh during scoring
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (currentScreen === 'live-scoring') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [currentScreen]);
 
   // Handle match setup form submission
@@ -121,34 +221,45 @@ export default function PWAScorerPage() {
 
   // Handle ball delivery
   const handleBallDelivery = (ballData: any) => {
-    if (!currentMatch || !currentInningsData) return;
+    if (!currentMatch) return;
 
-    // Update match innings with new data
-    setCurrentInningsData({
-      ...currentInningsData,
-      // Updated batsmen/bowlers would be passed here
-    });
+    if (ballData?.updatedInnings) {
+      const updatedInnings: InningsScorecard = ballData.updatedInnings;
+      const inningsKey = currentMatch.currentInnings === 1 ? 'innings1' : 'innings2';
+      setCurrentInningsData(updatedInnings);
+      setCurrentMatch((prev) =>
+        prev
+          ? {
+              ...prev,
+              inningsData: {
+                ...prev.inningsData,
+                [inningsKey]: updatedInnings,
+              },
+            }
+          : prev
+      );
+    }
   };
 
   // Handle innings complete
-  const handleInningsComplete = () => {
-    if (!currentMatch || !currentInningsData) return;
+  const handleInningsComplete = (finalInnings: InningsScorecard) => {
+    if (!currentMatch) return;
 
+    const inningsKey = currentMatch.currentInnings === 1 ? 'innings1' : 'innings2';
     const updatedMatch = {
       ...currentMatch,
       inningsData: {
         ...currentMatch.inningsData,
-        [currentMatch.currentInnings === 1 ? 'innings1' : 'innings2']: currentInningsData,
+        [inningsKey]: finalInnings,
       },
     };
 
     setCurrentMatch(updatedMatch);
+    setCurrentInningsData(finalInnings);
 
-    // Check if match is complete (2nd innings done)
     if (currentMatch.currentInnings === 2) {
-      // Determine winner
-      const innings1 = currentMatch.inningsData.innings1;
-      const innings2 = currentInningsData;
+      const innings1 = updatedMatch.inningsData.innings1;
+      const innings2 = finalInnings;
 
       let matchWinner: 'ABC' | 'Opponent' | 'Tie';
       let winningMargin: string;
@@ -164,32 +275,35 @@ export default function PWAScorerPage() {
         winningMargin = 'Tie';
       }
 
-      updatedMatch.matchCompleted = true;
-      updatedMatch.winner = matchWinner;
-      updatedMatch.winningMargin = winningMargin;
-
-      setCurrentMatch(updatedMatch);
-      setCurrentScreen('match-result');
-    } else {
-      // Move to 2nd innings
-      updatedMatch.currentInnings = 2;
-      updatedMatch.inningsData.innings2 = {
-        inningsNumber: 2,
-        battingTeam:
-          currentMatch.inningsData.innings1.battingTeam === 'ABC' ? 'Opponent' : 'ABC',
-        totalRuns: 0,
-        totalWickets: 0,
-        totalOversPlayed: 0,
-        batsmen: [],
-        bowlers: [],
-        extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
-        target: currentInningsData.totalRuns + 1,
+      const completedMatch = {
+        ...updatedMatch,
+        matchCompleted: true,
+        winner: matchWinner,
+        winningMargin,
       };
 
-      setCurrentMatch(updatedMatch);
-      setCurrentInningsData(null);
-      setCurrentScreen('end-of-innings');
+      setCurrentMatch(completedMatch);
+      setCurrentScreen('match-result');
+      return;
     }
+
+    updatedMatch.currentInnings = 2;
+    updatedMatch.inningsData.innings2 = {
+      inningsNumber: 2,
+      battingTeam:
+        currentMatch.inningsData.innings1.battingTeam === 'ABC' ? 'Opponent' : 'ABC',
+      totalRuns: 0,
+      totalWickets: 0,
+      totalOversPlayed: 0,
+      batsmen: [],
+      bowlers: [],
+      extras: { wides: 0, noBalls: 0, byes: 0, legByes: 0 },
+      target: finalInnings.totalRuns + 1,
+    };
+
+    setCurrentMatch(updatedMatch);
+    setCurrentInningsData(null);
+    setCurrentScreen('end-of-innings');
   };
 
   // Handle match complete
@@ -203,39 +317,32 @@ export default function PWAScorerPage() {
   const handleSaveMatch = async () => {
     if (!currentMatch) return;
 
-    // TODO: Save to localStorage or backend
-    console.log('Saving match:', currentMatch);
-
-    // For now, just simulate save
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
+    setIsLoading(true);
+    try {
+      queueOfflineMatch(currentMatch);
+      const pendingIds = getPendingOfflineMatchIds();
+      setOfflinePendingCount(pendingIds.length);
+      setSyncMessage(
+        isOnline
+          ? 'Match saved locally and queued for cloud sync.'
+          : 'Offline save complete. Match queued for upload when back online.'
+      );
+    } catch (error) {
+      console.error('Offline save failed:', error);
+      setSyncMessage('Unable to save match locally. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Render screens based on current state
-  if (currentScreen === 'splash') {
-    return (
-      <div className="h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <img
-            src="/jmcc.jpg"
-            alt="JMCC Spartans"
-            className="w-48 h-48 mx-auto mb-4 rounded-full object-cover"
-          />
-          <h1 className="text-white text-2xl font-bold">JMCC Spartans</h1>
-          <p className="text-gray-400 mt-2">Cricket Scorer</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!abcTeam) {
+  if (!abcTeam && triedRestoreState) {
     return (
       <div className="h-screen bg-slate-900 text-white flex items-center justify-center p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">No Team Found</h1>
           <p className="text-slate-400 mb-6">
-            Please create ABC team first in team setup
+            Please create ABC team first in team setup.
           </p>
           <a
             href="/team-setup"

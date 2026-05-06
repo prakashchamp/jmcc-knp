@@ -39,6 +39,13 @@ export const store = configureStore({
             };
             localStorage.setItem('jmcc_match_state', JSON.stringify(persistedState));
 
+            // Persist current team roster to IndexedDB for offline fallback
+            if (state.team?.team) {
+              import('@/app/lib/indexed-db').then(({ saveTeamToIndexedDB }) => {
+                saveTeamToIndexedDB(state.team.team);
+              });
+            }
+
             // Persistence logic for IndexedDB (Recent Matches)
             const completionActions = [
               'scorer/finishCurrentInnings',
