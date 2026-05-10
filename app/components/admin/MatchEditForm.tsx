@@ -324,8 +324,8 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
             zeros: perf.batting?.zeros || 0,
             fours: battingFours,
             sixes: battingSixes,
-            didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
-            innings: (battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed) ? 1 : 0,
+            didBat: !!perf.batting?.didBat || battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
+            innings: (!!perf.batting?.didBat || battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed) ? 1 : 0,
             strikeRate: battingBalls > 0 ? (battingRuns / battingBalls) * 100 : 0,
           },
           bowling: {
@@ -333,8 +333,8 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
             runs: bowlingRuns,
             wickets: bowlingWickets,
             overs: bowlingOvers,
-            didBowl: bowlingOvers > 0 || bowlingRuns > 0 || bowlingWickets > 0,
-            innings: bowlingOvers > 0 ? 1 : 0,
+            didBowl: !!perf.bowling?.didBowl || bowlingOvers > 0 || bowlingRuns > 0 || bowlingWickets > 0,
+            innings: (!!perf.bowling?.didBowl || bowlingOvers > 0) ? 1 : 0,
             economy: bowlingOvers > 0 ? bowlingRuns / (Math.floor(bowlingOvers) + (bowlingOvers % 1) / 0.6) : 0,
           }
         } as Performance;

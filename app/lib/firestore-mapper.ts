@@ -10,6 +10,19 @@ function ballsToOvers(totalBalls: number): number {
   return fullOvers + (remainingBalls / 10);
 }
 
+function getISTYearMonth(dateString: string) {
+  const dateObj = new Date(dateString);
+  const istFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit'
+  });
+  const parts = istFormatter.formatToParts(dateObj);
+  const year = parts.find(p => p.type === 'year')?.value || dateObj.getUTCFullYear().toString();
+  const monthRaw = parts.find(p => p.type === 'month')?.value || (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
+  return { year, month: `${year}-${monthRaw}` };
+}
+
 /**
  * Maps Redux LiveMatch to Firestore 'matches' collection schema
  */
@@ -17,22 +30,25 @@ export function mapMatchToFirestore(match: LiveMatch) {
   const players = match.teamPlayers || [];
 
   // Calculate overs played from innings data
-  const usInnings = match.innings.find(i => i.battingTeam === 'Us');
-  const themInnings = match.innings.find(i => i.battingTeam === 'Them');
+  const usInnings = match.innings?.find(i => i.battingTeam === 'Us');
+  const themInnings = match.innings?.find(i => i.battingTeam === 'Them');
   
-  const teamOversPlayed = usInnings ? ballsToOvers(usInnings.totalBalls) : 0;
-  const opponentOversPlayed = themInnings ? ballsToOvers(themInnings.totalBalls) : 0;
+  const teamOversPlayed = usInnings ? ballsToOvers(usInnings.totalBalls) : (match as any).teamOversPlayed || 0;
+  const opponentOversPlayed = themInnings ? ballsToOvers(themInnings.totalBalls) : (match as any).opponentOversPlayed || 0;
 
   // Get runs and wickets from innings data
-  const teamRuns = usInnings?.totalRuns || 0;
-  const teamWickets = usInnings?.totalWickets || 0;
-  const opponentRuns = themInnings?.totalRuns || 0;
-  const opponentWickets = themInnings?.totalWickets || 0;
+  const teamRuns = usInnings?.totalRuns ?? (match as any).teamRuns ?? 0;
+  const teamWickets = usInnings?.totalWickets ?? (match as any).teamWickets ?? 0;
+  const opponentRuns = themInnings?.totalRuns ?? (match as any).opponentRuns ?? 0;
+  const opponentWickets = themInnings?.totalWickets ?? (match as any).opponentWickets ?? 0;
+
+  const createdAtString = match.createdAt || new Date().toISOString();
+  const { year, month } = getISTYearMonth(createdAtString);
 
   return {
     date: match.createdAt, // Will be converted to Timestamp by Firestore if passed as Date/ISO
-    year: match.createdAt ? new Date(match.createdAt).getUTCFullYear().toString() : new Date().getUTCFullYear().toString(),
-    month: match.createdAt ? new Date(match.createdAt).toISOString().slice(0, 7) : new Date().toISOString().slice(0, 7),
+    year,
+    month,
     opponent: match.opponent,
     venue: match.venue,
     toss_won_by: match.tossWonBy,
@@ -49,8 +65,8 @@ export function mapMatchToFirestore(match: LiveMatch) {
     opponent_runs: opponentRuns,
     opponent_wickets: opponentWickets,
     opponent_overs_played: opponentOversPlayed,
-    created_at: match.createdAt || new Date().toISOString(),
-    createdAt: match.createdAt || new Date().toISOString(),
+    created_at: createdAtString,
+    createdAt: createdAtString,
   };
 }
 

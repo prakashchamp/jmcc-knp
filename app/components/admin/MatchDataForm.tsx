@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 import type { RootState } from '@/app/lib/redux/store';
+import { fetchTeam } from '@/app/lib/redux/slices/teamSlice';
 
 function getISTYearMonth(dateString: string) {
   const dateObj = new Date(dateString);
@@ -36,6 +37,7 @@ function normalizePlayerName(name: string) {
 }
 
 export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
+  const dispatch = useDispatch();
   const [match, setMatch] = useState<Partial<Match>>(matchData.match);
   const teamRoster = useSelector((state: RootState) => state.team.team?.players || []);
   const playerOptions = teamRoster.map((player) => ({ value: player.id, label: player.name }));
@@ -257,8 +259,8 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               fours: battingFours,
               sixes: battingSixes,
               dismissed: !!perf.batting?.dismissed,
-              didBat: battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
-              innings: battingRuns > 0 || battingBalls > 0 ? 1 : 0,
+              didBat: !!perf.batting?.didBat || battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed,
+              innings: (!!perf.batting?.didBat || battingRuns > 0 || battingBalls > 0 || !!perf.batting?.dismissed) ? 1 : 0,
               isDuck: battingRuns === 0 && !!perf.batting?.dismissed,
               isThirty: battingRuns >= 30 && battingRuns < 50,
               isFifty: battingRuns >= 50 && battingRuns < 100,
@@ -272,8 +274,8 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               overs: bowlingOvers,
               balls: Math.floor(bowlingOvers) * 6 + Math.round((bowlingOvers % 1) * 10),
               maidens: bowlingMaidens,
-              didBowl: bowlingOvers > 0 || bowlingRuns > 0 || bowlingWickets > 0,
-              innings: bowlingOvers > 0 ? 1 : 0,
+              didBowl: !!perf.bowling?.didBowl || bowlingOvers > 0 || bowlingRuns > 0 || bowlingWickets > 0,
+              innings: (!!perf.bowling?.didBowl || bowlingOvers > 0) ? 1 : 0,
               isThreeFer: bowlingWickets === 3,
               isFourFer: bowlingWickets === 4,
               isFiveFer: bowlingWickets >= 5,
@@ -294,6 +296,9 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       if (!result.success) {
         throw new Error(result.error || 'Failed to save match data');
       }
+
+      // Refresh local Redux team roster so new players show up immediately
+      dispatch(fetchTeam() as any);
 
       setSuccessMessage('Match data saved and stats updated successfully!');
       window.scrollTo({ top: 0, behavior: 'smooth' });

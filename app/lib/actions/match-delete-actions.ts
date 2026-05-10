@@ -73,12 +73,16 @@ export async function deleteMatchAction(matchId: string) {
       }
 
       const matchData = matchDoc.data();
-      const year = matchData?.year;
-      const month = matchData?.month;
-
-      if (!year || !month) {
-        throw new Error('Match missing year or month data');
-      }
+      const matchDate = matchData?.date || matchData?.created_at || new Date().toISOString();
+      const istFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit'
+      });
+      const parts = istFormatter.formatToParts(new Date(matchDate));
+      const year = parts.find(p => p.type === 'year')?.value || new Date(matchDate).getUTCFullYear().toString();
+      const monthRaw = parts.find(p => p.type === 'month')?.value || (new Date(matchDate).getUTCMonth() + 1).toString().padStart(2, '0');
+      const month = `${year}-${monthRaw}`;
 
       // Fetch performances for this match
       const performancesSnapshot = await transaction.get(
@@ -93,7 +97,7 @@ export async function deleteMatchAction(matchId: string) {
       const statsToUpdate: { ref: admin.firestore.DocumentReference, perf: Performance, scope: any }[] = [];
 
       for (const perf of performances) {
-        if (!perf.batting.didBat && !perf.bowling.didBowl) continue;
+        // DO NOT skip if !didBat && !didBowl because we need to decrement their match count!
 
         const scopes = [
           { coll: 'player_stats_alltime', id: perf.playerId },
