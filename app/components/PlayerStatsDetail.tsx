@@ -1,6 +1,7 @@
 'use client';
 
 import { PlayerStats } from '../lib/hooks/useAllPlayers';
+import { calcEconomy } from '../lib/bowling-stats-utils';
 
 interface StatItemProps {
   label: string;
@@ -120,7 +121,7 @@ export function PlayerStatsDetail({ player, loading }: PlayerStatsDetailProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <StatItem label="Bowling Average" value={player.bowlingStats!.average} />
           <StatItem label="Strike Rate" value={player.bowlingStats!.strikeRate} />
-          <StatItem label="Economy" value={player.bowlingStats!.economy} />
+          <StatItem label="Economy" value={calcEconomy(player.bowlingStats!.totalRuns, player.bowlingStats!.totalBalls)} />
           <StatItem label="Best Haul" value={player.bowlingStats!.bestHaul} />
         </div>
       </div>

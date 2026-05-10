@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { calcEconomy } from '../lib/bowling-stats-utils';
 import { YearlyPlayerStats } from '../lib/hooks/useYearlyStats';
 
 interface YearlyBowlingStatsTableProps {
@@ -27,6 +28,9 @@ export function YearlyBowlingStatsTable({ players, loading }: YearlyBowlingStats
       if (sortField === 'playerName') {
         aValue = a.playerName;
         bValue = b.playerName;
+      } else if (sortField === 'economy') {
+        aValue = calcEconomy(aStats.totalRuns, aStats.totalBalls);
+        bValue = calcEconomy(bStats.totalRuns, bStats.totalBalls);
       } else {
         aValue = aStats[sortField as keyof typeof aStats] as number;
         bValue = bStats[sortField as keyof typeof bStats] as number;
@@ -198,7 +202,7 @@ export function YearlyBowlingStatsTable({ players, loading }: YearlyBowlingStats
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
-                  {player.bowlingStats.economy.toFixed(1)}
+                  {calcEconomy(player.bowlingStats.totalRuns, player.bowlingStats.totalBalls).toFixed(1)}
                 </td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
                   {player.bowlingStats.average.toFixed(1)}

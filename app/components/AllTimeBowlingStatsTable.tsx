@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { calcEconomy } from '../lib/bowling-stats-utils';
 import { PlayerStats } from '../lib/hooks/useAllPlayers';
 
 interface AllTimeBowlingStatsTableProps {
@@ -29,8 +30,8 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
         aValue = a.playerName;
         bValue = b.playerName;
       } else if (sortField === 'economy') {
-        aValue = aStats.totalBalls > 0 ? (aStats.totalRuns / (aStats.totalBalls / 6)) * aStats.totalOvers : 0;
-        bValue = bStats.totalBalls > 0 ? (bStats.totalRuns / (bStats.totalBalls / 6)) * bStats.totalOvers : 0;
+        aValue = calcEconomy(aStats.totalRuns, aStats.totalBalls);
+        bValue = calcEconomy(bStats.totalRuns, bStats.totalBalls);
       } else if (sortField === 'strikeRate') {
         aValue = aStats.totalWickets > 0 ? aStats.totalBalls / aStats.totalWickets : 0;
         bValue = bStats.totalWickets > 0 ? bStats.totalBalls / bStats.totalWickets : 0;
@@ -198,7 +199,7 @@ export function AllTimeBowlingStatsTable({ players, loading }: AllTimeBowlingSta
           <tbody className="divide-y divide-gray-700">
             {sortedPlayers.map((player, index) => {
               const stats = player.bowlingStats!;
-              const economy = stats.totalBalls > 0 ? ((stats.totalRuns / (stats.totalBalls / 6)) * stats.totalOvers).toFixed(1) : '0.0';
+              const economy = calcEconomy(stats.totalRuns, stats.totalBalls).toFixed(1);
               const strikeRate = stats.totalWickets > 0 ? (stats.totalBalls / stats.totalWickets).toFixed(1) : '0.0';
               const average = stats.totalWickets > 0 ? (stats.totalRuns / stats.totalWickets).toFixed(1) : '0.0';
 

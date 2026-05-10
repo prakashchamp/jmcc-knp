@@ -2,6 +2,7 @@
 
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
+import { calcEconomy } from '@/app/lib/bowling-stats-utils';
 
 /**
  * Bowler Display Component
@@ -45,7 +46,7 @@ export function BowlerDisplay() {
         </div>
         <div className="text-center col-span-2">
           <div className="text-xs text-gray-600">ECO</div>
-          <div className="font-bold">{bowler.economy.toFixed(2)}</div>
+          <div className="font-bold">{calcEconomy(bowler.runs, (bowler.overs * 6) + bowler.balls).toFixed(2)}</div>
         </div>
       </div>
 

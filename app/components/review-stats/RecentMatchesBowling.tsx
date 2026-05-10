@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Match, Performance } from '@/app/lib/cricket-schema';
+import { calcEconomy } from '@/app/lib/bowling-stats-utils';
 
 interface RecentMatchesBowlingProps {
   matches: Match[];
@@ -15,6 +16,7 @@ interface ConsolidatedBowlingStats {
   playerId: string;
   matchesPlayed: number;
   totalOvers: number;
+  totalBalls: number;
   totalWickets: number;
   totalRuns: number;
   economy: number;
@@ -44,6 +46,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
         playerId: perf.playerId,
         matchesPlayed: 0,
         totalOvers: 0,
+        totalBalls: 0,
         totalWickets: 0,
         totalRuns: 0,
         economy: 0,
@@ -52,6 +55,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
 
       existing.matchesPlayed += 1;
       existing.totalOvers += perf.bowling.overs;
+      existing.totalBalls += perf.bowling.balls || 0;
       existing.totalWickets += perf.bowling.wickets;
       existing.totalRuns += perf.bowling.runs;
       existing.totalMaidens += perf.bowling.maidens;
@@ -61,7 +65,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
 
     // Calculate economy rates
     map.forEach((stats) => {
-      stats.economy = stats.totalOvers > 0 ? stats.totalRuns / stats.totalOvers : 0;
+      stats.economy = calcEconomy(stats.totalRuns, stats.totalBalls);
     });
 
     return map;

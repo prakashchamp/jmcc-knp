@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { calcEconomy } from '../lib/bowling-stats-utils';
 import { MonthlyPlayerStats } from '../lib/hooks/useMonthlyStats';
 
 type BowlingSortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalOvers' | 'totalMaidens' | 'totalWickets' | 'totalRuns' | 'threeWickets' | 'fiveWickets' | 'bestHaul' | 'economy' | 'strikeRate' | 'average';
@@ -52,8 +53,8 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
         aVal = a.bowlingStats.bestHaul || '';
         bVal = b.bowlingStats.bestHaul || '';
       } else if (sortField === 'economy') {
-        aVal = a.bowlingStats.economy;
-        bVal = b.bowlingStats.economy;
+        aVal = calcEconomy(a.bowlingStats.totalRuns, a.bowlingStats.totalBalls);
+        bVal = calcEconomy(b.bowlingStats.totalRuns, b.bowlingStats.totalBalls);
       } else if (sortField === 'strikeRate') {
         aVal = a.bowlingStats.strikeRate;
         bVal = b.bowlingStats.strikeRate;
@@ -159,7 +160,7 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
-                  {player.bowlingStats.economy.toFixed(1)}
+                  {calcEconomy(player.bowlingStats.totalRuns, player.bowlingStats.totalBalls).toFixed(1)}
                 </td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
                   {player.bowlingStats.average.toFixed(1)}

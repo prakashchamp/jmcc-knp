@@ -17,6 +17,16 @@ const getBowlerKey = (bowler: { id?: string; name: string }) => {
   return bowler.name.trim().toLowerCase();
 };
 
+export function calcEconomy(runs: number, balls: number): number {
+  return balls > 0 ? parseFloat((runs / (balls / 6)).toFixed(2)) : 0;
+}
+
+export function oversToBalls(overs: number): number {
+  const whole = Math.floor(overs);
+  const part = Math.round((overs - whole) * 10);
+  return (whole * 6) + part;
+}
+
 export function getBowlerStats(innings: InningsState | null | undefined): BowlerStatsSummary[] {
   if (!innings) return [];
 
@@ -112,9 +122,7 @@ export function getBowlerStats(innings: InningsState | null | undefined): Bowler
 
   for (const bowler of bowlerMap.values()) {
     bowler.overs = Math.floor(bowler.balls / 6);
-    bowler.economy = bowler.balls > 0
-      ? parseFloat((bowler.runs / (bowler.balls / 6)).toFixed(2))
-      : 0;
+    bowler.economy = calcEconomy(bowler.runs, bowler.balls);
   }
 
   return Array.from(bowlerMap.values());
@@ -146,6 +154,6 @@ export function getCurrentBowlerStats(
     maidens: currentBowler.maidens,
     wideRuns: 0,
     noBallRuns: 0,
-    economy: currentBowler.economy,
+    economy: calcEconomy(currentBowler.runs, currentBowler.balls),
   };
 }

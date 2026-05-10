@@ -424,7 +424,10 @@ export const scorerSlice = createSlice({
       // Update bowler stats
       innings.currentBowler.runs += runs;
       innings.currentBowler.balls += 1;
-      innings.currentBowler.economy = parseFloat((innings.currentBowler.runs / (innings.currentBowler.balls / 6)).toFixed(2)) || 0;
+      const totalBowlerBalls = innings.currentBowler.overs * 6 + innings.currentBowler.balls;
+      innings.currentBowler.economy = totalBowlerBalls > 0
+        ? parseFloat((innings.currentBowler.runs / (totalBowlerBalls / 6)).toFixed(2))
+        : 0;
 
       // Update innings stats
       innings.totalRuns += runs;
@@ -1584,8 +1587,11 @@ export const scorerSlice = createSlice({
       innings.currentPartnership = undefined;
 
       // Update bowler economy if we adjusted balls/runs
-      if (innings.currentBowler && innings.currentBowler.balls > 0) {
-        innings.currentBowler.economy = parseFloat((innings.currentBowler.runs / (innings.currentBowler.balls / 6)).toFixed(2)) || 0;
+      if (innings.currentBowler) {
+        const totalBowlerBalls = innings.currentBowler.overs * 6 + innings.currentBowler.balls;
+        innings.currentBowler.economy = totalBowlerBalls > 0
+          ? parseFloat((innings.currentBowler.runs / (totalBowlerBalls / 6)).toFixed(2))
+          : 0;
       }
 
       // For legal deliveries (B, LB, regular), update total balls and check for over completion

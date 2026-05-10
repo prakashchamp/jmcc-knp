@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/lib/redux/store';
 import { formatOversDisplay } from '@/app/lib/ball-display-utils';
 import { formatDate } from '@/app/lib/date-utils';
+import { calcEconomy, oversToBalls } from '@/app/lib/bowling-stats-utils';
 
 export default function MatchDetailPage() {
   const params = useParams();
@@ -107,8 +108,8 @@ export default function MatchDetailPage() {
         aVal = a.bowling.wickets;
         bVal = b.bowling.wickets;
       } else if (bowlingSortField === 'economy') {
-        aVal = a.bowling.economy;
-        bVal = b.bowling.economy;
+        aVal = calcEconomy(a.bowling.runs, oversToBalls(a.bowling.overs));
+        bVal = calcEconomy(b.bowling.runs, oversToBalls(b.bowling.overs));
       }
 
       if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -372,7 +373,9 @@ export default function MatchDetailPage() {
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-400">{perf.bowling.maidens || 0}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.runs}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">{perf.bowling.economy.toFixed(1)}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
+                        {calcEconomy(perf.bowling.runs, oversToBalls(perf.bowling.overs)).toFixed(1)}
+                      </td>
                     </tr>
                   ))}  
                 </tbody>

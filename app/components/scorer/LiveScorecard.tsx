@@ -2,6 +2,7 @@
 
 import { LiveMatch, InningsState, CurrentBatsman, CurrentBowler } from '@/app/lib/cricket-scorer-types';
 import { formatBallDisplay, getBallColor } from '@/app/lib/ball-display-utils';
+import { calcEconomy } from '@/app/lib/bowling-stats-utils';
 
 interface LiveScorecardProps {
   liveMatch: LiveMatch;
@@ -227,7 +228,7 @@ function BowlerCard({ bowler }: BowlerCardProps) {
         </div>
         <div>
           <p className="opacity-60">Econ</p>
-          <p className="font-semibold">{bowler.economy.toFixed(2)}</p>
+          <p className="font-semibold">{calcEconomy(bowler.runs, (bowler.overs * 6) + bowler.balls).toFixed(2)}</p>
         </div>
         <div>
           <p className="opacity-60">Maiden</p>

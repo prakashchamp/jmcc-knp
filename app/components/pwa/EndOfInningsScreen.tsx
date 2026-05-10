@@ -119,7 +119,7 @@ export const EndOfInningsScreen: React.FC<EndOfInningsScreenProps> = ({
                       {bowler.runs} runs, {bowler.wickets}W
                     </p>
                     <p className="text-xs text-slate-400">
-                      Economy: {bowler.economy.toFixed(2)}
+                      Economy: {bowler.balls > 0 ? (bowler.runs / (bowler.balls / 6)).toFixed(2) : '0.00'}
                     </p>
                   </div>
                 </div>
