@@ -46,8 +46,13 @@ export const uploadMatchToFirestore = createAsyncThunk(
       const result = await uploadMatchToCloudAction(matchToUpload);
       
       if (!result.success) {
-        return rejectWithValue(result.error || 'Failed to upload match');
+        // Enqueue for offline sync
+        dispatch({ type: 'scorer/enqueueSyncMatch', payload: matchToUpload });
+        return rejectWithValue(result.error || 'Failed to upload match. Saved to offline queue.');
       }
+
+      // Dequeue on success
+      dispatch({ type: 'scorer/dequeueSyncMatch', payload: matchToUpload.id });
 
       // Sync team if we have pending local players
       if (state.team.pendingCloudPush && state.team.team) {
@@ -58,7 +63,46 @@ export const uploadMatchToFirestore = createAsyncThunk(
 
       return { matchId: matchToUpload.id };
     } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error during upload');
+      // It errored out (likely network issue), so we enqueue it too
+      const state = getState() as RootState;
+      const { liveMatch, currentInnings } = state.scorer;
+      if (liveMatch) {
+        const matchToUpload = mergeInningsIntoMatch(liveMatch, currentInnings);
+        dispatch({ type: 'scorer/enqueueSyncMatch', payload: matchToUpload });
+      }
+      return rejectWithValue(error instanceof Error ? error.message : 'Network error during upload. Saved to offline queue.');
     }
+  }
+);
+
+/**
+ * Thunk to retry uploading any pending matches in the offline queue.
+ */
+export const retryPendingUploads = createAsyncThunk(
+  'scorer/retryPendingUploads',
+  async (_, { dispatch, getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const pendingMatches = state.scorer.pendingSyncMatches;
+
+    if (pendingMatches.length === 0) return { success: true };
+
+    let allSucceeded = true;
+    for (const match of pendingMatches) {
+      try {
+        const result = await uploadMatchToCloudAction(match);
+        if (result.success) {
+          dispatch({ type: 'scorer/dequeueSyncMatch', payload: match.id });
+        } else {
+          allSucceeded = false;
+        }
+      } catch (e) {
+        allSucceeded = false;
+      }
+    }
+
+    if (!allSucceeded) {
+      return rejectWithValue('Some uploads failed to sync.');
+    }
+    return { success: true };
   }
 );

@@ -1,7 +1,20 @@
 import { TeamPlayer } from './cricket-schema';
 
+// Add known aliases to map misspellings or variations to the canonical name.
+// Key: lowercase normalized alias, Value: canonical name (will also be normalized)
+const PLAYER_ALIASES: Record<string, string> = {
+  'arul': 'arul prakash',
+  'arul p': 'arul prakash',
+  'prakash': 'arul prakash',
+  // Add more aliases here as needed without affecting DB schema
+};
+
 export function normalizePlayerName(name: string) {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ');
+  let normalized = name.trim().toLowerCase().replace(/\s+/g, ' ');
+  if (PLAYER_ALIASES[normalized]) {
+    normalized = PLAYER_ALIASES[normalized];
+  }
+  return normalized;
 }
 
 export function generatePlayerIdFromName(name: string): string {

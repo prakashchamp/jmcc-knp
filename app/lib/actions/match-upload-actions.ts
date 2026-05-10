@@ -7,6 +7,7 @@ import * as admin from 'firebase-admin';
 import { mapMatchToFirestore, mapPerformanceToFirestore, findBestBatter, findBestBowler, findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 import { Performance, Match } from '@/app/lib/cricket-schema';
 import { sendMatchUpdateNotification } from './notification-actions';
+import { recomputeStatsForPlayers } from './recompute-actions';
 
 function getISTYearMonth(dateString: string) {
   const dateObj = new Date(dateString);
@@ -94,29 +95,6 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         throw new Error('Match ID already exists. Please try again.');
       }
 
-      // Collect all stats references
-      const statsToUpdate: { ref: admin.firestore.DocumentReference, perf: Performance, scope: any }[] = [];
-      for (const perf of performances) {
-        const scopes = [
-          { coll: 'player_stats_alltime', id: perf.playerId },
-          { coll: 'player_stats_yearly', id: `${perf.playerId}_${year}`, year },
-          { coll: 'player_stats_monthly', id: `${perf.playerId}_${month}`, month, year }
-        ];
-
-        for (const scope of scopes) {
-          statsToUpdate.push({
-            ref: db.collection(scope.coll).doc(scope.id),
-            perf,
-            scope
-          });
-        }
-      }
-
-      // 1. PERFORM ALL READS
-      const statsDocs = statsToUpdate.length > 0
-        ? await transaction.getAll(...statsToUpdate.map(s => s.ref))
-        : [];
-
       // Get singleton team
       const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
       const teamDoc = await transaction.get(teamRef);
@@ -169,14 +147,11 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         const perfRef = db.collection('performances').doc(perf.id);
         transaction.set(perfRef, mapPerformanceToFirestore(perf));
       }
-
-      // Update aggregate stats
-      statsToUpdate.forEach((item, index) => {
-        const doc = statsDocs[index];
-        const updatedStats = calculateUpdatedStats(doc, item.perf, item.scope);
-        transaction.set(item.ref, updatedStats);
-      });
     });
+
+    // Run unified recompute for affected players
+    const affectedPlayerIds = Array.from(new Set(performances.map(p => p.playerId)));
+    await recomputeStatsForPlayers(affectedPlayerIds);
 
     try {
       await sendMatchUpdateNotification(
@@ -318,29 +293,6 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
         throw new Error('Match already uploaded.');
       }
 
-      // Collect all stats references to read them in one batch
-      const statsToUpdate: { ref: admin.firestore.DocumentReference, perf: Performance, scope: any }[] = [];
-      for (const perf of performances) {
-        const scopes = [
-          { coll: 'player_stats_alltime', id: perf.playerId },
-          { coll: 'player_stats_yearly', id: `${perf.playerId}_${year}`, year },
-          { coll: 'player_stats_monthly', id: `${perf.playerId}_${month}`, month, year }
-        ];
-
-        for (const scope of scopes) {
-          statsToUpdate.push({
-            ref: db.collection(scope.coll).doc(scope.id),
-            perf,
-            scope
-          });
-        }
-      }
-
-      // 1. PERFORM ALL READS
-      const statsDocs = statsToUpdate.length > 0
-        ? await transaction.getAll(...statsToUpdate.map(s => s.ref))
-        : [];
-
       // Get singleton team
       const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
       const teamDoc = await transaction.get(teamRef);
@@ -353,14 +305,11 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
         const perfRef = db.collection('performances').doc(`${matchId}_${perf.playerId}`);
         transaction.set(perfRef, mapPerformanceToFirestore(perf));
       }
-
-      // Update stats based on pre-read data
-      statsToUpdate.forEach((item, index) => {
-        const doc = statsDocs[index];
-        const updatedStats = calculateUpdatedStats(doc, item.perf, item.scope);
-        transaction.set(item.ref, updatedStats);
-      });
     });
+
+    // Run unified recompute for affected players
+    const affectedPlayerIds = Array.from(new Set(performances.map(p => p.playerId)));
+    await recomputeStatsForPlayers(affectedPlayerIds);
 
     try {
       await sendMatchUpdateNotification(
@@ -435,93 +384,4 @@ function calculatePerformancesFromStats(match: LiveMatch): Performance[] {
   });
 }
 
-/**
- * Update player stats in a transaction to handle max values (highest score, best bowling).
- */
-/**
- * Calculate updated player stats based on current stats doc and performance.
- */
-function calculateUpdatedStats(
-  doc: admin.firestore.DocumentSnapshot,
-  perf: Performance,
-  scope: any
-) {
-  const stats: any = (doc.exists ? doc.data() : null) || {
-    player_id: perf.playerId,
-    player_name: perf.playerName,
-    matches: 0,
-    bat_innings: 0, bat_runs: 0, bat_balls: 0, bat_zeros: 0, bat_fours: 0, bat_sixes: 0,
-    bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0,
-    bat_thirties: 0, bat_fifties: 0, bat_hundreds: 0,
-    bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0,
-    bowl_wickets: 0, bowl_maidens: 0, bowl_best_wickets: 0, bowl_best_runs: 0,
-    bowl_three_fers: 0, bowl_four_fers: 0, bowl_five_fers: 0,
-  };
 
-  if (scope.year) stats.year = scope.year;
-  if (scope.month) stats.month = scope.month;
-
-  stats.matches += 1;
-  stats.last_updated = admin.firestore.Timestamp.now();
-
-  if (perf.batting.didBat) {
-    stats.bat_innings += 1;
-    stats.bat_runs += perf.batting.runs;
-    stats.bat_balls += perf.batting.balls;
-    stats.bat_zeros += perf.batting.zeros || 0;
-    stats.bat_fours += perf.batting.fours;
-    stats.bat_sixes += perf.batting.sixes;
-    if (perf.batting.dismissed) stats.bat_dismissed += 1;
-    else stats.bat_not_out += 1;
-
-    stats.bat_highest = Math.max(stats.bat_highest || 0, perf.batting.runs);
-    if (perf.batting.isDuck) stats.bat_ducks += 1;
-    if (perf.batting.isThirty) stats.bat_thirties += 1;
-    if (perf.batting.isFifty) stats.bat_fifties += 1;
-    if (perf.batting.isHundred) stats.bat_hundreds += 1;
-
-    // Recompute average/SR
-    const dismissals = stats.bat_dismissed || 0;
-    stats.bat_average = dismissals > 0 ? stats.bat_runs / dismissals : stats.bat_runs;
-    stats.bat_strike_rate = stats.bat_balls > 0 ? (stats.bat_runs / stats.bat_balls) * 100 : 0;
-  }
-
-  if (perf.bowling.didBowl) {
-    stats.bowl_innings += 1;
-    stats.bowl_runs += perf.bowling.runs;
-    stats.bowl_wickets += perf.bowling.wickets;
-
-    // Calculate total balls from fractional overs
-    const wholeOvers = Math.floor(perf.bowling.overs);
-    const extraBalls = Math.round((perf.bowling.overs % 1) * 10);
-    const matchBalls = wholeOvers * 6 + extraBalls;
-
-    stats.bowl_balls += matchBalls;
-    stats.bowl_overs = Math.floor(stats.bowl_balls / 6) + (stats.bowl_balls % 6) / 10;
-    stats.bowl_maidens += perf.bowling.maidens;
-
-    // Best Bowling logic
-    if (perf.bowling.wickets > (stats.bowl_best_wickets || 0)) {
-      stats.bowl_best_wickets = perf.bowling.wickets;
-      stats.bowl_best_runs = perf.bowling.runs;
-      stats.bowl_best = `${perf.bowling.wickets}/${perf.bowling.runs}`;
-    } else if (perf.bowling.wickets === stats.bowl_best_wickets) {
-      if (perf.bowling.runs < (stats.bowl_best_runs || 999)) {
-        stats.bowl_best_runs = perf.bowling.runs;
-        stats.bowl_best = `${perf.bowling.wickets}/${perf.bowling.runs}`;
-      }
-    }
-
-    if (perf.bowling.isThreeFer) stats.bowl_three_fers += 1;
-    if (perf.bowling.isFourFer) stats.bowl_four_fers += 1;
-    if (perf.bowling.isFiveFer) stats.bowl_five_fers += 1;
-
-    // Recompute average/econ/SR
-    stats.bowl_average = stats.bowl_wickets > 0 ? stats.bowl_runs / stats.bowl_wickets : 0;
-    const totalOvers = Math.floor(stats.bowl_balls / 6) + (stats.bowl_balls % 6) / 6;
-    stats.bowl_economy = totalOvers > 0 ? stats.bowl_runs / totalOvers : 0;
-    stats.bowl_strike_rate = stats.bowl_wickets > 0 ? stats.bowl_balls / stats.bowl_wickets : 0;
-  }
-
-  return stats;
-}

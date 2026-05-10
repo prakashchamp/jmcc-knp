@@ -45,6 +45,7 @@ export interface ScorerState {
   loading: boolean;
   error: string | null;
   lastCompletedMatch: LiveMatch | null;
+  pendingSyncMatches: LiveMatch[];
 }
 
 const initialState: ScorerState = {
@@ -58,6 +59,7 @@ const initialState: ScorerState = {
   loading: false,
   error: null,
   lastCompletedMatch: null,
+  pendingSyncMatches: [],
 };
 
 /**
@@ -2367,6 +2369,22 @@ export const scorerSlice = createSlice({
       state.undoStack = [];
       state.dialogState = { activeDialog: null, dialogData: {} };
     },
+    /**
+     * Add a completed match to the sync queue
+     */
+    enqueueSyncMatch: (state, action: PayloadAction<LiveMatch>) => {
+      // Avoid duplicates
+      if (!state.pendingSyncMatches.some(m => m.id === action.payload.id)) {
+        state.pendingSyncMatches.push(action.payload);
+      }
+    },
+
+    /**
+     * Remove a match from the sync queue after successful upload
+     */
+    dequeueSyncMatch: (state, action: PayloadAction<string>) => {
+      state.pendingSyncMatches = state.pendingSyncMatches.filter(m => m.id !== action.payload);
+    },
   },
 });
 
@@ -2409,6 +2427,8 @@ export const {
   rehydrateScorer,
   viewCompletedMatch,
   addManualBowlingStats,
+  enqueueSyncMatch,
+  dequeueSyncMatch,
 } = scorerSlice.actions;
 
 export default scorerSlice.reducer;
