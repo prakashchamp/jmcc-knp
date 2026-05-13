@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { updateMatchAction } from '@/app/lib/actions/match-update-actions';
+import { DatePickerField } from '@/app/components/DatePickerField';
 import { generatePlayerId, generatePlayerIdFromName } from '@/app/lib/player-utils';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { BatterDropdownSelect } from '@/app/components/scorer/dialogs/BatterDropdownSelect';
@@ -177,10 +178,10 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
           didBowl: bowlingOversValue > 0 || bowlingRunsValue > 0 || bowlingWicketsValue > 0,
           innings: bowlingOversValue > 0 ? 1 : 0,
           economy: bowlingOversValue > 0 ? bowlingRunsValue / (Math.floor(bowlingOversValue) + (bowlingOversValue % 1) / 0.6) : 0,
+          zeros: 0,
         };
       }
 
-      updated[existingIndex] = existingPerf;
       setPerformances(updated);
       setShowAddPlayerModal(false);
       setAddPlayerType(null);
@@ -207,10 +208,10 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
       matchId: match.id,
       playerId: player.id,
       playerName: player.name,
-      date: initialMatch.date,
-      year: initialMatch.year,
-      month: initialMatch.month,
-      opponent: initialMatch.opponent,
+      date: match.date || initialMatch.date,
+      year: match.date ? new Date(match.date).getUTCFullYear().toString() : initialMatch.year,
+      month: match.date ? match.date.slice(0, 7) : initialMatch.month,
+      opponent: match.opponent || initialMatch.opponent,
       batting: addPlayerType === 'batting' ? {
         runs: battingRunsValue,
         balls: battingBallsValue,
@@ -252,6 +253,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         didBowl: bowlingOversValue > 0 || bowlingRunsValue > 0 || bowlingWicketsValue > 0,
         innings: bowlingOversValue > 0 ? 1 : 0,
         economy: bowlingOversValue > 0 ? bowlingRunsValue / (Math.floor(bowlingOversValue) + (bowlingOversValue % 1) / 0.6) : 0,
+        zeros: 0,
       } : {
         didBowl: false,
         innings: 0,
@@ -264,6 +266,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         isFourFer: false,
         isFiveFer: false,
         economy: 0,
+        zeros: 0,
       },
       createdAt: new Date().toISOString(),
     };
@@ -296,6 +299,9 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
     try {
       const updatedMatch = {
         ...match,
+        date: match.date || '',
+        year: match.date ? new Date(match.date).getUTCFullYear().toString() : match.year || '',
+        month: match.date ? match.date.slice(0, 7) : match.month || '',
         winMargin: winMarginValue ? `${winMarginValue} ${winMarginUnit}` : '',
         teamRuns: Math.max(0, Number(match.teamRuns || 0)),
         teamWickets: Math.max(0, Number(match.teamWickets || 0)),
@@ -307,6 +313,9 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
 
       // Ensure all derived fields are re-calculated if needed
       const finalPerformances = performances.map(perf => {
+        const perfDate = match.date || perf.date || new Date().toISOString();
+        const perfYear = perfDate ? new Date(perfDate).getUTCFullYear().toString() : (perf.year || '');
+        const perfMonth = perfDate ? perfDate.slice(0, 7) : (perf.month || '');
         const battingRuns = Math.max(0, Number(perf.batting?.runs || 0));
         const battingBalls = Math.max(0, Number(perf.batting?.balls || 0));
         const bowlingOvers = Math.max(0, Number(perf.bowling?.overs || 0));
@@ -317,6 +326,9 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
 
         return {
           ...perf,
+          date: perfDate,
+          year: perfYear,
+          month: perfMonth,
           batting: {
             ...perf.batting,
             runs: battingRuns,
@@ -371,6 +383,16 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <DatePickerField
+              id="edit-match-date"
+              label="Match Date"
+              value={match.date || ''}
+              onChange={(value) => handleMatchChange('date', value)}
+              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+            />
+          </div>
+
           <div>
             <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 block">Opponent</label>
             <input

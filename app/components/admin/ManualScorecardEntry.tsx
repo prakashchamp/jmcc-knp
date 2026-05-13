@@ -213,6 +213,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
           isFourFer: false,
           isFiveFer: false,
           economy: 0,
+          zeros: 0,
         }
       });
       }
@@ -272,6 +273,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
         isFourFer: wickets >= 4 && wickets < 5,
         isFiveFer: wickets >= 5,
         economy: Number(economy.toFixed(2)),
+        zeros: 0,
       };
     });
 

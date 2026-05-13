@@ -116,6 +116,7 @@ export interface Bowling {
   isFourFer: boolean; // exactly 4 wickets
   isFiveFer: boolean; // 5+ wickets
   economy: number; // pre-computed runs/overs
+  zeros: number;
 }
 
 export interface Performance {
@@ -201,6 +202,7 @@ export interface PlayerBowlingStats {
   // Milestone counts
   threeWickets: number; // exactly 3 wickets in a performance
   fiveWickets: number; // 5+ wickets in a performance
+  totalZeros: number;
 }
 
 // ============================================================================

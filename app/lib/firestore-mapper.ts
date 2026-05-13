@@ -26,27 +26,30 @@ function getISTYearMonth(dateString: string) {
 /**
  * Maps Redux LiveMatch to Firestore 'matches' collection schema
  */
-export function mapMatchToFirestore(match: LiveMatch) {
-  const players = match.teamPlayers || [];
+export function mapMatchToFirestore(match: Match | LiveMatch) {
+  const liveMatch = match as LiveMatch;
 
-  // Calculate overs played from innings data
-  const usInnings = match.innings?.find(i => i.battingTeam === 'Us');
-  const themInnings = match.innings?.find(i => i.battingTeam === 'Them');
+  // Calculate overs played from innings data when available
+  const usInnings = 'innings' in match ? liveMatch.innings?.find(i => i.battingTeam === 'Us') : undefined;
+  const themInnings = 'innings' in match ? liveMatch.innings?.find(i => i.battingTeam === 'Them') : undefined;
   
   const teamOversPlayed = usInnings ? ballsToOvers(usInnings.totalBalls) : (match as any).teamOversPlayed || 0;
   const opponentOversPlayed = themInnings ? ballsToOvers(themInnings.totalBalls) : (match as any).opponentOversPlayed || 0;
 
-  // Get runs and wickets from innings data
+  // Get runs and wickets from innings data when available
   const teamRuns = usInnings?.totalRuns ?? (match as any).teamRuns ?? 0;
   const teamWickets = usInnings?.totalWickets ?? (match as any).teamWickets ?? 0;
   const opponentRuns = themInnings?.totalRuns ?? (match as any).opponentRuns ?? 0;
   const opponentWickets = themInnings?.totalWickets ?? (match as any).opponentWickets ?? 0;
 
   const createdAtString = match.createdAt || new Date().toISOString();
-  const { year, month } = getISTYearMonth(createdAtString);
+  const dateString = (match as Match).date || createdAtString;
+  const { year, month } = getISTYearMonth(dateString);
+
+  const matchFormat = 'matchFormat' in match ? match.matchFormat : (match as any).format;
 
   return {
-    date: match.createdAt, // Will be converted to Timestamp by Firestore if passed as Date/ISO
+    date: dateString, // Will be converted to Timestamp by Firestore if passed as Date/ISO
     year,
     month,
     opponent: match.opponent,
@@ -55,7 +58,7 @@ export function mapMatchToFirestore(match: LiveMatch) {
     toss_decision: match.tossDecision,
     result: match.result || 'no_result',
     win_margin: match.winMargin || '',
-    match_format: match.format || 'Custom',
+    match_format: matchFormat || 'Custom',
     total_overs: match.totalOvers,
     first_innings_team: (match as any).firstInningsTeam || '',
     first_innings_score: (match as any).firstInningsScore || 0,
@@ -110,6 +113,7 @@ export function mapPerformanceToFirestore(perf: Performance) {
     bowl_is_four_fer: perf.bowling.isFourFer,
     bowl_is_five_fer: perf.bowling.isFiveFer,
     bowl_economy: perf.bowling.economy,
+    bowl_zeros: perf.bowling.zeros,
 
     created_at: perf.createdAt || new Date().toISOString(),
     createdAt: perf.createdAt || new Date().toISOString(),
@@ -157,6 +161,7 @@ export function mapFirestoreToPerformance(data: any): Performance {
       isFourFer: data.bowl_is_four_fer || false,
       isFiveFer: data.bowl_is_five_fer || false,
       economy: data.bowl_economy || 0,
+      zeros: data.bowl_zeros === undefined ? -1 : data.bowl_zeros,
     }
   };
 }

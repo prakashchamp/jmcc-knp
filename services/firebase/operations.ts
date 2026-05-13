@@ -153,6 +153,7 @@ function mapToPlayerStatsFormat(data: any) {
     economy: data.bowl_economy || 0,
     threeWickets: data.bowl_three_fers || 0,
     fiveWickets: data.bowl_five_fers || 0,
+    totalZeros: data.bowl_zeros || 0,
   };
 
   return { playerId, playerName, battingStats, bowlingStats, totalMatches };

@@ -76,6 +76,23 @@ export async function updateMatchAction(matchId: string, updatedMatch: Match, up
     }
 
     // 2. WRITES completed
+    await db.runTransaction(async (transaction) => {
+      const matchRef = db.collection('matches').doc(matchId);
+      transaction.set(matchRef, mapMatchToFirestore(updatedMatch));
+
+      const newPerfIds = new Set(updatedPerformances.map((perf) => perf.id));
+      for (const perf of updatedPerformances) {
+        const perfRef = db.collection('performances').doc(perf.id);
+        transaction.set(perfRef, mapPerformanceToFirestore(perf));
+      }
+
+      for (const oldPerf of oldPerfs) {
+        if (!newPerfIds.has(oldPerf.id)) {
+          const perfRef = db.collection('performances').doc(oldPerf.id);
+          transaction.delete(perfRef);
+        }
+      }
+    });
 
     await recomputeStatsForPlayers(affectedPlayerIds);
 

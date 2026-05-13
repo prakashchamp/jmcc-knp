@@ -80,6 +80,21 @@ export function Partnerships() {
     const batsmenMap: Map<string, Batsman> = new Map();
     const batsmenOrder: string[] = []; // Track order of entry
 
+    // Include both opening batsmen even if one has not faced a ball in this partnership
+    const firstBall = partnershipBalls[0];
+    const initialBatsmen = [firstBall.batter, firstBall.nonStriker];
+    for (const batsman of initialBatsmen) {
+      if (!batsmenMap.has(batsman.id)) {
+        batsmenMap.set(batsman.id, {
+          name: batsman.name,
+          id: batsman.id,
+          runs: 0,
+          balls: 0,
+        });
+        batsmenOrder.push(batsman.id);
+      }
+    }
+
     for (const ball of partnershipBalls) {
       const isWide = ball.extra?.type === 'wide';
       const batterId = ball.batter.id;

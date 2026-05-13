@@ -143,8 +143,7 @@ function renderBowlingStatsTable(innings: InningsState | null | undefined) {
             <th className="px-2 py-2 text-left font-semibold">Bowler</th>
             <th className="px-2 py-2 text-center font-semibold">O</th>
             <th className="px-2 py-2 text-center font-semibold">R</th>
-            <th className="px-2 py-2 text-center font-semibold">W</th>
-            <th className="px-2 py-2 text-center font-semibold">M</th>
+            <th className="px-2 py-2 text-center font-semibold">W</th>              <th className="px-2 py-2 text-center font-semibold">0s</th>            <th className="px-2 py-2 text-center font-semibold">M</th>
             <th className="px-2 py-2 text-center font-semibold">WD</th>
             <th className="px-2 py-2 text-center font-semibold">NB</th>
             <th className="px-2 py-2 text-center font-semibold">ECO</th>
@@ -157,6 +156,7 @@ function renderBowlingStatsTable(innings: InningsState | null | undefined) {
               <td className="px-2 py-2 text-center text-xs text-white">{bowler.overs}.{bowler.balls % 6}</td>
               <td className="px-2 py-2 text-center text-xs font-bold text-white">{bowler.runs}</td>
               <td className="px-2 py-2 text-center text-xs font-bold text-white">{bowler.wickets}</td>
+              <td className="px-2 py-2 text-center text-xs text-white">{bowler.zeros >= 0 ? bowler.zeros : '-'}</td>
               <td className="px-2 py-2 text-center text-xs text-white">{bowler.maidens}</td>
               <td className="px-2 py-2 text-center text-xs text-white">{bowler.wideRuns}</td>
               <td className="px-2 py-2 text-center text-xs text-white">{bowler.noBallRuns}</td>
@@ -305,22 +305,24 @@ export function MatchDetails() {
   return (
     <div className="space-y-3 px-2 py-2">
       <CollapsibleSection title="Match Details">
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <p className="text-gray-400">Opponent</p>
-            <p className="font-semibold text-white">{liveMatch.opponent}</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Venue</p>
-            <p className="font-semibold text-white">{liveMatch.venue}</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Total Overs</p>
-            <p className="font-semibold text-white">{liveMatch.totalOvers}</p>
-          </div>
-          <div>
-            <p className="text-gray-400">Toss</p>
-            <p className="font-semibold text-white">{getTeamName(liveMatch.tossWonBy, liveMatch.opponent, teamName)}</p>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <p className="text-gray-400">Opponent</p>
+              <p className="font-semibold text-white">{liveMatch.opponent}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Venue</p>
+              <p className="font-semibold text-white">{liveMatch.venue}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Total Overs</p>
+              <p className="font-semibold text-white">{liveMatch.totalOvers}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Toss</p>
+              <p className="font-semibold text-white">{getTeamName(liveMatch.tossWonBy, liveMatch.opponent, teamName)}</p>
+            </div>
           </div>
         </div>
       </CollapsibleSection>

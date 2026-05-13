@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/app/lib/redux/store';
+import { DatePickerField } from '@/app/components/DatePickerField';
 import { closeDialog } from '@/app/lib/redux/slices/scorerSlice';
 import { uploadMatchToFirestore } from '@/app/lib/redux/thunks/matchUpload';
 import { CustomSelect } from '@/app/components/CustomSelect';
@@ -141,11 +142,11 @@ export function UploadConfirmDialog() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="label-text mb-1.5 block">Match Date</label>
-                  <input
-                    type="date"
-                    value={date.split('T')[0]}
-                    onChange={(e) => setDate(new Date(e.target.value).toISOString())}
+                  <DatePickerField
+                    id="upload-match-date"
+                    label="Match Date"
+                    value={date}
+                    onChange={(value) => setDate(value || new Date().toISOString())}
                     className="input-base py-2 text-sm"
                   />
                 </div>

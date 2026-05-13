@@ -20,6 +20,11 @@ export default function TeamStatsPage() {
   const [currentYearPage, setCurrentYearPage] = useState(0);
   const [itemsPerPage] = useState(10);
 
+  const handleResultChange = (result: string) => {
+    setSelectedResult(result);
+    setCurrentYearPage(0);
+  };
+
   // Load matches from Firestore via Redux
   useEffect(() => {
     dispatch(fetchAllMatches(false));
@@ -156,19 +161,19 @@ export default function TeamStatsPage() {
         {/* Filter buttons */}
         <div className="mb-4 sm:mb-8">
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => setSelectedResult('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'}`}>
+            <button onClick={() => handleResultChange('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'}`}>
               All ({stats.total})
             </button>
-            <button onClick={() => setSelectedResult('won')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'won' ? 'bg-green-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+            <button onClick={() => handleResultChange('won')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'won' ? 'bg-green-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Wins ({stats.won})
             </button>
-            <button onClick={() => setSelectedResult('lost')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'lost' ? 'bg-red-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+            <button onClick={() => handleResultChange('lost')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'lost' ? 'bg-red-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Losses ({stats.lost})
             </button>
-            <button onClick={() => setSelectedResult('tie')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'tie' ? 'bg-yellow-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+            <button onClick={() => handleResultChange('tie')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'tie' ? 'bg-yellow-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               Ties ({stats.tied})
             </button>
-            <button onClick={() => setSelectedResult('no_result')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'no_result' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+            <button onClick={() => handleResultChange('no_result')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'no_result' ? 'bg-gray-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
               NR ({stats.noResult})
             </button>
           </div>

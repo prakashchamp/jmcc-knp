@@ -266,12 +266,12 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
     top_bowlers: topBowlers,
     best_batter_id: bestBatter?.playerId || '',
     best_batter_name: bestBatter?.playerName || '',
-    best_batter_runs: bestBatter?.batting.runs || 0,
-    best_batter_balls: bestBatter?.batting.balls || 0,
+    best_batter_runs: bestBatter?.batting?.runs || 0,
+    best_batter_balls: bestBatter?.batting?.balls || 0,
     best_bowler_id: bestBowler?.playerId || '',
     best_bowler_name: bestBowler?.playerName || '',
-    best_bowler_wickets: bestBowler?.bowling.wickets || 0,
-    best_bowler_runs: bestBowler?.bowling.runs || 0,
+    best_bowler_wickets: bestBowler?.bowling?.wickets || 0,
+    best_bowler_runs: bestBowler?.bowling?.runs || 0,
     team_runs: teamRuns,
     team_wickets: teamWickets,
     opponent_runs: opponentRuns,
@@ -377,11 +377,11 @@ function calculatePerformancesFromStats(match: LiveMatch): Performance[] {
         isThreeFer: (bowlStats?.wickets || 0) === 3,
         isFourFer: (bowlStats?.wickets || 0) === 4,
         isFiveFer: (bowlStats?.wickets || 0) >= 5,
+        zeros: bowlStats?.zeros || 0,
         economy: bowlStats?.economy || 0,
       }
     };
     return perf;
   });
 }
-
 

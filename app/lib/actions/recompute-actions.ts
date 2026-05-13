@@ -18,7 +18,7 @@ export async function aggregateStats(performances: Performance[], playerName: st
     bat_dismissed: 0, bat_not_out: 0, bat_highest: 0, bat_ducks: 0, 
     bat_thirties: 0, bat_fifties: 0, bat_hundreds: 0,
     bowl_innings: 0, bowl_overs: 0, bowl_balls: 0, bowl_runs: 0, 
-    bowl_wickets: 0, bowl_maidens: 0, bowl_best_wickets: 0, bowl_best_runs: 0, bowl_best: '',
+    bowl_wickets: 0, bowl_maidens: 0, bowl_zeros: 0, bowl_best_wickets: 0, bowl_best_runs: 0, bowl_best: '',
     bowl_three_fers: 0, bowl_four_fers: 0, bowl_five_fers: 0,
     last_updated: admin.firestore.Timestamp.now(),
     ...extras
@@ -52,6 +52,7 @@ export async function aggregateStats(performances: Performance[], playerName: st
       
       stats.bowl_balls = (stats.bowl_balls || 0) + matchBalls;
       stats.bowl_maidens += (perf.bowling.maidens || 0);
+      stats.bowl_zeros += (perf.bowling.zeros || 0);
       
       if (perf.bowling.wickets > stats.bowl_best_wickets) {
         stats.bowl_best_wickets = perf.bowling.wickets;

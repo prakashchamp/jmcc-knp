@@ -124,6 +124,7 @@ export interface CurrentBowler {
   maidens: number;
   economy: number;
   extras: number;
+  zeros: number;
 }
 
 export interface InningsState {

@@ -430,6 +430,9 @@ export const scorerSlice = createSlice({
       innings.currentBowler.economy = totalBowlerBalls > 0
         ? parseFloat((innings.currentBowler.runs / (totalBowlerBalls / 6)).toFixed(2))
         : 0;
+      if (runs === 0) {
+        innings.currentBowler.zeros = (innings.currentBowler.zeros || 0) + 1;
+      }
 
       // Update innings stats
       innings.totalRuns += runs;
@@ -2028,6 +2031,7 @@ export const scorerSlice = createSlice({
           maidens: 0,
           economy: 0,
           extras: 0,
+          zeros: 0,
         };
       }
     },
@@ -2117,11 +2121,11 @@ export const scorerSlice = createSlice({
               maidens: 0,
               economy: 0,
               extras: 0,
+              zeros: 0,
             };
       }
 
-      // Reset undo stack at the end of over - UNDO only works within an over
-      state.undoStack = [];
+      // Keep undo stack across overs to allow fixing mistakes at over transitions
 
       state.liveMatch.updatedAt = new Date().toISOString();
     },
@@ -2282,6 +2286,7 @@ export const scorerSlice = createSlice({
         maidens: existingStats?.maidens || 0,
         economy: 0, // Recomputed after next ball
         extras: (existingStats?.extras || 0) + currentExtras,
+        zeros: (existingStats?.zeros || 0) + (state.currentInnings.currentBowler?.zeros || 0), // Note: this inherit logic is tricky, but CurrentBowler in changeBowler usually means mid-over.
       };
     },
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
+import { DatePickerField } from '@/app/components/DatePickerField';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
@@ -168,6 +169,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
           isFourFer: false,
           isFiveFer: false,
           economy: 0,
+          zeros: 0,
         },
       },
       ...prev,
@@ -280,6 +282,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
               isFourFer: bowlingWickets === 4,
               isFiveFer: bowlingWickets >= 5,
               economy: bowlingOvers > 0 ? (perf.bowling?.runs || 0) / (Math.floor(bowlingOvers) + (bowlingOvers % 1) / 0.6) : 0,
+              zeros: Number(perf.bowling?.zeros || 0),
             },
             createdAt: now,
           };
@@ -332,17 +335,12 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5">
           <div>
-            <label className="label-text mb-1.5 block">Match Date</label>
-            <input
-              type="date"
-              value={match.date ? match.date.split('T')[0] : ''}
-              onChange={(e) => handleMatchChange('date', e.target.value ? new Date(e.target.value).toISOString() : '')}
+            <DatePickerField
+              id="manual-match-date"
+              label="Match Date"
+              value={match.date || ''}
+              onChange={(value) => handleMatchChange('date', value)}
               className="input-base"
-              onFocus={(e) => {
-                setTimeout(() => {
-                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 150);
-              }}
             />
           </div>
 

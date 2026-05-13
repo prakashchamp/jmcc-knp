@@ -490,6 +490,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
             isFourFer: false,
             isFiveFer: false,
             economy: 0,
+            zeros: 0,
           }
         });
       }
@@ -550,6 +551,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
         isFourFer: wickets >= 4 && wickets < 5,
         isFiveFer: wickets >= 5,
         economy: Number(economy.toFixed(2)),
+        zeros: 0,
       };
     });
 

@@ -77,6 +77,7 @@ export async function getTopBowlersAction(): Promise<PlayerBowlingStats[]> {
         threeWickets: data.bowl_three_fers || 0,
         fiveWickets: data.bowl_five_fers || 0,
         totalMaidens: data.bowl_maidens || 0,
+        totalZeros: data.bowl_zeros || 0,
       };
     });
   } catch (error) {
@@ -217,6 +218,7 @@ function mapToPlayerStatsFormat(data: any) {
     threeWickets: data.bowl_three_fers || 0,
     fiveWickets: data.bowl_five_fers || 0,
     totalMaidens: data.bowl_maidens || 0,
+    totalZeros: data.bowl_zeros || 0,
   };
 
   return { playerId, playerName, battingStats, bowlingStats, totalMatches };

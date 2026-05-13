@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import type { LiveMatch, InningsState } from '@/app/lib/cricket-scorer-types';
+import type { LiveMatch, InningsState, Ball } from '@/app/lib/cricket-scorer-types';
 import { RootState, AppDispatch } from '@/app/lib/redux/store';
 import { openDialog } from '@/app/lib/redux/slices/scorerSlice';
 import { getBattingTeamInnings } from './ReviewTeamToggle';
 import { getBowlerStats } from '@/app/lib/bowling-stats-utils';
 import { getNormalizedBatsmen } from './review-batting-utils';
+import { formatBallDisplay } from '@/app/lib/ball-display-utils';
 
 type ReviewView = 'batting' | 'bowling' | 'overs' | 'wickets' | 'partnerships' | 'details';
 
@@ -33,7 +34,27 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
   const themInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Them');
   // const [showShareMenu, setShowShareMenu] = useState(false);
 
-  const summaryLine = liveMatch.winMargin || (liveMatch.result === 'tie' ? 'Match tied' : 'Match complete');
+  const getSummaryLine = () => {
+    if (liveMatch.winMargin) {
+      // Check if winMargin already contains 'won' or 'lost' (pre-formatted)
+      if (liveMatch.winMargin.toLowerCase().includes('won') || liveMatch.winMargin.toLowerCase().includes('lost')) {
+        return liveMatch.winMargin;
+      }
+      
+      if (liveMatch.result === 'won') return `${teamName} won by ${liveMatch.winMargin}`;
+      if (liveMatch.result === 'lost') return `${liveMatch.opponent} won by ${liveMatch.winMargin}`;
+      return liveMatch.winMargin;
+    }
+
+    if (liveMatch.result === 'tie') return 'Match tied';
+    if (liveMatch.result === 'no_result') return 'No result';
+    if (liveMatch.result === 'abandoned') return 'Abandoned';
+    if (liveMatch.result === 'won') return 'Won';
+    if (liveMatch.result === 'lost') return 'Lost';
+    return 'Match complete';
+  };
+
+  const summaryLine = getSummaryLine();
 
   const getOvers = (balls: number) => `${Math.floor(balls / 6)}.${balls % 6}`;
 
@@ -58,15 +79,18 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     let y = margin;
 
     const colors = {
-      bg: [2, 6, 23] as const,
-      panel: [15, 23, 42] as const,
-      panelAlt: [20, 32, 52] as const,
-      border: [20, 184, 166] as const,
-      header: [13, 148, 136] as const,
-      text: [241, 245, 249] as const,
-      textMuted: [148, 163, 184] as const,
-      textAccent: [45, 212, 191] as const,
+      bg: [255, 255, 255] as const,
+      panel: [250, 250, 250] as const,
+      panelAlt: [240, 240, 240] as const,
+      border: [190, 190, 190] as const,
+      header: [0, 0, 0] as const,
+      text: [0, 0, 0] as const,
+      textMuted: [60, 60, 60] as const,
+      textAccent: [0, 0, 0] as const,
     };
+
+    const sectionSpacing = 16;
+    const sectionPadding = 10;
 
     const fillRect = (x: number, top: number, w: number, h: number, rgb: readonly [number, number, number]) => {
       doc.setFillColor(rgb[0], rgb[1], rgb[2]);
@@ -96,12 +120,13 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     };
 
     const drawSectionHeader = (text: string) => {
-      ensureSpace(28);
-      fillRect(margin, y, contentWidth, 24, colors.header);
-      doc.setTextColor(255, 255, 255);
+      ensureSpace(32);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text(text, margin + 10, y + 16);
+      doc.setFontSize(14);
+      doc.setTextColor(...colors.header);
+      doc.text(text, margin, y + 16);
+      doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
+      doc.line(margin, y + 22, margin + contentWidth, y + 22);
       y += 32;
     };
 
@@ -144,11 +169,340 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
       );
     };
 
+    const getOverGroups = (innings: InningsState | null) => {
+      if (!innings) return [];
+
+      const groups: Array<{
+        over: number;
+        balls: typeof innings.ballHistory[0][];
+        overRuns: number;
+        cumulativeRuns: number;
+        cumulativeWickets: number;
+      }> = [];
+
+      let totalRuns = 0;
+      let totalWickets = 0;
+
+      for (const ball of innings.ballHistory) {
+        const overIndex = Math.floor(ball.over);
+        if (!groups[overIndex]) {
+          groups[overIndex] = {
+            over: overIndex,
+            balls: [],
+            overRuns: 0,
+            cumulativeRuns: 0,
+            cumulativeWickets: 0,
+          };
+        }
+
+        groups[overIndex].balls.push(ball);
+        groups[overIndex].overRuns += ball.runs.total || 0;
+        totalRuns += ball.runs.total || 0;
+        if (ball.isWicket) totalWickets += 1;
+        groups[overIndex].cumulativeRuns = totalRuns;
+        groups[overIndex].cumulativeWickets = totalWickets;
+      }
+
+      return groups.filter(Boolean);
+    };
+
+    const getFallOfWickets = (innings: InningsState | null) => {
+      if (!innings) return [];
+
+      return innings.ballHistory
+        .map((ball, idx) => ({ ball, idx }))
+        .filter(({ ball }) => ball.isWicket)
+        .map(({ ball, idx }, i) => {
+          const runsAtWicket = innings.ballHistory
+            .slice(0, idx + 1)
+            .reduce((sum, currentBall) => sum + currentBall.runs.total, 0);
+
+          return {
+            wicket: i + 1,
+            playerName: ball.dismissal?.playerOut.name || 'Unknown',
+            over: `${Math.floor(ball.over)}.${ball.ball}`,
+            score: runsAtWicket,
+            balls: idx + 1,
+          };
+        });
+    };
+
+    const getPartnerships = (innings: InningsState | null) => {
+      if (!innings) return [];
+
+      const partnerships: Array<{
+        wicketNumber: number;
+        batsmen: Array<{ name: string; runs: number; balls: number }>;
+        partnershipRuns: number;
+        partnershipBalls: number;
+      }> = [];
+
+      const wicketIndices = innings.ballHistory
+        .map((ball, idx) => (ball.isWicket ? idx : -1))
+        .filter((idx) => idx >= 0);
+
+      let prevWicketIndex = -1;
+
+      for (let wicketNum = 1; wicketNum <= wicketIndices.length; wicketNum++) {
+        const nextWicketIndex = wicketIndices[wicketNum - 1];
+        const partnershipBalls = innings.ballHistory.slice(prevWicketIndex + 1, nextWicketIndex + 1);
+
+        if (partnershipBalls.length > 0) {
+          const batsmenMap = new Map<string, { name: string; runs: number; balls: number }>();
+          const batsmenOrder: string[] = [];
+          const firstBall = partnershipBalls[0];
+          [firstBall.batter, firstBall.nonStriker].forEach((batsman) => {
+            if (!batsmenMap.has(batsman.id)) {
+              batsmenMap.set(batsman.id, { name: batsman.name, runs: 0, balls: 0 });
+              batsmenOrder.push(batsman.id);
+            }
+          });
+
+          for (const ball of partnershipBalls) {
+            const batterId = ball.batter.id;
+            if (!batsmenMap.has(batterId)) {
+              batsmenMap.set(batterId, { name: ball.batter.name, runs: 0, balls: 0 });
+              batsmenOrder.push(batterId);
+            }
+            const batsman = batsmenMap.get(batterId)!;
+            batsman.runs += ball.runs.batter;
+            if (ball.extra?.type !== 'wide') {
+              batsman.balls += 1;
+            }
+          }
+
+          const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+          const totalRuns = partnershipBalls.reduce((sum, ball) => sum + ball.runs.total, 0);
+          const totalBalls = partnershipBalls.filter((ball) => ball.extra?.type !== 'wide').length;
+
+          partnerships.push({
+            wicketNumber: wicketNum,
+            batsmen,
+            partnershipRuns: totalRuns,
+            partnershipBalls: totalBalls,
+          });
+        }
+
+        prevWicketIndex = nextWicketIndex;
+      }
+
+      const currentBalls = innings.ballHistory.slice(prevWicketIndex + 1);
+      if (innings.striker && innings.nonStriker) {
+        const batsmenMap = new Map<string, { name: string; runs: number; balls: number }>();
+        const batsmenOrder: string[] = [];
+        [innings.striker, innings.nonStriker].forEach((batsman) => {
+          if (!batsmenMap.has(batsman.id)) {
+            batsmenMap.set(batsman.id, { name: batsman.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batsman.id);
+          }
+        });
+
+        for (const ball of currentBalls) {
+          const batterId = ball.batter.id;
+          if (!batsmenMap.has(batterId)) {
+            batsmenMap.set(batterId, { name: ball.batter.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batterId);
+          }
+          const batsman = batsmenMap.get(batterId)!;
+          batsman.runs += ball.runs.batter;
+          if (ball.extra?.type !== 'wide') {
+            batsman.balls += 1;
+          }
+        }
+
+        const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+        const totalRuns = currentBalls.reduce((sum, ball) => sum + ball.runs.total, 0);
+        const totalBalls = currentBalls.filter((ball) => ball.extra?.type !== 'wide').length;
+
+        if (batsmen.length > 0) {
+          partnerships.push({
+            wicketNumber: 0,
+            batsmen,
+            partnershipRuns: totalRuns,
+            partnershipBalls: totalBalls,
+          });
+        }
+      }
+
+      return partnerships;
+    };
+
+    const getOrdinal = (num: number) => {
+      if (num % 10 === 1 && num !== 11) return 'st';
+      if (num % 10 === 2 && num !== 12) return 'nd';
+      if (num % 10 === 3 && num !== 13) return 'rd';
+      return 'th';
+    };
+
+    const getOverHistoryRows = (innings: InningsState) => {
+      const overMap = new Map<number, { over: number; balls: Ball[]; runs: number; wickets: number }>();
+      for (const ball of innings.ballHistory) {
+        const overNum = Math.floor(ball.over);
+        const group = overMap.get(overNum) ?? { over: overNum, balls: [], runs: 0, wickets: 0 };
+        group.balls.push(ball);
+        group.runs += ball.runs.total || 0;
+        if (ball.isWicket) group.wickets += 1;
+        overMap.set(overNum, group);
+      }
+      return Array.from(overMap.values())
+        .sort((a, b) => a.over - b.over)
+        .map((group) => [
+          `${group.over + 1}.${group.balls.length}`,
+          String(group.runs),
+          String(group.wickets),
+          group.balls.map(formatBallDisplay).join(' '),
+        ]);
+    };
+
+    const getFallOfWicketsRows = (innings: InningsState) => {
+      return innings.dismissedBatsmen.map((batsman, idx) => {
+        const wicketBallIndex = innings.ballHistory.findIndex(
+          (ball) => ball.isWicket && ball.dismissal?.playerOut.id === batsman.id
+        );
+        const wicketBall = wicketBallIndex >= 0 ? innings.ballHistory[wicketBallIndex] : null;
+        const overText = wicketBall ? `${Math.floor(wicketBall.over)}.${wicketBall.ball}` : '-';
+        const runsAtWicket = wicketBallIndex >= 0
+          ? innings.ballHistory.slice(0, wicketBallIndex + 1).reduce((sum, ball) => sum + ball.runs.total, 0)
+          : 0;
+
+        return [String(idx + 1), overText, String(runsAtWicket), batsman.name];
+      });
+    };
+
+    const getPartnershipRows = (innings: InningsState) => {
+      interface Partnership {
+        wicketNumber: number;
+        batsmen: { name: string; runs: number; balls: number }[];
+        partnershipRuns: number;
+        partnershipBalls: number;
+      }
+
+      const partnerships: Partnership[] = [];
+      const wicketBallIndices = innings.ballHistory
+        .map((ball, index) => (ball.isWicket ? index : -1))
+        .filter((idx) => idx >= 0);
+
+      let prevWicketIndex = -1;
+
+      for (let wicketNumber = 1; wicketNumber <= wicketBallIndices.length; wicketNumber++) {
+        const nextWicketIndex = wicketBallIndices[wicketNumber - 1];
+        const partnershipBalls = innings.ballHistory.slice(prevWicketIndex + 1, nextWicketIndex + 1);
+
+        if (partnershipBalls.length === 0) {
+          prevWicketIndex = nextWicketIndex;
+          continue;
+        }
+
+        const batsmenMap = new Map<string, { name: string; runs: number; balls: number }>();
+        const batsmenOrder: string[] = [];
+        const firstBall = partnershipBalls[0];
+        [firstBall.batter, firstBall.nonStriker].forEach((batsman) => {
+          if (!batsmenMap.has(batsman.id)) {
+            batsmenMap.set(batsman.id, { name: batsman.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batsman.id);
+          }
+        });
+
+        for (const ball of partnershipBalls) {
+          const batterId = ball.batter.id;
+          if (!batsmenMap.has(batterId)) {
+            batsmenMap.set(batterId, { name: ball.batter.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batterId);
+          }
+          const batsman = batsmenMap.get(batterId)!;
+          batsman.runs += ball.runs.batter;
+          if (ball.extra?.type !== 'wide') {
+            batsman.balls += 1;
+          }
+        }
+
+        const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+        const partnershipRuns = partnershipBalls.reduce((sum, ball) => sum + ball.runs.total, 0);
+        const partnershipBallsCount = partnershipBalls.filter((ball) => ball.extra?.type !== 'wide').length;
+
+        partnerships.push({ wicketNumber, batsmen, partnershipRuns, partnershipBalls: partnershipBallsCount });
+        prevWicketIndex = nextWicketIndex;
+      }
+
+      const currentBalls = innings.ballHistory.slice(prevWicketIndex + 1);
+      if (innings.striker && innings.nonStriker) {
+        const batsmenMap = new Map<string, { name: string; runs: number; balls: number }>();
+        const batsmenOrder: string[] = [];
+
+        [innings.striker, innings.nonStriker].forEach((batsman) => {
+          if (!batsmenMap.has(batsman.id)) {
+            batsmenMap.set(batsman.id, { name: batsman.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batsman.id);
+          }
+        });
+
+        for (const ball of currentBalls) {
+          const batterId = ball.batter.id;
+          if (!batsmenMap.has(batterId)) {
+            batsmenMap.set(batterId, { name: ball.batter.name, runs: 0, balls: 0 });
+            batsmenOrder.push(batterId);
+          }
+          const batsman = batsmenMap.get(batterId)!;
+          batsman.runs += ball.runs.batter;
+          if (ball.extra?.type !== 'wide') {
+            batsman.balls += 1;
+          }
+        }
+
+        const batsmen = batsmenOrder.map((id) => batsmenMap.get(id)!);
+        const partnershipRuns = currentBalls.reduce((sum, ball) => sum + ball.runs.total, 0);
+        const partnershipBallsCount = currentBalls.filter((ball) => ball.extra?.type !== 'wide').length;
+
+        partnerships.push({ wicketNumber: 0, batsmen, partnershipRuns, partnershipBalls: partnershipBallsCount });
+      }
+
+      return partnerships.map((partnership) => {
+        const label = partnership.wicketNumber === 0
+          ? 'Current'
+          : `${partnership.wicketNumber}${getOrdinal(partnership.wicketNumber)} Wkt`;
+        const score = `${partnership.partnershipRuns}(${partnership.partnershipBalls})`;
+        const batsmanText = partnership.batsmen
+          .map((batsman) => `${batsman.name} - ${batsman.runs}(${batsman.balls})`)
+          .join('\n');
+
+        return [label, score, batsmanText];
+      });
+    };
+
+    const drawSimpleSection = (title: string, lines: string[]) => {
+      if (lines.length === 0) return;
+      y += sectionSpacing;
+      const sectionHeight = 14 + lines.length * 12;
+      ensureSpace(sectionHeight + sectionSpacing);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(...colors.textAccent);
+      doc.text(title, margin, y);
+      y += 18;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...colors.text);
+      lines.forEach((line) => {
+        const wrapped = doc.splitTextToSize(line, contentWidth - sectionPadding);
+        doc.text(wrapped, margin + sectionPadding / 2, y);
+        y += wrapped.length * 10;
+        if (y > pageHeight - margin - sectionSpacing) {
+          addNewPage();
+          y += sectionSpacing;
+        }
+      });
+
+      y += sectionSpacing;
+    };
+
     const drawInfoBox = (items: Array<{ label: string; value: string }>) => {
-      const rowHeight = 28;
+      const labelValueGap = 15;
+      const rowHeight = 36;
       const rows = Math.ceil(items.length / 2);
       const boxHeight = rows * rowHeight + 18;
-      ensureSpace(boxHeight + 12);
+      y += sectionSpacing;
+      ensureSpace(boxHeight + sectionSpacing);
       drawPanel(margin, y, contentWidth, boxHeight);
 
       const colWidth = contentWidth / 2;
@@ -156,18 +510,116 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         const col = idx % 2;
         const row = Math.floor(idx / 2);
         const x = margin + col * colWidth + 14;
-        const top = y + 20 + row * rowHeight;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(...colors.textMuted);
-        doc.text(item.label, x, top - 8);
+        const cellTop = y + 16 + row * rowHeight;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setTextColor(...colors.text);
-        doc.text(item.value, x, top + 6);
+        doc.text(item.label, x, cellTop + 2);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...colors.text);
+        doc.text(item.value, x, cellTop + 2 + labelValueGap);
+        // add a divider line between rows, but not after the last row
+        if (row < rows - 1) {
+          doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
+          doc.line(margin + 8, cellTop + rowHeight - 8, margin + contentWidth - 8, cellTop + rowHeight - 8);
+        }
       });
 
-      y += boxHeight + 16;
+      y += boxHeight + sectionSpacing;
+    };
+
+    const computeTableHeight = (rows: string[][], colWidths: number[], width: number) => {
+      const headerH = 28;
+      const baseLineHeight = 14;
+      const rowHeights = rows.map((row) => {
+        const lineCounts = row.map((cell, i) => {
+          const cellWidth = colWidths[i] * width - 12;
+          const wrapped = doc.splitTextToSize(cell, cellWidth);
+          return wrapped.length;
+        });
+        return Math.max(1, Math.max(...lineCounts)) * baseLineHeight + 14;
+      });
+      return headerH + rowHeights.reduce((sum, h) => sum + h, 0);
+    };
+
+    const drawTableAt = (
+      x: number,
+      width: number,
+      title: string,
+      columns: string[],
+      rows: string[][],
+      colWidths: number[]
+    ) => {
+      const headerH = 28;
+      const baseLineHeight = 12;
+      const cellLines = rows.map((row) =>
+        row.map((cell, i) => {
+          const cellWidth = colWidths[i] * width - 12;
+          return doc.splitTextToSize(cell, cellWidth);
+        })
+      );
+      const rowHeights = cellLines.map((row) => Math.max(1, ...row.map((lines) => lines.length)) * baseLineHeight + 14);
+      const tableH = headerH + rowHeights.reduce((sum, h) => sum + h, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(...colors.header);
+      doc.text(title, x, y);
+      const tableTop = y + 20;
+      drawPanel(x, tableTop, width, tableH);
+      fillRect(x + 1, tableTop + 1, width - 2, headerH - 2, colors.panelAlt);
+      doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
+      doc.line(x, tableTop + headerH, x + width, tableTop + headerH);
+
+      let currentX = x;
+      for (let i = 0; i < colWidths.length - 1; i++) {
+        currentX += colWidths[i] * width;
+        doc.line(currentX, tableTop, currentX, tableTop + tableH);
+      }
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(...colors.text);
+      currentX = x;
+      columns.forEach((col, i) => {
+        const cellW = colWidths[i] * width;
+        const labelY = tableTop + 18;
+        doc.text(col, currentX + 6, labelY);
+        currentX += cellW;
+      });
+
+      if (rows.length === 0) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...colors.text);
+        doc.text('No data available', x + 8, tableTop + headerH + 14);
+      } else {
+        let currentTop = tableTop + headerH;
+        rows.forEach((row, idx) => {
+          const rowHeight = rowHeights[idx];
+          if (idx > 0) {
+            doc.line(x, currentTop, x + width, currentTop);
+          }
+          let rowX = x;
+          row.forEach((cell, i) => {
+            const cellW = colWidths[i] * width;
+            const lines = cellLines[idx][i] as string[];
+            const textBlockHeight = lines.length * baseLineHeight;
+            const cellStartY = currentTop + (rowHeight - textBlockHeight) / 2 + baseLineHeight - 2;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(...colors.text);
+            lines.forEach((line: string, lineIndex: number) => {
+              const textY = cellStartY + lineIndex * baseLineHeight;
+              doc.text(line, rowX + 6, textY);
+            });
+            rowX += cellW;
+          });
+          currentTop += rowHeight;
+        });
+      }
+
+      return 20 + tableH;
     };
 
     const drawTable = (
@@ -176,67 +628,72 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
       rows: string[][],
       colWidths: number[]
     ) => {
-      const headerH = 22;
-      const rowH = 18;
-      const minRows = Math.max(rows.length, 1);
-      const tableH = headerH + minRows * rowH;
-      y += 4;
-      ensureSpace(tableH + 52);
+      y += sectionSpacing;
+      ensureSpace(computeTableHeight(rows, colWidths, contentWidth) + sectionSpacing + 24);
+      const tableHeight = drawTableAt(margin, contentWidth, title, columns, rows, colWidths);
+      y += tableHeight;
+    };
 
+    const drawTwoColumnSection = (
+      left: { title: string; columns: string[]; rows: string[][]; colWidths: number[] },
+      right: { title: string; items: Array<{ label: string; value: string }> }
+    ) => {
+      const gap = 14;
+      const columnWidth = (contentWidth - gap) / 2;
+      const leftHeight = 20 + computeTableHeight(left.rows, left.colWidths, columnWidth);
+      const rowHeight = 36;
+      const rightHeight = 12 + Math.ceil(right.items.length / 2) * rowHeight + 18;
+      const sectionHeight = Math.max(leftHeight, rightHeight);
+      y += sectionSpacing;
+      ensureSpace(sectionHeight + sectionSpacing);
+
+      const leftY = y;
+      drawTableAt(margin, columnWidth, left.title, left.columns, left.rows, left.colWidths);
+
+      const rightX = margin + columnWidth + gap;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.textAccent);
-      doc.text(title, margin, y);
-      y += 10;
-
-      const tableTop = y;
-      drawPanel(margin, tableTop, contentWidth, tableH);
-
-      fillRect(margin + 1, tableTop + 1, contentWidth - 2, headerH - 2, colors.panelAlt);
-
-      doc.setDrawColor(colors.border[0], colors.border[1], colors.border[2]);
-      doc.line(margin, tableTop + headerH, margin + contentWidth, tableTop + headerH);
-
-      let currentX = margin;
-      for (let i = 0; i < colWidths.length - 1; i++) {
-        currentX += colWidths[i] * contentWidth;
-        doc.line(currentX, tableTop, currentX, tableTop + tableH);
-      }
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(...colors.textMuted);
-      currentX = margin;
-      columns.forEach((col, i) => {
-        const cellW = colWidths[i] * contentWidth;
-        doc.text(col, currentX + 6, tableTop + 14);
-        currentX += cellW;
+      doc.setFontSize(11);
+      doc.setTextColor(...colors.header);
+      doc.text(right.title, rightX, leftY);
+      const panelTop = leftY + 18;
+      const boxHeight = sectionHeight - 12;
+      drawPanel(rightX, panelTop, columnWidth, boxHeight);
+      const colW = columnWidth / 2;
+      right.items.forEach((item, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const x = rightX + col * colW + 10;
+        const top = panelTop + 16 + row * rowHeight;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(...colors.text);
+        doc.text(item.label, x, top);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(...colors.text);
+        doc.text(item.value, x, top + 12);
       });
 
-      if (rows.length === 0) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
-        doc.setTextColor(...colors.textMuted);
-        doc.text('No data available', margin + 8, tableTop + headerH + 13);
-      } else {
-        rows.forEach((row, idx) => {
-          const rowTop = tableTop + headerH + idx * rowH;
-          if (idx > 0) {
-            doc.line(margin, rowTop, margin + contentWidth, rowTop);
-          }
-          let rowX = margin;
-          row.forEach((cell, i) => {
-            const cellW = colWidths[i] * contentWidth;
-            doc.setFont(i === 0 ? 'helvetica' : 'helvetica', i === 0 ? 'bold' : 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(...colors.text);
-            doc.text(cell, rowX + 6, rowTop + 13);
-            rowX += cellW;
-          });
-        });
-      }
+      y += sectionHeight;
+    };
 
-      y += tableH + 18;
+    const drawTwoColumnTables = (
+      left: { title: string; columns: string[]; rows: string[][]; colWidths: number[] },
+      right: { title: string; columns: string[]; rows: string[][]; colWidths: number[] }
+    ) => {
+      const gap = 14;
+      const columnWidth = (contentWidth - gap) / 2;
+      const leftHeight = 20 + computeTableHeight(left.rows, left.colWidths, columnWidth);
+      const rightHeight = 20 + computeTableHeight(right.rows, right.colWidths, columnWidth);
+      const sectionHeight = Math.max(leftHeight, rightHeight);
+      y += sectionSpacing;
+      ensureSpace(sectionHeight + sectionSpacing);
+
+      const leftY = y;
+      drawTableAt(margin, columnWidth, left.title, left.columns, left.rows, left.colWidths);
+      drawTableAt(margin + columnWidth + gap, columnWidth, right.title, right.columns, right.rows, right.colWidths);
+
+      y += sectionHeight;
     };
 
     const drawExtrasBox = (innings: InningsState | null) => {
@@ -248,14 +705,14 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         { label: 'No Ball', value: String(extras.noBall) },
         { label: 'Penalty', value: String(extras.penalty) },
       ];
-      y += 4;
+      y += sectionSpacing;
       const boxHeight = 58;
-      ensureSpace(boxHeight + 32);
+      ensureSpace(boxHeight + sectionSpacing + 24);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(...colors.textAccent);
+      doc.setFontSize(11);
+      doc.setTextColor(...colors.header);
       doc.text('Extras', margin, y);
-      y += 8;
+      y += 16;
       drawPanel(margin, y, contentWidth, boxHeight);
 
       const colW = contentWidth / items.length;
@@ -266,9 +723,9 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
           doc.line(x, y, x, y + boxHeight);
         }
         const centerX = x + colW / 2;
-        doc.setFont('helvetica', 'normal');
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
-        doc.setTextColor(...colors.textMuted);
+        doc.setTextColor(...colors.text);
         const labelWidth = doc.getTextWidth(item.label);
         doc.text(item.label, centerX - labelWidth / 2, y + 20);
         doc.setFont('helvetica', 'bold');
@@ -278,7 +735,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         doc.text(item.value, centerX - valueWidth / 2, y + 41);
       });
 
-      y += boxHeight + 20;
+      y += boxHeight + sectionSpacing;
     };
 
     const renderInningsSection = (label: string, innings: InningsState | null) => {
@@ -317,11 +774,39 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
         String(bowler.maidens || 0),
         String(bowler.runs),
         String(bowler.wickets),
+        bowler.zeros >= 0 ? String(bowler.zeros) : '-',
         bowler.economy.toFixed(2),
       ]);
 
-      drawTable('Bowling', ['Name', 'O', 'M', 'R', 'W', 'ECO'], bowlers, [0.48, 0.11, 0.09, 0.11, 0.11, 0.10]);
+      y += 8;
+      drawTable('Bowling', ['Name', 'O', 'M', 'R', 'W', '0s', 'ECO'], bowlers, [0.42, 0.10, 0.08, 0.11, 0.11, 0.08, 0.10]);
+
+      y += 8;
       drawExtrasBox(innings);
+
+      y += 8;
+      drawTable(
+        'Overs History',
+        ['Over', 'Runs', 'Wickets', 'Details'],
+        getOverHistoryRows(innings),
+        [0.15, 0.15, 0.12, 0.58]
+      );
+
+      y += sectionSpacing;
+      drawTable(
+        'Fall of Wickets',
+        ['Wicket', 'Over', 'Runs', 'Batsman'],
+        getFallOfWicketsRows(innings),
+        [0.10, 0.16, 0.12, 0.62]
+      );
+
+      y += sectionSpacing;
+      drawTable(
+        'Partnerships',
+        ['Partnership', 'Score', 'Batsman'],
+        getPartnershipRows(innings),
+        [0.16, 0.14, 0.70]
+      );
       y += 6;
     };
 
@@ -337,6 +822,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     doc.text(title, margin, y);
     y += 20;
 
+    // add margin top before each label/value pair to ensure spacing between rows, and add extra space after the info box
     drawInfoBox([
       { label: 'Venue', value: liveMatch.venue },
       { label: 'Result', value: summaryLine },
@@ -356,7 +842,7 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     drawPanel(leftX, cardTop, cardWidth, cardHeight);
     drawPanel(rightX, cardTop, cardWidth, cardHeight);
 
-    doc.setTextColor(...colors.textMuted);
+    doc.setTextColor(...colors.text);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.text(teamName, leftX + 10, cardTop + 16);
@@ -367,9 +853,9 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
     doc.text(`${usInnings?.totalRuns || 0}/${usInnings?.totalWickets || 0}`, leftX + 10, cardTop + 38);
     doc.text(`${themInnings?.totalRuns || 0}/${themInnings?.totalWickets || 0}`, rightX + 10, cardTop + 38);
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
-    doc.setTextColor(...colors.textMuted);
+    doc.setTextColor(...colors.text);
     doc.text(`${getOvers(usInnings?.totalBalls || 0)} overs`, leftX + 10, cardTop + 54);
     doc.text(`${getOvers(themInnings?.totalBalls || 0)} overs`, rightX + 10, cardTop + 54);
     doc.text(`Extras: ${getExtras(usInnings)}`, leftX + 10, cardTop + 68);
@@ -379,14 +865,12 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
 
     renderInningsSection('First Innings', firstInnings);
 
-    const secondInningsMinStartSpace = 360;
-    if (y + secondInningsMinStartSpace > pageHeight - margin) {
-      addNewPage();
-    }
+     if (secondInnings) {
+       addNewPage();
+       renderInningsSection('Second Innings', secondInnings);
+     }
 
-    renderInningsSection('Second Innings', secondInnings);
-
-    return { doc, filename, shareText: title };
+     return { doc, filename, shareText: title };
   };
 
   const handleExportMatchInfoPdf = async () => {

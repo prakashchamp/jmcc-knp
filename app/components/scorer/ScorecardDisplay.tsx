@@ -142,7 +142,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
                       <div>
                         <span className="text-slate-400">Runs: </span>
                         <span>
-                          {stats.bowling.runs}/{stats.bowling.wickets}
+                          {stats.bowling.runs}/{stats.bowling.wickets} (0s: {stats.bowling.zeros >= 0 ? stats.bowling.zeros : '-'})
                         </span>
                       </div>
                     </>

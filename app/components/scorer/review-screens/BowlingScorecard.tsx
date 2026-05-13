@@ -54,6 +54,7 @@ export function BowlingScorecard() {
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">M</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">R</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">W</th>
+                <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">0s</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">WD</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">NB</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">ECO</th>
@@ -80,6 +81,9 @@ export function BowlingScorecard() {
                     </td>
                     <td className="px-2 py-2.5 text-center text-foreground font-black text-xs">
                       {bowler.wickets}
+                    </td>
+                    <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80 text-xs">
+                      {bowler.zeros >= 0 ? bowler.zeros : '-'}
                     </td>
                     <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80 text-xs">{bowler.wideRuns}</td>
                     <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80 text-xs">{bowler.noBallRuns}</td>

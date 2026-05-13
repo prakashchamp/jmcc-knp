@@ -1,6 +1,30 @@
 'use server';
 
+import * as admin from 'firebase-admin';
 import { getFirebaseAdmin } from '@/services/firebase/server-config';
+
+function normalizeFirestoreValue(value: any): any {
+  if (value === null || value === undefined) return value;
+
+  const TimestampClass = admin.firestore?.Timestamp;
+  if (TimestampClass && value instanceof TimestampClass) {
+    return value.toDate().toISOString();
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(normalizeFirestoreValue);
+  }
+
+  if (typeof value === 'object') {
+    const normalized: Record<string, any> = {};
+    for (const [key, child] of Object.entries(value)) {
+      normalized[key] = normalizeFirestoreValue(child);
+    }
+    return normalized;
+  }
+
+  return value;
+}
 
 /**
  * Server Action to fetch a document using Admin SDK
@@ -17,9 +41,10 @@ export async function getServerDocument<T extends Record<string, any>>(
       return null;
     }
 
+    const rawData = docSnapshot.data() as T;
     return {
       id: docSnapshot.id,
-      data: docSnapshot.data() as T,
+      data: normalizeFirestoreValue(rawData) as T,
     };
   } catch (error) {
     console.error(`Admin Action: Error fetching document from ${collectionName}:`, error);
@@ -37,10 +62,13 @@ export async function getServerCollection<T extends Record<string, any>>(
     const db = getFirebaseAdmin();
     const querySnapshot = await db.collection(collectionName).get();
 
-    return querySnapshot.docs.map((document) => ({
-      id: document.id,
-      data: document.data() as T,
-    }));
+    return querySnapshot.docs.map((document) => {
+      const rawData = document.data() as T;
+      return {
+        id: document.id,
+        data: normalizeFirestoreValue(rawData) as T,
+      };
+    });
   } catch (error) {
     console.error(`Admin Action: Error fetching collection ${collectionName}:`, error);
     throw error;

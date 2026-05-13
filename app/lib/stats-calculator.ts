@@ -23,6 +23,7 @@ interface PlayerBowlingRaw {
   runs: number;
   wickets: number;
   maidens: number;
+  zeros: number;
 }
 
 /**
@@ -118,6 +119,7 @@ function calculateBowlingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
         runs: 0,
         wickets: 0,
         maidens: 0,
+        zeros: 0,
       };
       statsMap.set(ball.bowler.name, bowlerStat);
     }
@@ -137,7 +139,16 @@ function calculateBowlingStats(ballHistory: Ball[], teamPlayers: TeamPlayer[]): 
       // Wides and no-balls don't count as balls bowled (but runs are conceded)
       if (ball.extra.type === 'wide' || ball.extra.type === 'no-ball') {
         bowlerStat.balls -= 1; // Undo the increment above
+      } else {
+        // Legal delivery: check for dot
+        if (ballRuns === 0 && (!ball.extra || (ball.extra.type !== 'bye' && ball.extra.type !== 'leg-bye'))) {
+          // Standard dot ball logic: 0 off bat and no wide/nb
+          bowlerStat.zeros += 1;
+        }
       }
+    } else if (ballRuns === 0) {
+      // Legal ball with no extras: check for dot
+      bowlerStat.zeros += 1;
     }
 
     // Count wicket if bowler took it
@@ -205,6 +216,7 @@ function createBowlingInterface(playerStats: PlayerBowlingRaw): Bowling {
     runs: playerStats.runs,
     wickets: playerStats.wickets,
     maidens: playerStats.maidens,
+    zeros: playerStats.zeros,
     isThreeFer,
     isFourFer,
     isFiveFer,
@@ -265,6 +277,7 @@ export function calculatePerformances(
       runs: 0,
       wickets: 0,
       maidens: 0,
+      zeros: 0,
     };
 
     const batting = createBattingInterface(battingStats, currentInnings);
@@ -318,6 +331,7 @@ export function getPlayerCurrentStats(
   let bowlingBalls = 0;
   let bowlingRuns = 0;
   let bowlingWickets = 0;
+  let bowlingZeros = 0;
 
   ballHistory.forEach((ball) => {
     // Batting
@@ -360,6 +374,13 @@ export function getPlayerCurrentStats(
       } else if (ball.isWicket && ball.dismissal?.mode === 'run-out' && ball.dismissal?.fielder?.name === playerName) {
         bowlingWickets += 1;
       }
+
+      // Track dots for bowler in current stats
+      const isWide = ball.extra?.type === 'wide';
+      const isNoBall = Boolean(ball.extra?.isNoBall || ball.extra?.type === 'no-ball');
+      if (!isWide && !isNoBall && ball.runs.batter === 0) {
+        bowlingZeros += 1;
+      }
     }
   });
 
@@ -381,6 +402,7 @@ export function getPlayerCurrentStats(
       overs: Math.floor(bowlingBalls / 6),
       runs: bowlingRuns,
       wickets: bowlingWickets,
+      zeros: bowlingZeros,
       economy: bowlingEconomy,
     },
   };

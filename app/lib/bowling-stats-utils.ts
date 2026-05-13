@@ -11,6 +11,7 @@ export interface BowlerStatsSummary {
   wideRuns: number;
   noBallRuns: number;
   economy: number;
+  zeros: number;
 }
 
 const getBowlerKey = (bowler: { id?: string; name: string }) => {
@@ -67,6 +68,7 @@ export function getBowlerStats(innings: InningsState | null | undefined): Bowler
         wideRuns: 0,
         noBallRuns: 0,
         economy: 0,
+        zeros: 0,
       });
     }
 
@@ -89,8 +91,11 @@ export function getBowlerStats(innings: InningsState | null | undefined): Bowler
     if (isLegalDelivery) {
       bowler.balls += 1;
       overSummary.legalBalls += 1;
+      if (bowlerRunsConceded === 0) {
+        bowler.zeros += 1;
+      }
     }
-
+    
     bowler.runs += bowlerRunsConceded;
     overSummary.endRuns = bowler.runs;
 
@@ -155,5 +160,6 @@ export function getCurrentBowlerStats(
     wideRuns: 0,
     noBallRuns: 0,
     economy: calcEconomy(currentBowler.runs, currentBowler.balls),
+    zeros: currentBowler.zeros || 0,
   };
 }
