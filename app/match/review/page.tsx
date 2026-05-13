@@ -136,7 +136,7 @@ export default function MatchReviewPage() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
           <p className="mt-4 text-gray-400">Loading match data...</p>
         </div>
       </div>
@@ -204,7 +204,7 @@ export default function MatchReviewPage() {
 
           <div className="bg-gray-800 p-4 sm:p-6 rounded-xl border border-gray-700">
             <div className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Overs</div>
-            <div className="text-2xl sm:text-3xl font-bold text-blue-400">
+            <div className="text-2xl sm:text-3xl font-bold text-green-400">
               {overs}.{balls}
             </div>
           </div>
@@ -263,7 +263,7 @@ export default function MatchReviewPage() {
                   {performances.map((perf) => (
                     <tr key={perf.id} className="hover:bg-gray-700/30 transition-colors">
                       <td className="py-3 px-4 font-bold text-white">{perf.playerName}</td>
-                      <td className="py-3 px-3 text-center text-blue-300">{perf.batting.runs}</td>
+                      <td className="py-3 px-3 text-center text-green-300">{perf.batting.runs}</td>
                       <td className="py-3 px-3 text-center text-gray-400">{perf.batting.balls}</td>
                       <td className="py-3 px-3 text-center text-gray-400">
                         {perf.batting.strikeRate.toFixed(1)}
@@ -306,7 +306,7 @@ export default function MatchReviewPage() {
                 <tbody className="divide-y divide-gray-700">
                   {allBalls.map((ball, idx) => (
                     <tr key={idx} className="hover:bg-gray-700/30 transition-colors">
-                      <td className="py-2 px-4 font-mono text-blue-400">{ball.over}.{ball.ball}</td>
+                      <td className="py-2 px-4 font-mono text-green-400">{ball.over}.{ball.ball}</td>
                       <td className="py-2 px-2 text-white font-medium">{ball.batter.name}</td>
                       <td className="py-2 px-2 text-gray-400">{ball.bowler.name}</td>
                       <td className="py-2 px-2 text-center font-bold text-white">{ball.runs.batter}</td>
@@ -349,7 +349,7 @@ export default function MatchReviewPage() {
         </div>
 
         {/* Info */}
-        <div className="bg-blue-900/20 rounded-xl p-4 border border-blue-800/50 text-xs sm:text-sm text-blue-200">
+        <div className="bg-green-900/20 rounded-xl p-4 border border-green-800/50 text-xs sm:text-sm text-green-200">
           <p className="flex items-center gap-2">
             <span className="text-lg">💾</span>
             This will save the match and {performances.length} player performance records to Firestore.

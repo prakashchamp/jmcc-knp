@@ -97,7 +97,7 @@ export function SixPlusDialog() {
             <label
               className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
                 selectedType === 'none'
-                  ? 'border-blue-500 bg-blue-900/40 text-white'
+                  ? 'border-green-500 bg-green-900/40 text-white'
                   : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
               }`}
             >
@@ -107,7 +107,7 @@ export function SixPlusDialog() {
                 value="none"
                 checked={selectedType === 'none'}
                 onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
-                className="h-4 w-4 accent-blue-500"
+                className="h-4 w-4 accent-green-500"
               />
               <span className="text-sm">Regular Runs (Off Bat)</span>
             </label>
@@ -121,7 +121,7 @@ export function SixPlusDialog() {
                   key={option.value}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
                     selectedType === option.value
-                      ? 'border-blue-500 bg-blue-900/40 text-white'
+                      ? 'border-green-500 bg-green-900/40 text-white'
                       : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                   }`}
                 >
@@ -131,7 +131,7 @@ export function SixPlusDialog() {
                     value={option.value}
                     checked={selectedType === option.value}
                     onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
-                    className="h-4 w-4 accent-blue-500"
+                    className="h-4 w-4 accent-green-500"
                   />
                   <span className="text-sm">{option.label}</span>
                 </label>
@@ -147,7 +147,7 @@ export function SixPlusDialog() {
                   key={option.value}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
                     selectedType === option.value
-                      ? 'border-blue-500 bg-blue-900/40 text-white'
+                      ? 'border-green-500 bg-green-900/40 text-white'
                       : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
                   }`}
                 >
@@ -157,7 +157,7 @@ export function SixPlusDialog() {
                     value={option.value}
                     checked={selectedType === option.value}
                     onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
-                    className="h-4 w-4 accent-blue-500"
+                    className="h-4 w-4 accent-green-500"
                   />
                   <span className="text-sm">{option.label}</span>
                 </label>

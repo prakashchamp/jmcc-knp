@@ -37,7 +37,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
 
   const getWinnerColor = (winner: string | undefined) => {
     if (winner === 'ABC') return 'text-emerald-400';
-    if (winner === 'Opponent') return 'text-blue-400';
+    if (winner === 'Opponent') return 'text-green-400';
     return 'text-yellow-400';
   };
 
@@ -111,7 +111,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-3xl font-bold text-blue-400">
+                  <p className="text-3xl font-bold text-green-400">
                     {innings2.totalRuns}
                   </p>
                   <p className="text-slate-400 text-sm">
@@ -177,7 +177,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
             {innings2 && (
               <div>
                 <p className="text-slate-400 mb-1">Highest Score (2nd)</p>
-                <p className="font-bold text-lg text-blue-400">
+                <p className="font-bold text-lg text-green-400">
                   {innings2.batsmen[0]?.runs || 0}
                 </p>
               </div>
@@ -200,7 +200,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
           <button
             onClick={handleSave}
             disabled={isLoading || isSaving || !onSaveMatch}
-            className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors min-h-[48px] text-lg"
+            className="w-full py-4 px-4 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors min-h-[48px] text-lg"
           >
             {isSaving ? 'Saving...' : 'Save Match'}
           </button>

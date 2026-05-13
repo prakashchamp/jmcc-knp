@@ -207,7 +207,7 @@ export function UploadConfirmDialog() {
                       onClick={() => setResult(res.val as any)}
                       className={`flex-1 py-2 px-2 rounded-lg font-bold text-xs transition-all border ${
                         result === res.val
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                          ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-500/20'
                           : 'bg-card border-border hover:bg-foreground/5'
                       }`}
                     >

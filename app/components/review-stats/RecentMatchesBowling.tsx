@@ -211,7 +211,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
                 className="hover:bg-gray-700/30 transition-colors"
               >
                 <td 
-                  className="px-4 py-3 font-bold text-white cursor-pointer hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none"
+                  className="px-4 py-3 font-bold text-white cursor-pointer hover:text-green-400 transition-colors truncate max-w-[120px] sm:max-w-none"
                   onClick={() => handlePlayerClick(stats.playerId)}
                 >
                   {stats.playerName}

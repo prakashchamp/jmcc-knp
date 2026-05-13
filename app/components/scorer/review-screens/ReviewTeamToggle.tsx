@@ -78,8 +78,8 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
         onClick={() => onSelect('Us')}
         className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
           selectedTeam === 'Us'
-            ? 'border-transparent bg-blue-600 text-white'
-            : 'border-border bg-background text-foreground hover:bg-blue-600/5'
+            ? 'border-transparent bg-green-600 text-white'
+            : 'border-border bg-background text-foreground hover:bg-green-600/5'
         }`}
       >
         {teamName}
@@ -88,8 +88,8 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
         onClick={() => onSelect('Them')}
         className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
           selectedTeam === 'Them'
-            ? 'border-transparent bg-blue-600 text-white'
-            : 'border-border bg-background text-foreground hover:border-blue-600/5'
+            ? 'border-transparent bg-green-600 text-white'
+            : 'border-border bg-background text-foreground hover:border-green-600/5'
         }`}
       >
         {getTeamDisplayName('Them', opponentName)}

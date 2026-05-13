@@ -62,7 +62,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
           </div>
 
           <div>
-            <div className="text-2xl font-bold text-blue-400">
+            <div className="text-2xl font-bold text-green-400">
               {overs}.{balls}
             </div>
             <div className="text-xs text-slate-400">Overs</div>
@@ -98,7 +98,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
                         ? 'bg-slate-600 text-slate-300'
                         : parseInt(displayRuns) >= 4
                           ? 'bg-green-600 text-white'
-                          : 'bg-blue-600 text-white'
+                          : 'bg-green-600 text-white'
                   }`}
                   title={`${ball.over}.${ball.ball}: ${ball.batter.name} vs ${ball.bowler.name}`}
                 >

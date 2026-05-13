@@ -56,7 +56,7 @@ export default function ManualEntryPage() {
             <div
               className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
                 step === 'entry' || step === 'review'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-700 text-gray-400'
               }`}
             >
@@ -65,11 +65,11 @@ export default function ManualEntryPage() {
             <span className="text-white text-sm sm:text-base font-semibold">Enter Data</span>
 
             {/* Arrow */}
-            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-blue-600 to-gray-700 mx-1 sm:mx-4"></div>
+            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-green-600 to-gray-700 mx-1 sm:mx-4"></div>
 
             <div
               className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
-                step === 'review' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
+                step === 'review' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'
               }`}
             >
               2

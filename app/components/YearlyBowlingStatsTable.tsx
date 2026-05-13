@@ -201,7 +201,7 @@ export function YearlyBowlingStatsTable({ players, loading }: YearlyBowlingStats
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMaidens}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
+                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
                   {calcEconomy(player.bowlingStats.totalRuns, player.bowlingStats.totalBalls).toFixed(1)}
                 </td>
                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">

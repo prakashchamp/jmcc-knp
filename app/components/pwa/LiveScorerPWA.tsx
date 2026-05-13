@@ -299,7 +299,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
           </div>
         </div>
         {innings.target && (
-          <p className="text-sm text-blue-600 font-semibold mt-1">
+          <p className="text-sm text-green-600 font-semibold mt-1">
             Target: {innings.target} • Need {innings.target - totalRuns} from{' '}
             {(oversPerMatch - totalOversPlayed).toFixed(1)} ov
           </p>
@@ -515,11 +515,11 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
                 No Ball (+1)
               </button>
               <button onClick={() => handleExtraBall('bye', 1)}
-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
+                className="py-4 px-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg min-h-[48px]">
                 Bye (+1)
               </button>
               <button onClick={() => handleExtraBall('leg-bye', 1)}
-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
+                className="py-4 px-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg min-h-[48px]">
                 Leg Bye (+1)
               </button>
             </div>
@@ -566,7 +566,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
               ? 'bg-emerald-600'
               : toast.type === 'warning'
               ? 'bg-orange-600'
-              : 'bg-blue-600'
+              : 'bg-green-600'
           }`}
         >
           {toast.message}

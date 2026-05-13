@@ -38,14 +38,14 @@ export function TeamStatsCard({ stats, loading, error }: TeamStatsCardProps) {
 
   if (!stats) {
     return (
-      <div className="bg-slate-800 rounded-lg p-3 sm:p-6 border border-blue-700 shadow-lg">
+      <div className="bg-slate-800 rounded-lg p-3 sm:p-6 border border-green-700 shadow-lg">
         <p className="text-gray-300 text-xs sm:text-sm">No stats available</p>
       </div>
     );
   }
 
   const statsList = [
-    { label: 'Total Matches', value: stats.totalMatches, color: 'from-blue-600 to-blue-700' },
+    { label: 'Total Matches', value: stats.totalMatches, color: 'from-green-600 to-green-700' },
     { label: 'Wins', value: stats.wins, color: 'from-green-500 to-green-600' },
     { label: 'Losses', value: stats.losses, color: 'from-red-500 to-red-600' },
     { label: 'No Results', value: stats.noResults, color: 'from-gray-500 to-gray-600' },

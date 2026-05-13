@@ -58,7 +58,7 @@ export default function ReviewStatsPage() {
               />
               <button 
                 onClick={() => setAppliedLimit(typeof matchLimit === 'number' ? Math.max(1, matchLimit) : 1)}
-                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition-all hover:bg-blue-500 active:scale-95"
+                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-green-600 text-white transition-all hover:bg-green-500 active:scale-95"
                 title="Search"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
@@ -83,7 +83,7 @@ export default function ReviewStatsPage() {
             onClick={() => setActiveTab('team')}
             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
               activeTab === 'team'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-green-600 text-white shadow-md'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
             }`}
           >
@@ -93,7 +93,7 @@ export default function ReviewStatsPage() {
             onClick={() => setActiveTab('batting')}
             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
               activeTab === 'batting'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-green-600 text-white shadow-md'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
             }`}
           >
@@ -103,7 +103,7 @@ export default function ReviewStatsPage() {
             onClick={() => setActiveTab('bowling')}
             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
               activeTab === 'bowling'
-                ? 'bg-blue-600 text-white shadow-md'
+                ? 'bg-green-600 text-white shadow-md'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
             }`}
           >

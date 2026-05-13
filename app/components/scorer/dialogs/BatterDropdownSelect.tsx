@@ -88,7 +88,7 @@ export function BatterDropdownSelect({
                             </span>
                           )}
                           {isSelected && (
-                            <span className="rounded-full border border-blue-500/50 bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
+                            <span className="rounded-full border border-green-500/50 bg-green-500/10 px-2 py-0.5 text-[11px] font-semibold text-green-500">
                               Selected
                             </span>
                           )}

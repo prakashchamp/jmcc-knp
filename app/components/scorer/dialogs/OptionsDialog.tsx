@@ -134,7 +134,7 @@ export function OptionsDialog() {
               disabled={!option.enabled}
               className={`w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-black transition-all ${
                 option.enabled
-                  ? 'border-border bg-background text-foreground hover:border-blue-500 hover:bg-blue-600/5 hover:scale-[1.01] active:scale-[0.98]'
+                  ? 'border-border bg-background text-foreground hover:border-green-500 hover:bg-green-600/5 hover:scale-[1.01] active:scale-[0.98]'
                   : 'cursor-not-allowed border-border/50 bg-background/50 text-foreground/30 opacity-40'
               }`}
             >

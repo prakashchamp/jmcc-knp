@@ -98,7 +98,7 @@ export default function AdminPage() {
                 <button
                   key={option.href}
                   onClick={() => router.push(option.href)}
-                  className="text-left rounded-3xl border border-slate-700 bg-slate-800/70 p-5 shadow-xl shadow-black/20 hover:border-blue-500 hover:bg-slate-700 transition-all"
+                  className="text-left rounded-3xl border border-slate-700 bg-slate-800/70 p-5 shadow-xl shadow-black/20 hover:border-green-500 hover:bg-slate-700 transition-all"
                 >
                   <h3 className="text-white text-lg font-semibold mb-2">{option.label}</h3>
                   <p className="text-slate-400 text-sm">{option.description}</p>
@@ -117,7 +117,7 @@ export default function AdminPage() {
                 type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
               />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
@@ -125,7 +125,7 @@ export default function AdminPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-2xl bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-500 transition-colors disabled:opacity-50"
+                className="w-full rounded-2xl bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-500 transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? 'Checking...' : 'Unlock Admin'}
               </button>

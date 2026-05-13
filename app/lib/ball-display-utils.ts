@@ -88,7 +88,7 @@ export function formatBallDisplay(ball: Ball): string {
  * Determine color for ball display
  * Color coding:
  * - Wicket (W): red-800 (matches wicket button)
- * - Boundary (4): blue-800
+ * - Boundary (4): green-800
  * - Six (6): green-800
  * - Dot (0-3): gray-700
  * - Wide/Bye/Leg-bye: yellow-600
@@ -107,7 +107,7 @@ export function getBallColor(ball: Ball): string {
       return 'bg-green-600 border border-green-500';
     }
     if (ball.runs.total === 5) {
-      return 'bg-blue-600 border border-blue-500';
+      return 'bg-green-600 border border-green-500';
     }
     return 'bg-amber-600 border border-amber-500';
   }
@@ -125,7 +125,7 @@ export function getBallColor(ball: Ball): string {
     return 'bg-green-600 border border-green-500';
   }
   if (ball.runs.total === 4) {
-    return 'bg-blue-600 border border-blue-500';
+    return 'bg-green-600 border border-green-500';
   }
 
   // 0-3 runs

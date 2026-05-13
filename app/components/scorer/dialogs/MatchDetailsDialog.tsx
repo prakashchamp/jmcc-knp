@@ -123,8 +123,8 @@ function DropdownInputField({
                   }}
                   className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                     isSelected
-                      ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
-                      : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
+                      ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
+                      : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
                   }`}
                 >
                   {option.label}
@@ -205,7 +205,7 @@ export function MatchDetailsDialog() {
     <div className={modalOverlayClass}>
       <div className={`${modalPanelClass} w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 sm:p-6`}>
         <div className="mb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
           <h2 className="mt-2 text-xl font-bold">Change Match Details</h2>
         </div>
 

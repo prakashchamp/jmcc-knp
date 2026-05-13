@@ -80,124 +80,124 @@ export function YearlyBattingStatsTable({ players, loading }: YearlyBattingStats
       <h3 className="section-title text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
       <div className="table-scroll">
         <table className="w-full text-xs">
-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
+          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
             <tr>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('playerName')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('playerName')}>
                 Player
                 {sortField === 'playerName' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-500 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalMatches')}>
                 Mat
                 {sortField === 'totalMatches' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-500 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalInnings')}>
                 Inn
                 {sortField === 'totalInnings' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalRuns')}>
                 Runs
                 {sortField === 'totalRuns' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalBalls')}>
                 Balls
                 {sortField === 'totalBalls' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalZeros')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalZeros')}>
                 0s
                 {sortField === 'totalZeros' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('strikeRate')}>
                 SR
                 {sortField === 'strikeRate' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('average')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('average')}>
                 Avg
                 {sortField === 'average' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('notOuts')}>
                 NO
                 {sortField === 'notOuts' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalFours')}>
                 4s
                 {sortField === 'totalFours' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalSixes')}>
                 6s
                 {sortField === 'totalSixes' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('bestScore')}>
                 HS
                 {sortField === 'bestScore' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('thirties')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('thirties')}>
                 30s
                 {sortField === 'thirties' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('fifties')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('fifties')}>
                 50s
                 {sortField === 'fifties' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}
               </th>
-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('ducks')}>
+              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('ducks')}>
                 Ducks
                 {sortField === 'ducks' ? (
-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
                 ) : (
                   <span className="text-gray-400 ml-1">⇅</span>
                 )}

@@ -101,7 +101,7 @@ export function Header() {
   };
 
   return (
-    <header className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg">
+    <header className="w-full bg-gradient-to-r from-green-900 to-green-800 text-white shadow-lg">
       {/* Top Header Section */}
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 max-w-7xl mx-auto">
         {/* Logo */}
@@ -123,7 +123,7 @@ export function Header() {
         {/* Team Name - Centered */}
         <div className="flex-1 text-center">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">{teamName}</h1>
-          <p className="text-blue-100 text-xs sm:text-sm mt-0.5">Cricket Team</p>
+          <p className="text-green-100 text-xs sm:text-sm mt-0.5">Cricket Team</p>
         </div>
 
         {/* Hamburger Menu - Mobile Only */}
@@ -139,7 +139,7 @@ export function Header() {
                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-100" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
               )}
@@ -165,8 +165,8 @@ export function Header() {
                     onClick={() => handleMenuClick(item.value)}
                     className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-border font-medium text-sm ${
                       isActive(item.value)
-                        ? 'bg-blue-600 text-white border-l-4 border-l-blue-300 pl-3'
-                        : 'hover:bg-blue-600/10'
+                        ? 'bg-green-600 text-white border-l-4 border-l-green-300 pl-3'
+                        : 'hover:bg-green-600/10'
                     }`}
                   >
                     {item.label}
@@ -179,7 +179,7 @@ export function Header() {
       </div>
 
       {/* Navbar - Desktop Only */}
-      <nav className="hidden md:block bg-blue-800/50 border-t border-blue-700">
+      <nav className="hidden md:block bg-green-800/50 border-t border-green-700">
         <div className="max-w-7xl mx-auto px-6 flex items-center h-12">
           <div className="flex space-x-1 h-full">
             {menuItems.map((item) => (
@@ -188,8 +188,8 @@ export function Header() {
                 onClick={() => handleMenuClick(item.value)}
                 className={`px-3 h-full flex items-center transition-colors text-sm font-medium border-b-2 ${
                   isActive(item.value)
-                    ? 'border-blue-300 bg-white/10 text-white'
-                    : 'border-transparent text-blue-100 hover:text-white hover:bg-white/5'
+                    ? 'border-green-300 bg-white/10 text-white'
+                    : 'border-transparent text-green-100 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {item.label}
@@ -208,7 +208,7 @@ export function Header() {
                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-100" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
               )}

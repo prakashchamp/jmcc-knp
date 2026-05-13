@@ -129,7 +129,7 @@ export function RunOutDialog() {
             <div className="space-y-2">
               <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
                 batsmanOut === 'striker'
-                  ? 'border-blue-500 bg-blue-900/40 text-white'
+                  ? 'border-green-500 bg-green-900/40 text-white'
                   : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
               }`}>
                 <input
@@ -138,14 +138,14 @@ export function RunOutDialog() {
                   value="striker"
                   checked={batsmanOut === 'striker'}
                   onChange={() => setBatsmanOut('striker')}
-                  className="h-4 w-4 accent-blue-500"
+                  className="h-4 w-4 accent-green-500"
                 />
                 <span className="ml-3 font-medium">{strikerName}</span>
               </label>
 
               <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
                 batsmanOut === 'non-striker'
-                  ? 'border-blue-500 bg-blue-900/40 text-white'
+                  ? 'border-green-500 bg-green-900/40 text-white'
                   : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
               }`}>
                 <input
@@ -154,7 +154,7 @@ export function RunOutDialog() {
                   value="non-striker"
                   checked={batsmanOut === 'non-striker'}
                   onChange={() => setBatsmanOut('non-striker')}
-                  className="h-4 w-4 accent-blue-500"
+                  className="h-4 w-4 accent-green-500"
                 />
                 <span className="ml-3 font-medium">{nonStrikerName}</span>
               </label>
@@ -214,7 +214,7 @@ export function RunOutDialog() {
                   key={option.value}
                   className={`flex cursor-pointer items-center rounded-xl border px-3 py-2.5 transition-all ${
                     ballType === option.value
-                      ? 'border-blue-500 bg-blue-900/40 text-white'
+                      ? 'border-green-500 bg-green-900/40 text-white'
                       : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
                   } ${option.value === 'regular' ? 'col-span-2' : ''}`}
                 >
@@ -224,7 +224,7 @@ export function RunOutDialog() {
                     value={option.value}
                     checked={ballType === option.value}
                     onChange={() => setBallType(option.value as 'wide' | 'leg-bye' | 'bye' | 'no-ball' | 'regular')}
-                    className="h-4 w-4 accent-blue-500"
+                    className="h-4 w-4 accent-green-500"
                   />
                   <span className="ml-3 text-sm font-medium">{option.label}</span>
                 </label>

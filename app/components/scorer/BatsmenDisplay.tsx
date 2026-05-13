@@ -25,9 +25,9 @@ export function BatsmenDisplay() {
     <div className="bg-white p-4 space-y-3">
       {/* Striker Card */}
       {currentInnings.striker && (
-        <div className="p-3 bg-blue-100 rounded-lg border-2 border-blue-300">
+        <div className="p-3 bg-green-100 rounded-lg border-2 border-green-300">
           <div className="font-bold text-lg mb-2">
-            {currentInnings.striker.name} <span className="text-blue-600 text-xl">*</span>
+            {currentInnings.striker.name} <span className="text-green-600 text-xl">*</span>
           </div>
           <div className="grid grid-cols-6 gap-2 text-sm">
             <div>

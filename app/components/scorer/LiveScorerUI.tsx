@@ -483,7 +483,7 @@ export function LiveScorerUI({
             ))}
             <button 
               onClick={() => setShowCustomScore(true)}
-              className="h-8 rounded-full border border-border bg-background text-foreground/60 font-bold text-sm hover:bg-blue-500/10"
+              className="h-8 rounded-full border border-border bg-background text-foreground/60 font-bold text-sm hover:bg-green-500/10"
             >
               ...
             </button>
@@ -624,7 +624,7 @@ function ExtraRunsDialog({ title, options, onSelect, onClose }: ExtraRunsDialogP
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
         >
           Cancel
         </button>
@@ -669,7 +669,7 @@ function WicketMenu({ onSelect, onClose }: WicketMenuProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
         >
           Cancel
         </button>
@@ -694,7 +694,7 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
           type="number"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full px-4 py-2 bg-background border border-border rounded mb-4 text-lg font-semibold focus:outline-none focus:border-blue-500"
+          className="w-full px-4 py-2 bg-background border border-border rounded mb-4 text-lg font-semibold focus:outline-none focus:border-green-500"
           placeholder="0"
           min="0"
         />
@@ -709,7 +709,7 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold transition-colors"
+            className="px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold transition-colors"
           >
             Cancel
           </button>
@@ -758,7 +758,7 @@ function NewBatsmanModal({
         </div>
         <button
           onClick={onClose}
-          className="w-full mt-4 px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
+          className="w-full mt-4 px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -816,7 +816,7 @@ function ExtrasPanel({ innings, onClose }: ExtrasPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -881,7 +881,7 @@ function PartnershipsPanel({ innings, onClose }: PartnershipsPanelProps) {
         </div>
         <button
           onClick={onClose}
-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
+          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
         >
           Close
         </button>
@@ -903,7 +903,7 @@ function CheckboxButton({ label, onClick, fullWidth }: CheckboxButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`h-8 rounded border border-blue-500/50 bg-blue-500/10 text-blue-600 font-semibold text-xs hover:bg-blue-500/20 transition-colors ${
+      className={`h-8 rounded border border-green-500/50 bg-green-500/10 text-green-600 font-semibold text-xs hover:bg-green-500/20 transition-colors ${
         fullWidth ? 'w-full' : ''
       }`}
     >
@@ -950,7 +950,7 @@ function NumberButton({ value, onClick }: NumberButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="h-8 rounded-full bg-background border border-border hover:bg-blue-500/10 text-foreground font-bold text-sm transition-colors"
+      className="h-8 rounded-full bg-background border border-border hover:bg-green-500/10 text-foreground font-bold text-sm transition-colors"
     >
       {value}
     </button>

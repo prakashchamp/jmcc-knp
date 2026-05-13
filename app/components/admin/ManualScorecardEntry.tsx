@@ -345,10 +345,10 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
       {/* Batting Section */}
       <div>
         <div className="flex justify-between items-center mb-4">
-          <h4 className="text-xl font-semibold text-blue-400">Batting Performances</h4>
+          <h4 className="text-xl font-semibold text-green-400">Batting Performances</h4>
           <button 
             onClick={addBattingRow}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
+            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
           >
             + Add Batter
           </button>
@@ -373,19 +373,19 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
               
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
-                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBattingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBattingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Balls</label>
-                <input type="number" value={row.balls ?? ''} onChange={(e) => updateBattingRow(idx, 'balls', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.balls ?? ''} onChange={(e) => updateBattingRow(idx, 'balls', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-16">
                 <label className="block text-xs font-medium text-gray-300 mb-1">4s</label>
-                <input type="number" value={row.fours ?? ''} onChange={(e) => updateBattingRow(idx, 'fours', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.fours ?? ''} onChange={(e) => updateBattingRow(idx, 'fours', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-16">
                 <label className="block text-xs font-medium text-gray-300 mb-1">6s</label>
-                <input type="number" value={row.sixes ?? ''} onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.sixes ?? ''} onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-32">
                 <CustomSelect
@@ -445,19 +445,19 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
               
               <div className="w-24">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Overs</label>
-                <input type="number" step="0.1" value={row.overs || ''} onChange={(e) => updateBowlingRow(idx, 'overs', e.target.value)} placeholder="e.g. 4.2" className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" step="0.1" value={row.overs || ''} onChange={(e) => updateBowlingRow(idx, 'overs', e.target.value)} placeholder="e.g. 4.2" className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
-                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Maidens</label>
-                <input type="number" value={row.maidens ?? ''} onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.maidens ?? ''} onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               <div className="w-20">
                 <label className="block text-xs font-medium text-gray-300 mb-1">Wickets</label>
-                <input type="number" value={row.wickets ?? ''} onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
+                <input type="number" value={row.wickets ?? ''} onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
               </div>
               
               <button 
@@ -481,7 +481,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
       <div className="pt-6 mt-4 flex justify-end border-t border-gray-700">
         <button
           onClick={handleSubmit}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
         >
           Generate Scorecard →
         </button>

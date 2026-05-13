@@ -142,7 +142,7 @@ export function ManualBowlingStatsDialog() {
                       value={bowler.overs ?? ''}
                       onChange={(e) => updateBowler(index, 'overs', e.target.value)}
                       onFocus={() => handleFieldFocus(index, 'overs')}
-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
+                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
                     />
                   </div>
                   <div>
@@ -152,7 +152,7 @@ export function ManualBowlingStatsDialog() {
                       value={bowler.maidens ?? ''}
                       onChange={(e) => updateBowler(index, 'maidens', e.target.value)}
                       onFocus={() => handleFieldFocus(index, 'maidens')}
-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
+                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
                     />
                   </div>
                   <div>
@@ -162,7 +162,7 @@ export function ManualBowlingStatsDialog() {
                       value={bowler.runs ?? ''}
                       onChange={(e) => updateBowler(index, 'runs', e.target.value)}
                       onFocus={() => handleFieldFocus(index, 'runs')}
-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
+                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
                     />
                   </div>
                   <div>
@@ -172,7 +172,7 @@ export function ManualBowlingStatsDialog() {
                       value={bowler.wickets ?? ''}
                       onChange={(e) => updateBowler(index, 'wickets', e.target.value)}
                       onFocus={() => handleFieldFocus(index, 'wickets')}
-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
+                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
                     />
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export function ManualBowlingStatsDialog() {
           
           <button
             onClick={handleAddBowler}
-            className="w-full py-2 border-2 border-dashed border-border rounded-lg opacity-40 hover:opacity-100 hover:border-blue-500 transition-all text-sm font-medium"
+            className="w-full py-2 border-2 border-dashed border-border rounded-lg opacity-40 hover:opacity-100 hover:border-green-500 transition-all text-sm font-medium"
           >
             + Add Another Bowler
           </button>
@@ -197,7 +197,7 @@ export function ManualBowlingStatsDialog() {
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-blue-500/20"
+            className="flex-1 px-4 py-2.5 text-sm bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-green-500/20"
           >
             Continue to Upload
           </button>

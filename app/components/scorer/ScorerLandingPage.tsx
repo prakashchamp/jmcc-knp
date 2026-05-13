@@ -160,8 +160,8 @@ function DropdownInputField({
                     }}
                     className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
-                        : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
+                        ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
+                        : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
                     }`}
                   >
                     {option.label}
@@ -444,7 +444,7 @@ export function ScorerLandingPage({
                 <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
               </svg>
             ) : (
-              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
               </svg>
             )}
@@ -458,7 +458,7 @@ export function ScorerLandingPage({
             {/* Start New Match Button */}
             <button
               onClick={handleStartNewMatch}
-              className="w-full px-6 py-4 bg-blue-700 hover:bg-blue-600 text-white text-lg font-bold rounded-lg transition-colors"
+              className="w-full px-6 py-4 bg-green-700 hover:bg-green-600 text-white text-lg font-bold rounded-lg transition-colors"
             >
               Start New Match
             </button>
@@ -467,7 +467,7 @@ export function ScorerLandingPage({
             {hasMatchToResume && (
               <button
                 onClick={onResumeMatch}
-                className="w-full px-6 py-4 bg-blue-700 hover:bg-blue-600 text-white text-lg font-bold rounded-lg transition-colors"
+                className="w-full px-6 py-4 bg-green-700 hover:bg-green-600 text-white text-lg font-bold rounded-lg transition-colors"
               >
                 Resume Match
               </button>
@@ -514,7 +514,7 @@ export function ScorerLandingPage({
             {/* Back to Home Button */}
             <button
               onClick={() => router.push('/')}
-              className="w-full px-6 py-4 bg-card hover:bg-blue-600/10 text-foreground text-lg font-bold rounded-lg transition-colors border border-border"
+              className="w-full px-6 py-4 bg-card hover:bg-green-600/10 text-foreground text-lg font-bold rounded-lg transition-colors border border-border"
             >
               Back to Home
             </button>
@@ -530,7 +530,7 @@ export function ScorerLandingPage({
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
             <div className="mt-2">
               <h1 className="text-2xl font-bold">Match Details</h1>
             </div>
@@ -687,15 +687,15 @@ export function ScorerLandingPage({
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
         <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
           <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
             <div className="mt-2">
               <h1 className="text-2xl font-bold">Player Selection</h1>
             </div>
           </div>
 
           <form onSubmit={handlePlayerSelection} className="space-y-5">
-            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500 opacity-80">Batting Team</p>
+            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-green-500 opacity-80">Batting Team</p>
               <p className="mt-1 text-lg font-semibold">🏏 {battingTeamName}</p>
             </div>
 
@@ -722,8 +722,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           striker?.id === player.id
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
-                            : 'border-border bg-background text-foreground hover:border-blue-500/50'
+                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-green-500/50'
                         }`}
                       >
                         {player.name}
@@ -778,8 +778,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           nonStriker?.id === player.id
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
-                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
+                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
                         }`}
                       >
                         {player.name}
@@ -839,8 +839,8 @@ export function ScorerLandingPage({
                         }}
                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
                           bowler?.id === player.id
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
-                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
+                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
+                            : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
                         }`}
                       >
                         {player.name}

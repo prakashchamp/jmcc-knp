@@ -242,11 +242,11 @@ export default function TeamSetupPage() {
                 disabled={!isEditingTeamName}
                 value={teamName}
                 onChange={(e) => setTeamName(e.target.value)}
-                className={`flex-1 px-4 py-1.5 rounded-lg bg-slate-900/50 border text-center transition-all ${isEditingTeamName ? 'border-blue-500 ring-1 ring-blue-500 text-white' : 'border-slate-700 text-slate-300'}`}
+                className={`flex-1 px-4 py-1.5 rounded-lg bg-slate-900/50 border text-center transition-all ${isEditingTeamName ? 'border-green-500 ring-1 ring-green-500 text-white' : 'border-slate-700 text-slate-300'}`}
               />
               <button
                 onClick={() => setIsEditingTeamName(!isEditingTeamName)}
-                className={`p-1.5 rounded-lg border transition-colors ${isEditingTeamName ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'}`}
+                className={`p-1.5 rounded-lg border transition-colors ${isEditingTeamName ? 'bg-green-600 border-green-500 text-white' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'}`}
               >
                 {isEditingTeamName ? (
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -268,7 +268,7 @@ export default function TeamSetupPage() {
               <div className="flex gap-4">
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
+                  className="text-[10px] font-bold text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
@@ -301,7 +301,7 @@ export default function TeamSetupPage() {
                         type="number"
                         value={player.jerseyNumber || ''}
                         onChange={(e) => handleUpdatePlayer(player.id, player.name, e.target.value ? parseInt(e.target.value) : undefined)}
-                        className="w-full bg-slate-800 border border-blue-500 rounded text-center text-white p-0.5"
+                        className="w-full bg-slate-800 border border-green-500 rounded text-center text-white p-0.5"
                         placeholder="#"
                       />
                     ) : (
@@ -313,7 +313,7 @@ export default function TeamSetupPage() {
                     disabled={editingPlayerId !== player.id}
                     value={player.name}
                     onChange={(e) => handleUpdatePlayer(player.id, e.target.value, player.jerseyNumber)}
-                    className={`flex-1 px-2 py-1 rounded text-xs transition-all bg-transparent ${editingPlayerId === player.id ? 'bg-slate-800 border-b border-blue-500 text-white' : 'border-transparent text-slate-300'}`}
+                    className={`flex-1 px-2 py-1 rounded text-xs transition-all bg-transparent ${editingPlayerId === player.id ? 'bg-slate-800 border-b border-green-500 text-white' : 'border-transparent text-slate-300'}`}
                   />
                   <div className="flex gap-1 items-center">
                     <button
@@ -356,7 +356,7 @@ export default function TeamSetupPage() {
             <button
               onClick={handlePushToCloud}
               disabled={pushing || !savedToRedux}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
+              className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
             >
               {pushing ? 'Syncing...' : 'Sync to Cloud'}
             </button>
@@ -391,7 +391,7 @@ export default function TeamSetupPage() {
                   value={newPlayerName}
                   onChange={(e) => setNewPlayerName(e.target.value)}
                   placeholder="Player name"
-                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-green-500 transition-all"
                 />
               </div>
               <div className="space-y-1">
@@ -401,12 +401,12 @@ export default function TeamSetupPage() {
                   value={newPlayerJerseyNumber}
                   onChange={(e) => setNewPlayerJerseyNumber(e.target.value)}
                   placeholder="Optional"
-                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-green-500 transition-all"
                 />
               </div>
               <button
                 onClick={handleAddPlayer}
-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-bold transition-all mt-1"
+                className="w-full py-2 bg-green-600 hover:bg-green-700 rounded-lg text-xs font-bold transition-all mt-1"
               >
                 Add Player
               </button>

@@ -147,7 +147,7 @@ export function WicketDialog() {
                 <button
                   key={item.mode}
                   onClick={() => handleOtherDismissal(item.mode, item.needsSpecialFlow)}
-                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-left text-sm font-black text-foreground transition-all hover:border-blue-500 hover:bg-blue-600/5 active:scale-[0.98]"
+                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-left text-sm font-black text-foreground transition-all hover:border-green-500 hover:bg-green-600/5 active:scale-[0.98]"
                 >
                   {item.label}
                 </button>

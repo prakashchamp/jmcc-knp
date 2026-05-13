@@ -378,7 +378,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
       {/* Match Details */}
       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl">
         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+          <span className="w-1.5 h-6 bg-green-500 rounded-full"></span>
           Match Details
         </h3>
 
@@ -389,7 +389,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               label="Match Date"
               value={match.date || ''}
               onChange={(value) => handleMatchChange('date', value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
             />
           </div>
 
@@ -399,7 +399,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               type="text"
               value={match.opponent || ''}
               onChange={(e) => handleMatchChange('opponent', e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
             />
           </div>
 
@@ -428,7 +428,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   onClick={() => handleMatchChange('result', res.val)}
                   className={`flex-1 py-2.5 px-2 rounded-xl font-bold text-sm transition-all border ${
                     match.result === res.val
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
+                      ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-500/20'
                       : 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
                   }`}
                 >
@@ -449,7 +449,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                   const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value)).toString();
                   setWinMarginValue(val);
                 }}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
               />
             </div>
             <div>
@@ -471,7 +471,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                 min="0"
                 value={match.teamRuns ?? ''}
                 onChange={(e) => handleMatchChange('teamRuns', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
               />
             </div>
             <div>
@@ -481,7 +481,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                 min="0"
                 value={match.teamWickets ?? ''}
                 onChange={(e) => handleMatchChange('teamWickets', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
               />
             </div>
           </div>
@@ -495,7 +495,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                 min="0"
                 value={match.teamOversPlayed ?? ''}
                 onChange={(e) => handleMatchChange('teamOversPlayed', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
               />
             </div>
             <div>
@@ -506,7 +506,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                 min="0"
                 value={match.opponentOversPlayed ?? ''}
                 onChange={(e) => handleMatchChange('opponentOversPlayed', e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
               />
             </div>
           </div>
@@ -546,7 +546,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.batting?.runs ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'runs', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -556,7 +556,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.batting?.balls ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'balls', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -566,7 +566,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.batting?.fours ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'fours', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -576,7 +576,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.batting?.sixes ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'sixes', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div className="col-span-2 sm:col-span-4">
@@ -639,7 +639,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.bowling?.overs ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'overs', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -649,7 +649,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.bowling?.maidens ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'maidens', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -659,7 +659,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.bowling?.wickets ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'wickets', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                       <div>
@@ -669,7 +669,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
                           min="0"
                           value={perf.bowling?.runs ?? ''}
                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'runs', e.target.value)}
-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
                         />
                       </div>
                     </div>
@@ -687,7 +687,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
               setAddPlayerType('batting');
               setShowAddPlayerModal(true);
             }}
-            className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 px-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
           >
             <span>+ Add Batting Player</span>
           </button>
@@ -890,7 +890,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20"
+          className="flex-1 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-500/20"
         >
           {loading ? 'Saving...' : 'Save Changes'}
         </button>

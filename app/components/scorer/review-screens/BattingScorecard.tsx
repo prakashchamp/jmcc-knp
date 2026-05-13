@@ -66,7 +66,7 @@ export function BattingScorecard() {
       <div>
         <div className="overflow-hidden border-2 border-border rounded-lg shadow-sm">
           <table className="w-full text-xs">
-            <thead className="bg-blue-600 text-white">
+            <thead className="bg-green-600 text-white">
               <tr>
                 <th className="px-2 py-2.5 text-left font-black uppercase tracking-wider">Batsman</th>
                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">R</th>
@@ -81,7 +81,7 @@ export function BattingScorecard() {
               {allBatsmen.map((batsman) => (
                 <tr
                   key={batsman.id}
-                  className={`border-b border-border/50 ${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-blue-500/10' : 'bg-background'}`}
+                  className={`border-b border-border/50 ${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-green-500/10' : 'bg-background'}`}
                 >
                   <td className="px-2 py-2.5">
                     <div className="font-black text-foreground text-xs">{batsman.name}</div>

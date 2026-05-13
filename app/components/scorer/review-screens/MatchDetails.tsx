@@ -94,7 +94,7 @@ function renderBattingStatsTable(
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
-        <thead className="bg-blue-800 text-white">
+        <thead className="bg-green-800 text-white">
           <tr>
             <th className="px-2 py-2 text-left font-semibold">Batsman</th>
             <th className="px-2 py-2 text-center font-semibold">R</th>
@@ -138,7 +138,7 @@ function renderBowlingStatsTable(innings: InningsState | null | undefined) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
-        <thead className="bg-blue-800 text-white">
+        <thead className="bg-green-800 text-white">
           <tr>
             <th className="px-2 py-2 text-left font-semibold">Bowler</th>
             <th className="px-2 py-2 text-center font-semibold">O</th>
@@ -263,8 +263,8 @@ function CollapsibleSection({
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex w-full items-center justify-between px-3 py-3 text-left"
       >
-        <h3 className="text-sm font-bold text-blue-300">{title}</h3>
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 text-white text-[11px]">
+        <h3 className="text-sm font-bold text-green-300">{title}</h3>
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-700 text-white text-[11px]">
           {isOpen ? '▲' : '▼'}
         </span>
       </button>

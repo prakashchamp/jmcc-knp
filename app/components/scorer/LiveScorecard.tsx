@@ -54,21 +54,21 @@ export function LiveScorecard({ liveMatch, isChasing }: LiveScorecardProps) {
 
       {/* Display Target if Chasing */}
       {isChasing && currentInnings.target && (
-        <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
+        <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <p className="opacity-60 text-sm">Target</p>
-              <p className="text-2xl font-bold text-blue-600">{currentInnings.target}</p>
+              <p className="text-2xl font-bold text-green-600">{currentInnings.target}</p>
             </div>
             <div className="text-center border-l border-r border-border">
               <p className="opacity-60 text-sm">Need</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-green-600">
                 {Math.max(0, currentInnings.target - currentInnings.totalRuns)}
               </p>
             </div>
             <div className="text-center">
               <p className="opacity-60 text-sm">Remaining</p>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-green-600">
                 {Math.max(0, (liveMatch.totalOvers * 6) - currentInnings.totalBalls)} balls
               </p>
             </div>
@@ -151,10 +151,10 @@ interface ScoreBoxProps {
 
 function ScoreBox({ label, value, subtext, highlight, className = '' }: ScoreBoxProps) {
   return (
-    <div className={`${className} ${highlight ? 'bg-blue-600 border-blue-400 text-white' : 'bg-background/50 border-border'} border rounded-lg p-3 text-center`}>
-      <p className={`text-xs sm:text-sm font-semibold uppercase ${highlight ? 'text-blue-100' : 'opacity-60'}`}>{label}</p>
+    <div className={`${className} ${highlight ? 'bg-green-600 border-green-400 text-white' : 'bg-background/50 border-border'} border rounded-lg p-3 text-center`}>
+      <p className={`text-xs sm:text-sm font-semibold uppercase ${highlight ? 'text-green-100' : 'opacity-60'}`}>{label}</p>
       <p className={`text-lg sm:text-2xl font-bold ${highlight ? 'text-white' : 'text-foreground'}`}>{value}</p>
-      {subtext && <p className={`text-xs mt-1 ${highlight ? 'text-blue-100' : 'opacity-60'}`}>{subtext}</p>}
+      {subtext && <p className={`text-xs mt-1 ${highlight ? 'text-green-100' : 'opacity-60'}`}>{subtext}</p>}
     </div>
   );
 }

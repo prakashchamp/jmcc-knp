@@ -234,10 +234,10 @@ export function Partnerships() {
           return (
             <div
               key={idx}
-              className={`border-2 rounded-xl p-3 space-y-3 shadow-sm ${partnership.wicketNumber === 0 ? 'bg-blue-500/10 border-blue-500 shadow-blue-500/5' : 'bg-background border-border'}`}
+              className={`border-2 rounded-xl p-3 space-y-3 shadow-sm ${partnership.wicketNumber === 0 ? 'bg-green-500/10 border-green-500 shadow-green-500/5' : 'bg-background border-border'}`}
             >
               <div className="flex justify-between items-center">
-                <h4 className={`font-black text-[10px] uppercase tracking-widest ${partnership.wicketNumber === 0 ? 'text-blue-600' : 'opacity-60 text-foreground'}`}>
+                <h4 className={`font-black text-[10px] uppercase tracking-widest ${partnership.wicketNumber === 0 ? 'text-green-600' : 'opacity-60 text-foreground'}`}>
                   {partnershipLabel}
                 </h4>
                 <span className="text-sm font-black text-foreground">

@@ -122,10 +122,10 @@ export default function MatchDetailPage() {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         <Header />
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col items-center justify-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
           <p className="mt-4 text-gray-300">Loading match details...</p>
         </div>
       </div>
@@ -134,14 +134,14 @@ export default function MatchDetailPage() {
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         <Header />
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
             <p className="text-gray-400 text-lg">Match not found</p>
             <button
               onClick={() => router.back()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
             >
               Go Back
             </button>
@@ -178,7 +178,7 @@ export default function MatchDetailPage() {
         {/* Back Button */}
         <button
           onClick={() => router.back()}
-          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium shadow-lg hover:scale-105 active:scale-95 transform"
+          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium shadow-lg hover:scale-105 active:scale-95 transform"
         >
           ← Back to Team Stats
         </button>
@@ -196,7 +196,7 @@ export default function MatchDetailPage() {
               }`}>
                 {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
               </span>
-              {match.winMargin && <span className="text-blue-300 text-xs sm:text-sm font-semibold">{match.winMargin}</span>}
+              {match.winMargin && <span className="text-green-300 text-xs sm:text-sm font-semibold">{match.winMargin}</span>}
             </div>
           </div>
           
@@ -245,10 +245,10 @@ export default function MatchDetailPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
+                <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
                   <tr>
                     <th 
-                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('playerName')}
                     >
                       Player {battingSortField === 'playerName' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'playerName' && '⇅'}
@@ -284,7 +284,7 @@ export default function MatchDetailPage() {
                       6s {battingSortField === 'sixes' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'sixes' && '⇅'}
                     </th>
                     <th 
-                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
+                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800"
                       onClick={() => handleBattingSort('strikeRate')}
                     >
                       SR {battingSortField === 'strikeRate' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'strikeRate' && '⇅'}
@@ -300,7 +300,7 @@ export default function MatchDetailPage() {
                       <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">
                         {perf.playerName}{perf.batting.dismissed === false ? '*' : ''}
                       </td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{perf.batting.runs}</td>
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-400">{perf.batting.runs}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.balls}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-400">{perf.batting.zeros || 0}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.fours}</td>
@@ -379,7 +379,7 @@ export default function MatchDetailPage() {
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.runs}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.zeros >= 0 ? perf.bowling.zeros : '-'}</td>
-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
+                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
                         {calcEconomy(perf.bowling.runs, oversToBalls(perf.bowling.overs)).toFixed(1)}
                       </td>
                     </tr>

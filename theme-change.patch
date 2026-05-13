@@ -1,0 +1,2831 @@
+diff --git a/app/admin/manage-data/edit/[matchId]/page.tsx b/app/admin/manage-data/edit/[matchId]/page.tsx
+index 92ca2dd..9ee1a40 100644
+--- a/app/admin/manage-data/edit/[matchId]/page.tsx
++++ b/app/admin/manage-data/edit/[matchId]/page.tsx
+@@ -14,7 +14,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ matc
+         <Header />
+         <main className="page-container flex flex-col items-center justify-center py-20">
+           <h1 className="text-2xl font-bold mb-4">Match Not Found</h1>
+-          <Link href="/admin/manage-data" className="text-blue-400 hover:underline">
++          <Link href="/admin/manage-data" className="text-green-400 hover:underline">
+             Back to Manage Data
+           </Link>
+         </main>
+@@ -29,7 +29,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ matc
+         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
+           <div>
+             <div className="flex items-center gap-2 mb-2">
+-               <Link href="/admin/manage-data" className="text-blue-400 text-sm hover:underline">Manage Data</Link>
++               <Link href="/admin/manage-data" className="text-green-400 text-sm hover:underline">Manage Data</Link>
+                <span className="text-gray-600 text-sm">/</span>
+                <span className="text-gray-400 text-sm">Edit Match</span>
+             </div>
+diff --git a/app/admin/manage-data/page.tsx b/app/admin/manage-data/page.tsx
+index 6518db7..fec8600 100644
+--- a/app/admin/manage-data/page.tsx
++++ b/app/admin/manage-data/page.tsx
+@@ -170,7 +170,7 @@ export default function ManageDataPage() {
+                         <div className="flex justify-end gap-2">
+                           <button
+                             onClick={() => router.push(`/admin/manage-data/edit/${match.id}`)}
+-                            className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-xs font-medium transition-colors"
++                            className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white rounded text-xs font-medium transition-colors"
+                           >
+                             Edit
+                           </button>
+diff --git a/app/admin/manual-entry/page.tsx b/app/admin/manual-entry/page.tsx
+index 742b87b..7660909 100644
+--- a/app/admin/manual-entry/page.tsx
++++ b/app/admin/manual-entry/page.tsx
+@@ -56,7 +56,7 @@ export default function ManualEntryPage() {
+             <div
+               className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
+                 step === 'entry' || step === 'review'
+-                  ? 'bg-blue-600 text-white'
++                  ? 'bg-green-600 text-white'
+                   : 'bg-gray-700 text-gray-400'
+               }`}
+             >
+@@ -65,11 +65,11 @@ export default function ManualEntryPage() {
+             <span className="text-white text-sm sm:text-base font-semibold">Enter Data</span>
+ 
+             {/* Arrow */}
+-            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-blue-600 to-gray-700 mx-1 sm:mx-4"></div>
++            <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-green-600 to-gray-700 mx-1 sm:mx-4"></div>
+ 
+             <div
+               className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
+-                step === 'review' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400'
++                step === 'review' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'
+               }`}
+             >
+               2
+diff --git a/app/admin/page.tsx b/app/admin/page.tsx
+index 3dce800..1cd0639 100644
+--- a/app/admin/page.tsx
++++ b/app/admin/page.tsx
+@@ -98,7 +98,7 @@ export default function AdminPage() {
+                 <button
+                   key={option.href}
+                   onClick={() => router.push(option.href)}
+-                  className="text-left rounded-3xl border border-slate-700 bg-slate-800/70 p-5 shadow-xl shadow-black/20 hover:border-blue-500 hover:bg-slate-700 transition-all"
++                  className="text-left rounded-3xl border border-slate-700 bg-slate-800/70 p-5 shadow-xl shadow-black/20 hover:border-green-500 hover:bg-slate-700 transition-all"
+                 >
+                   <h3 className="text-white text-lg font-semibold mb-2">{option.label}</h3>
+                   <p className="text-slate-400 text-sm">{option.description}</p>
+@@ -117,7 +117,7 @@ export default function AdminPage() {
+                 type="password"
+                 value={password}
+                 onChange={(event) => setPassword(event.target.value)}
+-                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
++                className="w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/20"
+               />
+ 
+               {error && <p className="text-sm text-red-400">{error}</p>}
+@@ -125,7 +125,7 @@ export default function AdminPage() {
+               <button
+                 type="submit"
+                 disabled={isSubmitting}
+-                className="w-full rounded-2xl bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-500 transition-colors disabled:opacity-50"
++                className="w-full rounded-2xl bg-green-600 px-4 py-3 text-white font-semibold hover:bg-green-500 transition-colors disabled:opacity-50"
+               >
+                 {isSubmitting ? 'Checking...' : 'Unlock Admin'}
+               </button>
+diff --git a/app/admin/team-setup/page.tsx b/app/admin/team-setup/page.tsx
+index c02feca..5d4231e 100644
+--- a/app/admin/team-setup/page.tsx
++++ b/app/admin/team-setup/page.tsx
+@@ -242,11 +242,11 @@ export default function TeamSetupPage() {
+                 disabled={!isEditingTeamName}
+                 value={teamName}
+                 onChange={(e) => setTeamName(e.target.value)}
+-                className={`flex-1 px-4 py-1.5 rounded-lg bg-slate-900/50 border text-center transition-all ${isEditingTeamName ? 'border-blue-500 ring-1 ring-blue-500 text-white' : 'border-slate-700 text-slate-300'}`}
++                className={`flex-1 px-4 py-1.5 rounded-lg bg-slate-900/50 border text-center transition-all ${isEditingTeamName ? 'border-green-500 ring-1 ring-green-500 text-white' : 'border-slate-700 text-slate-300'}`}
+               />
+               <button
+                 onClick={() => setIsEditingTeamName(!isEditingTeamName)}
+-                className={`p-1.5 rounded-lg border transition-colors ${isEditingTeamName ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'}`}
++                className={`p-1.5 rounded-lg border transition-colors ${isEditingTeamName ? 'bg-green-600 border-green-500 text-white' : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-white'}`}
+               >
+                 {isEditingTeamName ? (
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+@@ -268,7 +268,7 @@ export default function TeamSetupPage() {
+               <div className="flex gap-4">
+                 <button
+                   onClick={() => setIsAddModalOpen(true)}
+-                  className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
++                  className="text-[10px] font-bold text-green-400 hover:text-green-300 flex items-center gap-1 transition-colors uppercase tracking-wider"
+                 >
+                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                     <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+@@ -301,7 +301,7 @@ export default function TeamSetupPage() {
+                         type="number"
+                         value={player.jerseyNumber || ''}
+                         onChange={(e) => handleUpdatePlayer(player.id, player.name, e.target.value ? parseInt(e.target.value) : undefined)}
+-                        className="w-full bg-slate-800 border border-blue-500 rounded text-center text-white p-0.5"
++                        className="w-full bg-slate-800 border border-green-500 rounded text-center text-white p-0.5"
+                         placeholder="#"
+                       />
+                     ) : (
+@@ -313,7 +313,7 @@ export default function TeamSetupPage() {
+                     disabled={editingPlayerId !== player.id}
+                     value={player.name}
+                     onChange={(e) => handleUpdatePlayer(player.id, e.target.value, player.jerseyNumber)}
+-                    className={`flex-1 px-2 py-1 rounded text-xs transition-all bg-transparent ${editingPlayerId === player.id ? 'bg-slate-800 border-b border-blue-500 text-white' : 'border-transparent text-slate-300'}`}
++                    className={`flex-1 px-2 py-1 rounded text-xs transition-all bg-transparent ${editingPlayerId === player.id ? 'bg-slate-800 border-b border-green-500 text-white' : 'border-transparent text-slate-300'}`}
+                   />
+                   <div className="flex gap-1 items-center">
+                     <button
+@@ -356,7 +356,7 @@ export default function TeamSetupPage() {
+             <button
+               onClick={handlePushToCloud}
+               disabled={pushing || !savedToRedux}
+-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
++              className="flex-1 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:text-slate-500 rounded-lg text-xs font-semibold transition-all active:scale-95"
+             >
+               {pushing ? 'Syncing...' : 'Sync to Cloud'}
+             </button>
+@@ -391,7 +391,7 @@ export default function TeamSetupPage() {
+                   value={newPlayerName}
+                   onChange={(e) => setNewPlayerName(e.target.value)}
+                   placeholder="Player name"
+-                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
++                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-green-500 transition-all"
+                 />
+               </div>
+               <div className="space-y-1">
+@@ -401,12 +401,12 @@ export default function TeamSetupPage() {
+                   value={newPlayerJerseyNumber}
+                   onChange={(e) => setNewPlayerJerseyNumber(e.target.value)}
+                   placeholder="Optional"
+-                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-blue-500 transition-all"
++                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded text-sm outline-none focus:border-green-500 transition-all"
+                 />
+               </div>
+               <button
+                 onClick={handleAddPlayer}
+-                className="w-full py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs font-bold transition-all mt-1"
++                className="w-full py-2 bg-green-600 hover:bg-green-700 rounded-lg text-xs font-bold transition-all mt-1"
+               >
+                 Add Player
+               </button>
+diff --git a/app/components/AllTimeBattingStatsTable.tsx b/app/components/AllTimeBattingStatsTable.tsx
+index 61b5f85..0777303 100644
+--- a/app/components/AllTimeBattingStatsTable.tsx
++++ b/app/components/AllTimeBattingStatsTable.tsx
+@@ -85,116 +85,116 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
+       <h3 className="text-lg sm:text-2xl font-bold text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
+       <div className="overflow-x-auto">
+         <table className="w-full text-xs">
+-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
++          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
+             <tr>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('playerName')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('playerName')}>
+                 player
+                 {sortField === 'playerName' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-500 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalMatches')}>
+                 Mat
+                 {sortField === 'totalMatches' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalInnings')}>
+                 Inn
+                 {sortField === 'totalInnings' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalRuns')}>
+                 Runs
+                 {sortField === 'totalRuns' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalBalls')}>
+                 Balls
+                 {sortField === 'totalBalls' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('strikeRate')}>
+                 SR
+                 {sortField === 'strikeRate' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('average')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('average')}>
+                 Avg
+                 {sortField === 'average' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('notOuts')}>
+                 NO
+                 {sortField === 'notOuts' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalFours')}>
+                 4s
+                 {sortField === 'totalFours' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalSixes')}>
+                 6s
+                 {sortField === 'totalSixes' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('bestScore')}>
+                 HS
+                 {sortField === 'bestScore' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('thirties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('thirties')}>
+                 30s
+                 {sortField === 'thirties' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('fifties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('fifties')}>
+                 50s
+                 {sortField === 'fifties' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('ducks')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('ducks')}>
+                 Ducks
+                 {sortField === 'ducks' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+diff --git a/app/components/BattingStatsTable.tsx b/app/components/BattingStatsTable.tsx
+index 6e7a6ec..015e65b 100644
+--- a/app/components/BattingStatsTable.tsx
++++ b/app/components/BattingStatsTable.tsx
+@@ -11,7 +11,7 @@ interface AllTimeBattingStatsTableProps {
+ type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'totalZeros' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
+ 
+ const SortIcon = ({ field, sortField, sortDirection }: { field: SortField; sortField: SortField; sortDirection: 'asc' | 'desc' }) => (
+-  <span className={`ml-0.5 ${sortField === field ? 'text-blue-400' : 'text-gray-500'}`}>
++  <span className={`ml-0.5 ${sortField === field ? 'text-green-400' : 'text-gray-500'}`}>
+     {sortField === field ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅'}
+   </span>
+ );
+@@ -78,8 +78,8 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
+     );
+   }
+ 
+-  const thClass = 'px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800 text-xs sm:text-sm whitespace-nowrap';
+-  const thClassLeft = 'px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800 text-xs sm:text-sm whitespace-nowrap';
++  const thClass = 'px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800 text-xs sm:text-sm whitespace-nowrap';
++  const thClassLeft = 'px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-green-100 cursor-pointer hover:bg-green-800 text-xs sm:text-sm whitespace-nowrap';
+   const tdClass = 'px-2 sm:px-4 py-2 sm:py-2.5 text-center text-gray-300 text-xs sm:text-sm whitespace-nowrap';
+ 
+   return (
+@@ -87,7 +87,7 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
+       <h3 className="section-title text-white p-4 sm:p-6 pb-3 sm:pb-4">Batting Statistics</h3>
+       <div className="table-scroll">
+         <table className="w-full text-sm">
+-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
++          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
+             <tr>
+               <th className={thClassLeft} onClick={() => handleSort('playerName')}>
+                 Player <SortIcon field="playerName" sortField={sortField} sortDirection={sortDirection} />
+diff --git a/app/components/CustomSelect.tsx b/app/components/CustomSelect.tsx
+index f246314..1c7647a 100644
+--- a/app/components/CustomSelect.tsx
++++ b/app/components/CustomSelect.tsx
+@@ -68,7 +68,7 @@ export function CustomSelect({ id, label, options, value, onChange, className =
+         disabled={disabled}
+         aria-expanded={isOpen}
+         aria-haspopup="listbox"
+-        className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
++        className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500'}`}
+       >
+         <span className="truncate">{selected?.label ?? customLabel ?? placeholder ?? 'Select...'}</span>
+         <svg
+@@ -97,12 +97,12 @@ export function CustomSelect({ id, label, options, value, onChange, className =
+                   }
+                 }}
+                 placeholder={placeholder || 'Enter custom value'}
+-                className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
++                className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white outline-none focus:border-green-500"
+               />
+               <button
+                 type="button"
+                 onClick={selectCustomValue}
+-                className="mt-2 w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500"
++                className="mt-2 w-full rounded bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-500"
+               >
+                 Create new player
+               </button>
+@@ -125,7 +125,7 @@ export function CustomSelect({ id, label, options, value, onChange, className =
+                   }}
+                   className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors select-none ${
+                     isSelected
+-                      ? 'bg-blue-600 text-white'
++                      ? 'bg-green-600 text-white'
+                       : 'text-gray-200 hover:bg-gray-700'
+                   }`}
+                 >
+diff --git a/app/components/Header.tsx b/app/components/Header.tsx
+index 04be4b4..e5ef323 100644
+--- a/app/components/Header.tsx
++++ b/app/components/Header.tsx
+@@ -101,7 +101,7 @@ export function Header() {
+   };
+ 
+   return (
+-    <header className="w-full bg-gradient-to-r from-blue-900 to-blue-800 text-white shadow-lg">
++    <header className="w-full bg-gradient-to-r from-green-900 to-green-800 text-white shadow-lg">
+       {/* Top Header Section */}
+       <div className="flex items-center justify-between px-3 sm:px-6 py-3 max-w-7xl mx-auto">
+         {/* Logo */}
+@@ -123,7 +123,7 @@ export function Header() {
+         {/* Team Name - Centered */}
+         <div className="flex-1 text-center">
+           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">{teamName}</h1>
+-          <p className="text-blue-100 text-xs sm:text-sm mt-0.5">Cricket Team</p>
++          <p className="text-green-100 text-xs sm:text-sm mt-0.5">Cricket Team</p>
+         </div>
+ 
+         {/* Hamburger Menu - Mobile Only */}
+@@ -139,7 +139,7 @@ export function Header() {
+                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                 </svg>
+               ) : (
+-                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
++                <svg className="w-5 h-5 text-green-100" fill="currentColor" viewBox="0 0 20 20">
+                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                 </svg>
+               )}
+@@ -165,8 +165,8 @@ export function Header() {
+                     onClick={() => handleMenuClick(item.value)}
+                     className={`w-full text-left px-4 py-3 transition-colors border-b last:border-b-0 border-border font-medium text-sm ${
+                       isActive(item.value)
+-                        ? 'bg-blue-600 text-white border-l-4 border-l-blue-300 pl-3'
+-                        : 'hover:bg-blue-600/10'
++                        ? 'bg-green-600 text-white border-l-4 border-l-green-300 pl-3'
++                        : 'hover:bg-green-600/10'
+                     }`}
+                   >
+                     {item.label}
+@@ -179,7 +179,7 @@ export function Header() {
+       </div>
+ 
+       {/* Navbar - Desktop Only */}
+-      <nav className="hidden md:block bg-blue-800/50 border-t border-blue-700">
++      <nav className="hidden md:block bg-green-800/50 border-t border-green-700">
+         <div className="max-w-7xl mx-auto px-6 flex items-center h-12">
+           <div className="flex space-x-1 h-full">
+             {menuItems.map((item) => (
+@@ -188,8 +188,8 @@ export function Header() {
+                 onClick={() => handleMenuClick(item.value)}
+                 className={`px-3 h-full flex items-center transition-colors text-sm font-medium border-b-2 ${
+                   isActive(item.value)
+-                    ? 'border-blue-300 bg-white/10 text-white'
+-                    : 'border-transparent text-blue-100 hover:text-white hover:bg-white/5'
++                    ? 'border-green-300 bg-white/10 text-white'
++                    : 'border-transparent text-green-100 hover:text-white hover:bg-white/5'
+                 }`}
+               >
+                 {item.label}
+@@ -208,7 +208,7 @@ export function Header() {
+                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                 </svg>
+               ) : (
+-                <svg className="w-5 h-5 text-blue-100" fill="currentColor" viewBox="0 0 20 20">
++                <svg className="w-5 h-5 text-green-100" fill="currentColor" viewBox="0 0 20 20">
+                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                 </svg>
+               )}
+diff --git a/app/components/MonthlyBattingStatsTable.tsx b/app/components/MonthlyBattingStatsTable.tsx
+index 47fec06..829f9fc 100644
+--- a/app/components/MonthlyBattingStatsTable.tsx
++++ b/app/components/MonthlyBattingStatsTable.tsx
+@@ -105,48 +105,48 @@ export function MonthlyBattingStatsTable({ players, loading }: Monthlybattingsta
+       <h3 className="section-title text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
+       <div className="table-scroll">
+         <table className="w-full text-xs">
+-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
++          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
+             <tr>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('playerName')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('playerName')}>
+                 Player {sortField === 'playerName' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'playerName' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalMatches')}>
+                 Mat {sortField === 'totalMatches' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalMatches' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalInnings')}>
+                 Inn {sortField === 'totalInnings' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalInnings' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalRuns')}>
+                 Runs {sortField === 'totalRuns' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalRuns' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalBalls')}>
+                 Balls {sortField === 'totalBalls' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalBalls' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('strikeRate')}>
+                 SR {sortField === 'strikeRate' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'strikeRate' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('average')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('average')}>
+                 Avg {sortField === 'average' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'average' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('notOuts')}>
+                 NO {sortField === 'notOuts' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'notOuts' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalFours')}>
+                 4s {sortField === 'totalFours' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalFours' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('totalSixes')}>
+                 6s {sortField === 'totalSixes' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'totalSixes' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('bestScore')}>
+                 HS {sortField === 'bestScore' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'bestScore' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('thirties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('thirties')}>
+                 30s {sortField === 'thirties' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'thirties' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('fifties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('fifties')}>
+                 50s {sortField === 'fifties' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'fifties' && '⇅'}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800" onClick={() => handleSort('ducks')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800" onClick={() => handleSort('ducks')}>
+                 Ducks {sortField === 'ducks' && (sortDirection === 'asc' ? '↑' : '↓')}{sortField !== 'ducks' && '⇅'}
+               </th>
+             </tr>
+diff --git a/app/components/MonthlyBowlingStatsTable.tsx b/app/components/MonthlyBowlingStatsTable.tsx
+index 2d73622..6bdb6e6 100644
+--- a/app/components/MonthlyBowlingStatsTable.tsx
++++ b/app/components/MonthlyBowlingStatsTable.tsx
+@@ -159,7 +159,7 @@ export function MonthlyBowlingStatsTable({ players, loading }: MonthlyBowlingSta
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMaidens}</td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
+-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
++                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
+                   {calcEconomy(player.bowlingStats.totalRuns, player.bowlingStats.totalBalls).toFixed(1)}
+                 </td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
+diff --git a/app/components/PlayerStatsDetail.tsx b/app/components/PlayerStatsDetail.tsx
+index 522df11..503549c 100644
+--- a/app/components/PlayerStatsDetail.tsx
++++ b/app/components/PlayerStatsDetail.tsx
+@@ -140,11 +140,11 @@ export function PlayerStatsDetail({ player, loading }: PlayerStatsDetailProps) {
+   return (
+     <div className="space-y-4 sm:space-y-6">
+       {/* Player Header */}
+-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-4 sm:p-6">
++      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-4 sm:p-6">
+         <h2 className="text-xl sm:text-3xl font-bold">{player.playerName}</h2>
+         <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-2 sm:mt-4">
+           <div>
+-            <p className="text-blue-100 text-[10px] sm:text-sm">Total Matches</p>
++            <p className="text-green-100 text-[10px] sm:text-sm">Total Matches</p>
+             <p className="text-xl sm:text-3xl font-bold">{player.totalMatches}</p>
+           </div>
+         </div>
+diff --git a/app/components/PlayersList.tsx b/app/components/PlayersList.tsx
+index 2ed429f..fcaa21b 100644
+--- a/app/components/PlayersList.tsx
++++ b/app/components/PlayersList.tsx
+@@ -36,12 +36,12 @@ export function PlayersList({
+           onClick={() => onSelectPlayer(player.playerId)}
+           className={`w-full px-3 py-3 sm:p-4 rounded-lg transition-all text-left ${
+             selectedPlayerId === player.playerId
+-              ? 'bg-blue-600 text-white shadow-lg'
+-              : 'bg-slate-700 text-gray-100 hover:bg-blue-600 border border-blue-500'
++              ? 'bg-green-600 text-white shadow-lg'
++              : 'bg-slate-700 text-gray-100 hover:bg-green-600 border border-green-500'
+           }`}
+         >
+           <div className="text-sm sm:text-base font-semibold">{player.playerName}</div>
+-          <div className={`text-xs sm:text-sm ${selectedPlayerId === player.playerId ? 'text-blue-100' : 'text-gray-500'}`}>
++          <div className={`text-xs sm:text-sm ${selectedPlayerId === player.playerId ? 'text-green-100' : 'text-gray-500'}`}>
+             {player.totalMatches} matches
+           </div>
+         </button>
+diff --git a/app/components/StatCard.tsx b/app/components/StatCard.tsx
+index 6cb0926..cc871dd 100644
+--- a/app/components/StatCard.tsx
++++ b/app/components/StatCard.tsx
+@@ -38,7 +38,7 @@ export function StatCard({ rank, playerName, playerId, stats }: StatCardProps) {
+   return (
+     <div 
+       onClick={handleClick}
+-      className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-3 sm:p-6 hover:shadow-md transition-shadow ${playerId ? 'cursor-pointer hover:border-blue-500' : ''}`}
++      className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-3 sm:p-6 hover:shadow-md transition-shadow ${playerId ? 'cursor-pointer hover:border-green-500' : ''}`}
+     >
+       <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+         {/* Rank Badge */}
+@@ -50,7 +50,7 @@ export function StatCard({ rank, playerName, playerId, stats }: StatCardProps) {
+ 
+         {/* Player Name */}
+         <div>
+-          <p className={`text-base sm:text-lg font-bold ${playerId ? 'text-blue-400 hover:text-blue-300' : 'text-white'}`}>{playerName}</p>
++          <p className={`text-base sm:text-lg font-bold ${playerId ? 'text-green-400 hover:text-green-300' : 'text-white'}`}>{playerName}</p>
+           <p className="text-[10px] sm:text-xs text-gray-400">{rankBadges[rank]} All-time rank</p>
+         </div>
+       </div>
+diff --git a/app/components/TeamStatsCard.tsx b/app/components/TeamStatsCard.tsx
+index d5ad272..972a640 100644
+--- a/app/components/TeamStatsCard.tsx
++++ b/app/components/TeamStatsCard.tsx
+@@ -38,14 +38,14 @@ export function TeamStatsCard({ stats, loading, error }: TeamStatsCardProps) {
+ 
+   if (!stats) {
+     return (
+-      <div className="bg-slate-800 rounded-lg p-3 sm:p-6 border border-blue-700 shadow-lg">
++      <div className="bg-slate-800 rounded-lg p-3 sm:p-6 border border-green-700 shadow-lg">
+         <p className="text-gray-300 text-xs sm:text-sm">No stats available</p>
+       </div>
+     );
+   }
+ 
+   const statsList = [
+-    { label: 'Total Matches', value: stats.totalMatches, color: 'from-blue-600 to-blue-700' },
++    { label: 'Total Matches', value: stats.totalMatches, color: 'from-green-600 to-green-700' },
+     { label: 'Wins', value: stats.wins, color: 'from-green-500 to-green-600' },
+     { label: 'Losses', value: stats.losses, color: 'from-red-500 to-red-600' },
+     { label: 'No Results', value: stats.noResults, color: 'from-gray-500 to-gray-600' },
+diff --git a/app/components/YearlyBattingStatsTable.tsx b/app/components/YearlyBattingStatsTable.tsx
+index cb38754..35c42f9 100644
+--- a/app/components/YearlyBattingStatsTable.tsx
++++ b/app/components/YearlyBattingStatsTable.tsx
+@@ -80,124 +80,124 @@ export function YearlyBattingStatsTable({ players, loading }: YearlyBattingStats
+       <h3 className="section-title text-white p-4 sm:p-6 pb-2 sm:pb-4">Batting Statistics</h3>
+       <div className="table-scroll">
+         <table className="w-full text-xs">
+-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
++          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
+             <tr>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('playerName')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('playerName')}>
+                 Player
+                 {sortField === 'playerName' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-500 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalMatches')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalMatches')}>
+                 Mat
+                 {sortField === 'totalMatches' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-500 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalInnings')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalInnings')}>
+                 Inn
+                 {sortField === 'totalInnings' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalRuns')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalRuns')}>
+                 Runs
+                 {sortField === 'totalRuns' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalBalls')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalBalls')}>
+                 Balls
+                 {sortField === 'totalBalls' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalZeros')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalZeros')}>
+                 0s
+                 {sortField === 'totalZeros' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('strikeRate')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('strikeRate')}>
+                 SR
+                 {sortField === 'strikeRate' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('average')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('average')}>
+                 Avg
+                 {sortField === 'average' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('notOuts')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('notOuts')}>
+                 NO
+                 {sortField === 'notOuts' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalFours')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalFours')}>
+                 4s
+                 {sortField === 'totalFours' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('totalSixes')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('totalSixes')}>
+                 6s
+                 {sortField === 'totalSixes' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('bestScore')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('bestScore')}>
+                 HS
+                 {sortField === 'bestScore' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('thirties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('thirties')}>
+                 30s
+                 {sortField === 'thirties' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('fifties')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('fifties')}>
+                 50s
+                 {sortField === 'fifties' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+               </th>
+-              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800" onClick={() => handleSort('ducks')}>
++              <th className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800" onClick={() => handleSort('ducks')}>
+                 Ducks
+                 {sortField === 'ducks' ? (
+-                  <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
++                  <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                 ) : (
+                   <span className="text-gray-400 ml-1">⇅</span>
+                 )}
+diff --git a/app/components/YearlyBowlingStatsTable.tsx b/app/components/YearlyBowlingStatsTable.tsx
+index a0a8cb0..e07e27b 100644
+--- a/app/components/YearlyBowlingStatsTable.tsx
++++ b/app/components/YearlyBowlingStatsTable.tsx
+@@ -201,7 +201,7 @@ export function YearlyBowlingStatsTable({ players, loading }: YearlyBowlingStats
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalMaidens}</td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-gray-300">{player.bowlingStats.totalWickets}</td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{player.bowlingStats.totalRuns}</td>
+-                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
++                  <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
+                   {calcEconomy(player.bowlingStats.totalRuns, player.bowlingStats.totalBalls).toFixed(1)}
+                 </td>
+                   <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-red-400">
+diff --git a/app/components/admin/ManualScorecardEntry.tsx b/app/components/admin/ManualScorecardEntry.tsx
+index 7d75f7b..19c594b 100644
+--- a/app/components/admin/ManualScorecardEntry.tsx
++++ b/app/components/admin/ManualScorecardEntry.tsx
+@@ -345,10 +345,10 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
+       {/* Batting Section */}
+       <div>
+         <div className="flex justify-between items-center mb-4">
+-          <h4 className="text-xl font-semibold text-blue-400">Batting Performances</h4>
++          <h4 className="text-xl font-semibold text-green-400">Batting Performances</h4>
+           <button 
+             onClick={addBattingRow}
+-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
++            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm transition-colors"
+           >
+             + Add Batter
+           </button>
+@@ -373,19 +373,19 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
+               
+               <div className="w-20">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
+-                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBattingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBattingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-20">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Balls</label>
+-                <input type="number" value={row.balls ?? ''} onChange={(e) => updateBattingRow(idx, 'balls', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.balls ?? ''} onChange={(e) => updateBattingRow(idx, 'balls', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-16">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">4s</label>
+-                <input type="number" value={row.fours ?? ''} onChange={(e) => updateBattingRow(idx, 'fours', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.fours ?? ''} onChange={(e) => updateBattingRow(idx, 'fours', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-16">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">6s</label>
+-                <input type="number" value={row.sixes ?? ''} onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.sixes ?? ''} onChange={(e) => updateBattingRow(idx, 'sixes', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-32">
+                 <CustomSelect
+@@ -445,19 +445,19 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
+               
+               <div className="w-24">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Overs</label>
+-                <input type="number" step="0.1" value={row.overs || ''} onChange={(e) => updateBowlingRow(idx, 'overs', e.target.value)} placeholder="e.g. 4.2" className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" step="0.1" value={row.overs || ''} onChange={(e) => updateBowlingRow(idx, 'overs', e.target.value)} placeholder="e.g. 4.2" className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-20">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Runs</label>
+-                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.runs ?? ''} onChange={(e) => updateBowlingRow(idx, 'runs', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-20">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Maidens</label>
+-                <input type="number" value={row.maidens ?? ''} onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.maidens ?? ''} onChange={(e) => updateBowlingRow(idx, 'maidens', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               <div className="w-20">
+                 <label className="block text-xs font-medium text-gray-300 mb-1">Wickets</label>
+-                <input type="number" value={row.wickets ?? ''} onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-blue-500 text-sm text-center" />
++                <input type="number" value={row.wickets ?? ''} onChange={(e) => updateBowlingRow(idx, 'wickets', e.target.value)} className="w-full px-2 py-2 bg-gray-600 border border-gray-500 text-white rounded focus:outline-none focus:border-green-500 text-sm text-center" />
+               </div>
+               
+               <button 
+@@ -481,7 +481,7 @@ export function ManualScorecardEntry({ onDataParsed }: ManualScorecardEntryProps
+       <div className="pt-6 mt-4 flex justify-end border-t border-gray-700">
+         <button
+           onClick={handleSubmit}
+-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
++          className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+         >
+           Generate Scorecard →
+         </button>
+diff --git a/app/components/admin/MatchDataForm.tsx b/app/components/admin/MatchDataForm.tsx
+index 5703b59..6e71151 100644
+--- a/app/components/admin/MatchDataForm.tsx
++++ b/app/components/admin/MatchDataForm.tsx
+@@ -399,7 +399,7 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
+                   onClick={() => handleMatchChange('result', res.val)}
+                   className={`flex-1 py-2.5 px-2 rounded-lg font-bold text-sm transition-all border ${
+                     match.result === res.val
+-                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
++                      ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-500/20'
+                       : 'bg-card border-border hover:bg-foreground/5'
+                   }`}
+                 >
+diff --git a/app/components/admin/MatchEditForm.tsx b/app/components/admin/MatchEditForm.tsx
+index d570b58..a93e2c7 100644
+--- a/app/components/admin/MatchEditForm.tsx
++++ b/app/components/admin/MatchEditForm.tsx
+@@ -378,7 +378,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+       {/* Match Details */}
+       <div className="bg-gray-800 rounded-2xl border border-gray-700 p-6 shadow-xl">
+         <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+-          <span className="w-1.5 h-6 bg-blue-500 rounded-full"></span>
++          <span className="w-1.5 h-6 bg-green-500 rounded-full"></span>
+           Match Details
+         </h3>
+ 
+@@ -389,7 +389,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+               label="Match Date"
+               value={match.date || ''}
+               onChange={(value) => handleMatchChange('date', value)}
+-              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+             />
+           </div>
+ 
+@@ -399,7 +399,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+               type="text"
+               value={match.opponent || ''}
+               onChange={(e) => handleMatchChange('opponent', e.target.value)}
+-              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+             />
+           </div>
+ 
+@@ -428,7 +428,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                   onClick={() => handleMatchChange('result', res.val)}
+                   className={`flex-1 py-2.5 px-2 rounded-xl font-bold text-sm transition-all border ${
+                     match.result === res.val
+-                      ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
++                      ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-500/20'
+                       : 'bg-gray-900 border-gray-700 text-gray-300 hover:bg-gray-800'
+                   }`}
+                 >
+@@ -449,7 +449,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                   const val = e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value)).toString();
+                   setWinMarginValue(val);
+                 }}
+-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+               />
+             </div>
+             <div>
+@@ -471,7 +471,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                 min="0"
+                 value={match.teamRuns ?? ''}
+                 onChange={(e) => handleMatchChange('teamRuns', e.target.value)}
+-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+               />
+             </div>
+             <div>
+@@ -481,7 +481,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                 min="0"
+                 value={match.teamWickets ?? ''}
+                 onChange={(e) => handleMatchChange('teamWickets', e.target.value)}
+-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+               />
+             </div>
+           </div>
+@@ -495,7 +495,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                 min="0"
+                 value={match.teamOversPlayed ?? ''}
+                 onChange={(e) => handleMatchChange('teamOversPlayed', e.target.value)}
+-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+               />
+             </div>
+             <div>
+@@ -506,7 +506,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                 min="0"
+                 value={match.opponentOversPlayed ?? ''}
+                 onChange={(e) => handleMatchChange('opponentOversPlayed', e.target.value)}
+-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-blue-500 transition-all"
++                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white outline-none focus:border-green-500 transition-all"
+               />
+             </div>
+           </div>
+@@ -546,7 +546,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.batting?.runs ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'runs', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -556,7 +556,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.batting?.balls ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'balls', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -566,7 +566,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.batting?.fours ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'fours', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -576,7 +576,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.batting?.sixes ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'batting', 'sixes', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div className="col-span-2 sm:col-span-4">
+@@ -639,7 +639,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.bowling?.overs ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'overs', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -649,7 +649,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.bowling?.maidens ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'maidens', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -659,7 +659,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.bowling?.wickets ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'wickets', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                       <div>
+@@ -669,7 +669,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+                           min="0"
+                           value={perf.bowling?.runs ?? ''}
+                           onChange={(e) => handlePerformanceChange(idx, 'bowling', 'runs', e.target.value)}
+-                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-blue-500"
++                          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-white text-center outline-none focus:border-green-500"
+                         />
+                       </div>
+                     </div>
+@@ -687,7 +687,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+               setAddPlayerType('batting');
+               setShowAddPlayerModal(true);
+             }}
+-            className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
++            className="flex-1 py-2.5 px-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+           >
+             <span>+ Add Batting Player</span>
+           </button>
+@@ -890,7 +890,7 @@ export function MatchEditForm({ initialMatch, initialPerformances }: MatchEditFo
+         <button
+           onClick={handleSubmit}
+           disabled={loading}
+-          className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-500/20"
++          className="flex-1 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-green-500/20"
+         >
+           {loading ? 'Saving...' : 'Save Changes'}
+         </button>
+diff --git a/app/components/admin/ScorecardUpload.tsx b/app/components/admin/ScorecardUpload.tsx
+index 1521846..4860395 100644
+--- a/app/components/admin/ScorecardUpload.tsx
++++ b/app/components/admin/ScorecardUpload.tsx
+@@ -640,7 +640,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
+           <input ref={battingInputRef} type="file" accept="image/*" onChange={(e) => handleImageSelect(e, 'batting')} className="hidden" />
+           <button
+             onClick={() => battingInputRef.current?.click()}
+-            className="w-full py-3 px-4 border-2 border-dashed border-blue-500 rounded-lg hover:bg-blue-900/20 transition-colors text-blue-300 hover:text-blue-200 font-medium text-sm"
++            className="w-full py-3 px-4 border-2 border-dashed border-green-500 rounded-lg hover:bg-green-900/20 transition-colors text-green-300 hover:text-green-200 font-medium text-sm"
+           >
+             {battingImage ? '✓ Change Batting Image' : '+ Upload Batting Image'}
+           </button>
+@@ -652,7 +652,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
+           )}
+ 
+           {battingImage && (
+-            <button onClick={handleParseBatting} disabled={isParsingBatting} className="mt-3 sm:mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
++            <button onClick={handleParseBatting} disabled={isParsingBatting} className="mt-3 sm:mt-4 w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
+               {isParsingBatting ? 'Parsing...' : 'Parse & Add Batters'}
+             </button>
+           )}
+@@ -687,10 +687,10 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
+       {/* Batting Performances */}
+       <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
+         <div className="flex justify-between items-center mb-3 sm:mb-4">
+-          <h4 className="card-title text-blue-400">Batting Performances</h4>
++          <h4 className="card-title text-green-400">Batting Performances</h4>
+           <button 
+             onClick={addBattingRow} 
+-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
++            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
+           >
+             + Add Batter
+           </button>
+@@ -761,7 +761,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
+                   id={`out-${idx}`} 
+                   checked={row.dismissed} 
+                   onChange={(e) => updateBattingRow(idx, 'dismissed', e.target.checked)} 
+-                  className="rounded border-gray-400 text-blue-600 focus:ring-blue-500" 
++                  className="rounded border-gray-400 text-green-600 focus:ring-green-500" 
+                 />
+                 <label htmlFor={`out-${idx}`} className="text-[10px] text-gray-300 font-medium">OUT</label>
+               </div>
+diff --git a/app/components/pwa/EndOfInningsScreen.tsx b/app/components/pwa/EndOfInningsScreen.tsx
+index e44d49e..d73039e 100644
+--- a/app/components/pwa/EndOfInningsScreen.tsx
++++ b/app/components/pwa/EndOfInningsScreen.tsx
+@@ -60,7 +60,7 @@ export const EndOfInningsScreen: React.FC<EndOfInningsScreenProps> = ({
+               </div>
+               <div className="text-right">
+                 <p className="text-slate-400 text-sm mb-1">Overs</p>
+-                <p className="text-3xl font-bold text-blue-400">
++                <p className="text-3xl font-bold text-green-400">
+                   {oversDisplay(innings.totalOversPlayed)}
+                 </p>
+               </div>
+diff --git a/app/components/pwa/LiveScorerPWA.tsx b/app/components/pwa/LiveScorerPWA.tsx
+index 1243c25..cb9ccb8 100644
+--- a/app/components/pwa/LiveScorerPWA.tsx
++++ b/app/components/pwa/LiveScorerPWA.tsx
+@@ -299,7 +299,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
+           </div>
+         </div>
+         {innings.target && (
+-          <p className="text-sm text-blue-600 font-semibold mt-1">
++          <p className="text-sm text-green-600 font-semibold mt-1">
+             Target: {innings.target} • Need {innings.target - totalRuns} from{' '}
+             {(oversPerMatch - totalOversPlayed).toFixed(1)} ov
+           </p>
+@@ -515,11 +515,11 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
+                 No Ball (+1)
+               </button>
+               <button onClick={() => handleExtraBall('bye', 1)}
+-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
++                className="py-4 px-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg min-h-[48px]">
+                 Bye (+1)
+               </button>
+               <button onClick={() => handleExtraBall('leg-bye', 1)}
+-                className="py-4 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg min-h-[48px]">
++                className="py-4 px-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg min-h-[48px]">
+                 Leg Bye (+1)
+               </button>
+             </div>
+@@ -566,7 +566,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
+               ? 'bg-emerald-600'
+               : toast.type === 'warning'
+               ? 'bg-orange-600'
+-              : 'bg-blue-600'
++              : 'bg-green-600'
+           }`}
+         >
+           {toast.message}
+diff --git a/app/components/pwa/MatchResultScreen.tsx b/app/components/pwa/MatchResultScreen.tsx
+index fa73db7..99f9926 100644
+--- a/app/components/pwa/MatchResultScreen.tsx
++++ b/app/components/pwa/MatchResultScreen.tsx
+@@ -37,7 +37,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
+ 
+   const getWinnerColor = (winner: string | undefined) => {
+     if (winner === 'ABC') return 'text-emerald-400';
+-    if (winner === 'Opponent') return 'text-blue-400';
++    if (winner === 'Opponent') return 'text-green-400';
+     return 'text-yellow-400';
+   };
+ 
+@@ -111,7 +111,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
+                   </p>
+                 </div>
+                 <div className="text-right">
+-                  <p className="text-3xl font-bold text-blue-400">
++                  <p className="text-3xl font-bold text-green-400">
+                     {innings2.totalRuns}
+                   </p>
+                   <p className="text-slate-400 text-sm">
+@@ -177,7 +177,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
+             {innings2 && (
+               <div>
+                 <p className="text-slate-400 mb-1">Highest Score (2nd)</p>
+-                <p className="font-bold text-lg text-blue-400">
++                <p className="font-bold text-lg text-green-400">
+                   {innings2.batsmen[0]?.runs || 0}
+                 </p>
+               </div>
+@@ -200,7 +200,7 @@ export const MatchResultScreen: React.FC<MatchResultScreenProps> = ({
+           <button
+             onClick={handleSave}
+             disabled={isLoading || isSaving || !onSaveMatch}
+-            className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors min-h-[48px] text-lg"
++            className="w-full py-4 px-4 bg-green-600 hover:bg-green-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-bold rounded-lg transition-colors min-h-[48px] text-lg"
+           >
+             {isSaving ? 'Saving...' : 'Save Match'}
+           </button>
+diff --git a/app/components/review-stats/RecentMatchesBatting.tsx b/app/components/review-stats/RecentMatchesBatting.tsx
+index 4bcddb9..ff54f9a 100644
+--- a/app/components/review-stats/RecentMatchesBatting.tsx
++++ b/app/components/review-stats/RecentMatchesBatting.tsx
+@@ -129,7 +129,7 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
+ 
+   const renderSortIndicator = (field: SortField) => {
+     if (sortField === field) {
+-      return <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
++      return <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+     }
+     return <span className="text-gray-500 ml-1">⇅</span>;
+   };
+@@ -200,7 +200,7 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
+               >
+                 <td className="px-4 py-3 font-bold text-white truncate max-w-[120px] sm:max-w-none">{stats.playerName}</td>
+                 <td className="px-3 py-3 text-center text-gray-400 font-medium">{stats.matches}</td>
+-                <td className="px-3 py-3 text-center font-bold text-blue-400">{stats.runs}</td>
++                <td className="px-3 py-3 text-center font-bold text-green-400">{stats.runs}</td>
+                 <td className="px-3 py-3 text-center text-gray-500">{stats.balls}</td>
+                 <td className="px-3 py-3 text-center text-gray-500">{stats.fours}</td>
+                 <td className="px-3 py-3 text-center text-gray-500">{stats.sixes}</td>
+diff --git a/app/components/review-stats/RecentMatchesBowling.tsx b/app/components/review-stats/RecentMatchesBowling.tsx
+index 658259f..9d8dac5 100644
+--- a/app/components/review-stats/RecentMatchesBowling.tsx
++++ b/app/components/review-stats/RecentMatchesBowling.tsx
+@@ -211,7 +211,7 @@ export function RecentMatchesBowling({ matches, performances, loading }: RecentM
+                 className="hover:bg-gray-700/30 transition-colors"
+               >
+                 <td 
+-                  className="px-4 py-3 font-bold text-white cursor-pointer hover:text-blue-400 transition-colors truncate max-w-[120px] sm:max-w-none"
++                  className="px-4 py-3 font-bold text-white cursor-pointer hover:text-green-400 transition-colors truncate max-w-[120px] sm:max-w-none"
+                   onClick={() => handlePlayerClick(stats.playerId)}
+                 >
+                   {stats.playerName}
+diff --git a/app/components/scorer/BallEntry.tsx b/app/components/scorer/BallEntry.tsx
+index fb82b35..44e0b62 100644
+--- a/app/components/scorer/BallEntry.tsx
++++ b/app/components/scorer/BallEntry.tsx
+@@ -142,7 +142,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
+               value={bowler}
+               onChange={(e) => setBowler(e.target.value)}
+               placeholder="e.g., Bowler 1"
+-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:opacity-40 focus:outline-none focus:border-blue-500"
++              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:opacity-40 focus:outline-none focus:border-green-500"
+             />
+           </div>
+         </div>
+@@ -157,8 +157,8 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
+                 onClick={() => handleQuickRun(r)}
+                 className={`p-2 rounded-lg font-semibold transition-colors ${
+                   runs === r.toString()
+-                    ? 'bg-blue-600 text-white'
+-                    : 'bg-background border border-border text-foreground hover:bg-blue-600/10'
++                    ? 'bg-green-600 text-white'
++                    : 'bg-background border border-border text-foreground hover:bg-green-600/10'
+                 }`}
+               >
+                 {r}
+@@ -208,7 +208,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
+                   min="0"
+                   value={extraRuns}
+                   onChange={(e) => setExtraRuns(e.target.value)}
+-                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
++                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-green-500"
+                 />
+               </div>
+             </div>
+@@ -272,7 +272,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
+                     value={wicketFielder}
+                     onChange={(e) => setWicketFielder(e.target.value)}
+                     placeholder="e.g., Fielder 1"
+-                    className="w-full px-2 py-1 bg-background border border-border rounded text-foreground placeholder:opacity-40 text-xs focus:outline-none focus:border-blue-500"
++                    className="w-full px-2 py-1 bg-background border border-border rounded text-foreground placeholder:opacity-40 text-xs focus:outline-none focus:border-green-500"
+                   />
+                 </div>
+               ) : null}
+@@ -292,7 +292,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
+           <button
+             onClick={handleUndo}
+             disabled={ballHistory.length === 0}
+-            className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-background disabled:border-border disabled:text-foreground/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors text-white"
++            className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-background disabled:border-border disabled:text-foreground/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors text-white"
+           >
+             Undo
+           </button>
+diff --git a/app/components/scorer/BatsmenDisplay.tsx b/app/components/scorer/BatsmenDisplay.tsx
+index 964bd7f..1c4bbc5 100644
+--- a/app/components/scorer/BatsmenDisplay.tsx
++++ b/app/components/scorer/BatsmenDisplay.tsx
+@@ -25,9 +25,9 @@ export function BatsmenDisplay() {
+     <div className="bg-white p-4 space-y-3">
+       {/* Striker Card */}
+       {currentInnings.striker && (
+-        <div className="p-3 bg-blue-100 rounded-lg border-2 border-blue-300">
++        <div className="p-3 bg-green-100 rounded-lg border-2 border-green-300">
+           <div className="font-bold text-lg mb-2">
+-            {currentInnings.striker.name} <span className="text-blue-600 text-xl">*</span>
++            {currentInnings.striker.name} <span className="text-green-600 text-xl">*</span>
+           </div>
+           <div className="grid grid-cols-6 gap-2 text-sm">
+             <div>
+diff --git a/app/components/scorer/LiveScorecard.tsx b/app/components/scorer/LiveScorecard.tsx
+index faef856..7a76ccf 100644
+--- a/app/components/scorer/LiveScorecard.tsx
++++ b/app/components/scorer/LiveScorecard.tsx
+@@ -54,21 +54,21 @@ export function LiveScorecard({ liveMatch, isChasing }: LiveScorecardProps) {
+ 
+       {/* Display Target if Chasing */}
+       {isChasing && currentInnings.target && (
+-        <div className="bg-blue-500/10 border border-blue-500/50 rounded-lg p-4">
++        <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-4">
+           <div className="grid grid-cols-3 gap-4">
+             <div className="text-center">
+               <p className="opacity-60 text-sm">Target</p>
+-              <p className="text-2xl font-bold text-blue-600">{currentInnings.target}</p>
++              <p className="text-2xl font-bold text-green-600">{currentInnings.target}</p>
+             </div>
+             <div className="text-center border-l border-r border-border">
+               <p className="opacity-60 text-sm">Need</p>
+-              <p className="text-2xl font-bold text-blue-600">
++              <p className="text-2xl font-bold text-green-600">
+                 {Math.max(0, currentInnings.target - currentInnings.totalRuns)}
+               </p>
+             </div>
+             <div className="text-center">
+               <p className="opacity-60 text-sm">Remaining</p>
+-              <p className="text-2xl font-bold text-blue-600">
++              <p className="text-2xl font-bold text-green-600">
+                 {Math.max(0, (liveMatch.totalOvers * 6) - currentInnings.totalBalls)} balls
+               </p>
+             </div>
+@@ -151,10 +151,10 @@ interface ScoreBoxProps {
+ 
+ function ScoreBox({ label, value, subtext, highlight, className = '' }: ScoreBoxProps) {
+   return (
+-    <div className={`${className} ${highlight ? 'bg-blue-600 border-blue-400 text-white' : 'bg-background/50 border-border'} border rounded-lg p-3 text-center`}>
+-      <p className={`text-xs sm:text-sm font-semibold uppercase ${highlight ? 'text-blue-100' : 'opacity-60'}`}>{label}</p>
++    <div className={`${className} ${highlight ? 'bg-green-600 border-green-400 text-white' : 'bg-background/50 border-border'} border rounded-lg p-3 text-center`}>
++      <p className={`text-xs sm:text-sm font-semibold uppercase ${highlight ? 'text-green-100' : 'opacity-60'}`}>{label}</p>
+       <p className={`text-lg sm:text-2xl font-bold ${highlight ? 'text-white' : 'text-foreground'}`}>{value}</p>
+-      {subtext && <p className={`text-xs mt-1 ${highlight ? 'text-blue-100' : 'opacity-60'}`}>{subtext}</p>}
++      {subtext && <p className={`text-xs mt-1 ${highlight ? 'text-green-100' : 'opacity-60'}`}>{subtext}</p>}
+     </div>
+   );
+ }
+diff --git a/app/components/scorer/LiveScorer.tsx b/app/components/scorer/LiveScorer.tsx
+index ed4c658..23af284 100644
+--- a/app/components/scorer/LiveScorer.tsx
++++ b/app/components/scorer/LiveScorer.tsx
+@@ -500,7 +500,7 @@ export function LiveScorer(props: LiveScorerProps) {
+         }
+         // Exactly 5 runs on NB - blue
+         if (runs === 5) {
+-          return 'bg-blue-600 border-blue-500'; // 5NB - blue
++          return 'bg-green-600 border-green-500'; // 5NB - blue
+         }
+       }
+       // All other runs on NB - amber
+@@ -516,7 +516,7 @@ export function LiveScorer(props: LiveScorerProps) {
+     if (ballStr.includes('6')) return 'bg-green-600 border-green-500';
+     
+     // Priority 9: 4 (always blue)
+-    if (ballStr.includes('4')) return 'bg-blue-600 border-blue-500';
++    if (ballStr.includes('4')) return 'bg-green-600 border-green-500';
+     
+     // Default: 0, 1, 2, 3 and other numbers - all gray
+     return 'bg-background border border-border opacity-40';
+@@ -538,7 +538,7 @@ export function LiveScorer(props: LiveScorerProps) {
+           <div className="w-20 flex justify-end gap-2">
+             <button
+               onClick={toggleTheme}
+-              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-blue-500 active:scale-90 shadow-sm"
++              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-green-500 active:scale-90 shadow-sm"
+               title="Toggle Theme"
+               aria-label="Toggle Theme"
+             >
+@@ -547,7 +547,7 @@ export function LiveScorer(props: LiveScorerProps) {
+                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                 </svg>
+               ) : (
+-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
++                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                 </svg>
+               )}
+@@ -555,7 +555,7 @@ export function LiveScorer(props: LiveScorerProps) {
+             {view !== 'scorer' && (
+               <button
+                 onClick={() => handleViewChange('scorer')}
+-                className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-blue-500 active:scale-90 shadow-sm"
++                className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-green-500 active:scale-90 shadow-sm"
+                 title="Back"
+                 aria-label="Back"
+               >
+@@ -589,9 +589,9 @@ export function LiveScorer(props: LiveScorerProps) {
+           </div>
+         )}
+         {/* Teams Container */}
+-        <div className="bg-card rounded py-1.5 px-2 mb-1 border border-blue-500/30">
++        <div className="bg-card rounded py-1.5 px-2 mb-1 border border-green-500/30">
+           {/* JMCC Row */}
+-          <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-blue-500/10 border-l-4 border-blue-500' : 'bg-card border-l-4 border-transparent'}`}>
++          <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-green-500/10 border-l-4 border-green-500' : 'bg-card border-l-4 border-transparent'}`}>
+             <p className="text-xs font-semibold">{teamName}</p>
+             <div className="flex items-center gap-2">
+               <p className="font-bold text-base">{usInnings?.totalRuns ?? 0}/{usInnings?.totalWickets ?? 0}</p>
+@@ -599,7 +599,7 @@ export function LiveScorer(props: LiveScorerProps) {
+             </div>
+           </div>
+           {/* OPPONENT Row */}
+-          <div className={`flex items-center justify-between text-xs rounded px-0 ${innings.battingTeam === 'Them' ? 'bg-blue-500/10 border-l-4 border-blue-500 -mx-2 px-2 py-1' : ''}`}>
++          <div className={`flex items-center justify-between text-xs rounded px-0 ${innings.battingTeam === 'Them' ? 'bg-green-500/10 border-l-4 border-green-500 -mx-2 px-2 py-1' : ''}`}>
+             <p className="text-xs font-semibold">{liveMatch.opponent}</p>
+             <div className="flex items-center gap-2">
+               <p className="font-bold text-base">{themInnings?.totalRuns ?? 0}/{themInnings?.totalWickets ?? 0}</p>
+@@ -609,7 +609,7 @@ export function LiveScorer(props: LiveScorerProps) {
+         </div>
+ 
+         {/* CRR, RRR, and Extras Row */}
+-        <div className="bg-card flex justify-between items-center mt-1 py-1 px-3 rounded border border-blue-500/30">
++        <div className="bg-card flex justify-between items-center mt-1 py-1 px-3 rounded border border-green-500/30">
+           <div className="flex items-center gap-1">
+             <p className="text-xs font-semibold">CRR:</p>
+             <p className="font-bold text-sm">{crr}</p>
+@@ -628,7 +628,7 @@ export function LiveScorer(props: LiveScorerProps) {
+ 
+         {/* Runs Required / Balls Remaining Row - Only for 2nd Innings */}
+         {innings.inningsNumber === 2 && (
+-          <div className="bg-card flex gap-2 justify-center items-center mt-1 py-1 rounded border border-blue-500/30">
++          <div className="bg-card flex gap-2 justify-center items-center mt-1 py-1 rounded border border-green-500/30">
+             <div className="flex items-center gap-1">
+               <p className="text-xs font-semibold">{runsRequired} runs required</p>
+             </div>
+@@ -659,7 +659,7 @@ export function LiveScorer(props: LiveScorerProps) {
+           {/* Row 1 - Batsman 1 */}
+           <div className={`flex items-center p-2 rounded mb-2 font-bold border-l-4 transition-colors ${
+             innings.striker?.id === positionedBatsman1Id 
+-              ? 'bg-blue-500/10 border-blue-500' 
++              ? 'bg-green-500/10 border-green-500' 
+               : 'bg-card border-transparent'
+           }`}>
+             <button
+@@ -668,7 +668,7 @@ export function LiveScorer(props: LiveScorerProps) {
+             >
+               <div className={`w-4 h-4 rounded-full border-2 ${
+                 innings.striker?.id === positionedBatsman1Id
+-                  ? 'border-blue-500 bg-blue-500'
++                  ? 'border-green-500 bg-green-500'
+                   : 'border-border bg-card'
+               }`}></div>
+             </button>
+@@ -685,7 +685,7 @@ export function LiveScorer(props: LiveScorerProps) {
+           {/* Row 2 - Batsman 2 */}
+           <div className={`flex items-center p-2 rounded font-bold border-l-4 transition-colors ${
+             innings.striker?.id === positionedBatsman2Id 
+-              ? 'bg-blue-500/10 border-blue-500' 
++              ? 'bg-green-500/10 border-green-500' 
+               : 'bg-card border-transparent'
+           }`}>
+             <button
+@@ -694,7 +694,7 @@ export function LiveScorer(props: LiveScorerProps) {
+             >
+               <div className={`w-4 h-4 rounded-full border-2 ${
+                 innings.striker?.id === positionedBatsman2Id
+-                  ? 'border-blue-500 bg-blue-500'
++                  ? 'border-green-500 bg-green-500'
+                   : 'border-border bg-card'
+               }`}></div>
+             </button>
+@@ -735,9 +735,9 @@ export function LiveScorer(props: LiveScorerProps) {
+           </div>
+           
+           {/* Current Bowler Row */}
+-          <div className="flex items-center bg-blue-500/10 p-2 rounded font-bold border-l-4 border-blue-500">
++          <div className="flex items-center bg-green-500/10 p-2 rounded font-bold border-l-4 border-green-500">
+             <div className="w-6 flex justify-center">
+-              <div className="w-4 h-4 rounded-full border-2 border-blue-500 bg-blue-500"></div>
++              <div className="w-4 h-4 rounded-full border-2 border-green-500 bg-green-500"></div>
+             </div>
+             <div className="w-36 truncate ml-2">{currentBowlerStats?.name || innings.currentBowler?.name || 'Bowler 1'}</div>
+             <div className="flex-1"></div>
+@@ -809,7 +809,7 @@ export function LiveScorer(props: LiveScorerProps) {
+         {/* Row 2: 5 4 6 W */}
+         <div className="grid grid-cols-4 gap-1">
+           <ScorerButton label="5" onClick={() => handleNumberClick(5)} disabled={scoringLocked} />
+-          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-blue-600 hover:bg-blue-700 text-white border-transparent" disabled={scoringLocked} />
++          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-green-600 hover:bg-green-700 text-white border-transparent" disabled={scoringLocked} />
+           <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-600 hover:bg-green-700 text-white border-transparent" disabled={scoringLocked} />
+           <ScorerButton label="W" onClick={() => handleWicketClick()} className="bg-red-600 hover:bg-red-700 text-white border-transparent" disabled={scoringLocked} />
+         </div>
+@@ -826,7 +826,7 @@ export function LiveScorer(props: LiveScorerProps) {
+         <div className="grid grid-cols-4 gap-1">
+           <ScorerButton label="5P" onClick={() => handlePenaltyRuns(5)} className="bg-violet-600 hover:bg-violet-700 text-white border-transparent" disabled={scoringLocked} />
+           <ScorerButton label="6+" onClick={() => handleSixPlusClick()} className="bg-violet-600 hover:bg-violet-700 text-white border-transparent" disabled={scoringLocked} />
+-          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-background border border-border text-foreground hover:bg-blue-500/10" disabled={scoringLocked} />
++          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-background border border-border text-foreground hover:bg-green-500/10" disabled={scoringLocked} />
+           <ScorerButton label="UNDO" onClick={() => handleUndo()} className="bg-purple-600 hover:bg-purple-700 text-white border-transparent" disabled={scoringLocked} />
+         </div>
+       </div>
+@@ -897,7 +897,7 @@ function ScorerButton({ label, onClick, className = '', disabled = false }: { la
+     <button
+       onClick={onClick}
+       disabled={disabled}
+-      className={`w-full py-3 rounded-xl font-black border-2 ${className || 'bg-background border-border text-foreground hover:bg-blue-600/5'} ${disabled ? 'opacity-40 cursor-not-allowed hover:bg-inherit' : 'active:scale-95 shadow-md active:shadow-sm'} transition-all`}
++      className={`w-full py-3 rounded-xl font-black border-2 ${className || 'bg-background border-border text-foreground hover:bg-green-600/5'} ${disabled ? 'opacity-40 cursor-not-allowed hover:bg-inherit' : 'active:scale-95 shadow-md active:shadow-sm'} transition-all`}
+     >
+       {label}
+     </button>
+diff --git a/app/components/scorer/LiveScorerUI.tsx b/app/components/scorer/LiveScorerUI.tsx
+index c0505f7..c1871a0 100644
+--- a/app/components/scorer/LiveScorerUI.tsx
++++ b/app/components/scorer/LiveScorerUI.tsx
+@@ -483,7 +483,7 @@ export function LiveScorerUI({
+             ))}
+             <button 
+               onClick={() => setShowCustomScore(true)}
+-              className="h-8 rounded-full border border-border bg-background text-foreground/60 font-bold text-sm hover:bg-blue-500/10"
++              className="h-8 rounded-full border border-border bg-background text-foreground/60 font-bold text-sm hover:bg-green-500/10"
+             >
+               ...
+             </button>
+@@ -624,7 +624,7 @@ function ExtraRunsDialog({ title, options, onSelect, onClose }: ExtraRunsDialogP
+         </div>
+         <button
+           onClick={onClose}
+-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
++          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
+         >
+           Cancel
+         </button>
+@@ -669,7 +669,7 @@ function WicketMenu({ onSelect, onClose }: WicketMenuProps) {
+         </div>
+         <button
+           onClick={onClose}
+-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
++          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
+         >
+           Cancel
+         </button>
+@@ -694,7 +694,7 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
+           type="number"
+           value={value}
+           onChange={(e) => setValue(e.target.value)}
+-          className="w-full px-4 py-2 bg-background border border-border rounded mb-4 text-lg font-semibold focus:outline-none focus:border-blue-500"
++          className="w-full px-4 py-2 bg-background border border-border rounded mb-4 text-lg font-semibold focus:outline-none focus:border-green-500"
+           placeholder="0"
+           min="0"
+         />
+@@ -709,7 +709,7 @@ function CustomScoreDialog({ onSubmit, onClose }: CustomScoreDialogProps) {
+           </button>
+           <button
+             onClick={onClose}
+-            className="px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold transition-colors"
++            className="px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold transition-colors"
+           >
+             Cancel
+           </button>
+@@ -758,7 +758,7 @@ function NewBatsmanModal({
+         </div>
+         <button
+           onClick={onClose}
+-          className="w-full mt-4 px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
++          className="w-full mt-4 px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
+         >
+           Close
+         </button>
+@@ -816,7 +816,7 @@ function ExtrasPanel({ innings, onClose }: ExtrasPanelProps) {
+         </div>
+         <button
+           onClick={onClose}
+-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
++          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
+         >
+           Close
+         </button>
+@@ -881,7 +881,7 @@ function PartnershipsPanel({ innings, onClose }: PartnershipsPanelProps) {
+         </div>
+         <button
+           onClick={onClose}
+-          className="w-full px-4 py-2 bg-background border border-border hover:bg-blue-500/10 rounded font-semibold text-sm transition-colors"
++          className="w-full px-4 py-2 bg-background border border-border hover:bg-green-500/10 rounded font-semibold text-sm transition-colors"
+         >
+           Close
+         </button>
+@@ -903,7 +903,7 @@ function CheckboxButton({ label, onClick, fullWidth }: CheckboxButtonProps) {
+   return (
+     <button
+       onClick={onClick}
+-      className={`h-8 rounded border border-blue-500/50 bg-blue-500/10 text-blue-600 font-semibold text-xs hover:bg-blue-500/20 transition-colors ${
++      className={`h-8 rounded border border-green-500/50 bg-green-500/10 text-green-600 font-semibold text-xs hover:bg-green-500/20 transition-colors ${
+         fullWidth ? 'w-full' : ''
+       }`}
+     >
+@@ -950,7 +950,7 @@ function NumberButton({ value, onClick }: NumberButtonProps) {
+   return (
+     <button
+       onClick={onClick}
+-      className="h-8 rounded-full bg-background border border-border hover:bg-blue-500/10 text-foreground font-bold text-sm transition-colors"
++      className="h-8 rounded-full bg-background border border-border hover:bg-green-500/10 text-foreground font-bold text-sm transition-colors"
+     >
+       {value}
+     </button>
+diff --git a/app/components/scorer/MatchSetup.tsx b/app/components/scorer/MatchSetup.tsx
+index 9086fd9..21b1a07 100644
+--- a/app/components/scorer/MatchSetup.tsx
++++ b/app/components/scorer/MatchSetup.tsx
+@@ -155,7 +155,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+             value={opponent}
+             onChange={(e) => setOpponent(e.target.value)}
+             placeholder="e.g., City Tigers"
+-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
++            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-green-500"
+           />
+         </div>
+ 
+@@ -234,7 +234,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+               value={totalOvers}
+               onChange={(e) => setTotalOvers(e.target.value)}
+               placeholder="20"
+-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
++              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-green-500"
+             />
+           </div>
+         </div>
+@@ -251,7 +251,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+           <button
+             type="button"
+             onClick={() => setStrikerOpen(!strikerOpen)}
+-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
++            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
+           >
+             <span>{striker ? striker.name : 'Select Striker'}</span>
+             <span>{strikerOpen ? '▼' : '▶'}</span>
+@@ -268,7 +268,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+                     setStrikerOpen(false);
+                   }}
+                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
+-                    striker?.id === player.id ? 'bg-blue-600' : ''
++                    striker?.id === player.id ? 'bg-green-600' : ''
+                   }`}
+                 >
+                   {player.name}
+@@ -309,7 +309,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+           <button
+             type="button"
+             onClick={() => setNonStrikerOpen(!nonStrikerOpen)}
+-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
++            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
+           >
+             <span>{nonStriker ? nonStriker.name : 'Select Non-Striker'}</span>
+             <span>{nonStrikerOpen ? '▼' : '▶'}</span>
+@@ -326,7 +326,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+                     setNonStrikerOpen(false);
+                   }}
+                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
+-                    nonStriker?.id === player.id ? 'bg-blue-600' : ''
++                    nonStriker?.id === player.id ? 'bg-green-600' : ''
+                   }`}
+                 >
+                   {player.name}
+@@ -367,7 +367,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+           <button
+             type="button"
+             onClick={() => setBowlerOpen(!bowlerOpen)}
+-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
++            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
+           >
+             <span>{bowler ? bowler.name : 'Select Bowler'}</span>
+             <span>{bowlerOpen ? '▼' : '▶'}</span>
+@@ -384,7 +384,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
+                     setBowlerOpen(false);
+                   }}
+                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
+-                    bowler?.id === player.id ? 'bg-blue-600' : ''
++                    bowler?.id === player.id ? 'bg-green-600' : ''
+                   }`}
+                 >
+                   {player.name}
+diff --git a/app/components/scorer/QuickBallEntry.tsx b/app/components/scorer/QuickBallEntry.tsx
+index a38d1fe..17d53d3 100644
+--- a/app/components/scorer/QuickBallEntry.tsx
++++ b/app/components/scorer/QuickBallEntry.tsx
+@@ -142,9 +142,9 @@ export function QuickBallEntry({
+               <span>SR: {striker.strikeRate.toFixed(1)}</span>
+             </div>
+           </div>
+-          <div className="bg-blue-900/20 border border-blue-600 rounded px-3 py-2">
++          <div className="bg-green-900/20 border border-green-600 rounded px-3 py-2">
+             <div className="flex justify-between items-center text-xs">
+-              <span className="font-bold text-blue-400">{nonStriker.name}</span>
++              <span className="font-bold text-green-400">{nonStriker.name}</span>
+               <span className="text-slate-400">{nonStriker.runs}({nonStriker.balls})</span>
+             </div>
+           </div>
+@@ -182,8 +182,8 @@ export function QuickBallEntry({
+             <p className="text-green-400 font-semibold">STRIKER</p>
+             <p className="text-xs text-white mt-1">{striker.name}</p>
+           </div>
+-          <div className="bg-blue-900/30 border border-blue-600 rounded p-2">
+-            <p className="text-blue-400 font-semibold">NON-STRIKER</p>
++          <div className="bg-green-900/30 border border-green-600 rounded p-2">
++            <p className="text-green-400 font-semibold">NON-STRIKER</p>
+             <p className="text-xs text-white mt-1">{nonStriker.name}</p>
+           </div>
+         </div>
+diff --git a/app/components/scorer/ScoreDisplay.tsx b/app/components/scorer/ScoreDisplay.tsx
+index 579f714..8a5b7e0 100644
+--- a/app/components/scorer/ScoreDisplay.tsx
++++ b/app/components/scorer/ScoreDisplay.tsx
+@@ -12,7 +12,7 @@ export function ScoreDisplay() {
+ 
+   if (!liveMatch || !currentInnings) {
+     return (
+-      <div className="bg-blue-600 text-white p-4 space-y-2">
++      <div className="bg-green-600 text-white p-4 space-y-2">
+         <p className="text-sm">No match in progress</p>
+       </div>
+     );
+@@ -23,7 +23,7 @@ export function ScoreDisplay() {
+ 
+   if (!firstInnings) {
+     return (
+-      <div className="bg-blue-600 text-white p-4 space-y-2">
++      <div className="bg-green-600 text-white p-4 space-y-2">
+         <p className="text-sm">Innings not initialized</p>
+       </div>
+     );
+@@ -50,7 +50,7 @@ export function ScoreDisplay() {
+   const extras = currentInnings.totalRuns - (currentInnings.striker?.runs || 0) - (currentInnings.nonStriker?.runs || 0);
+ 
+   return (
+-    <div className="bg-blue-600 text-white p-6 space-y-4">
++    <div className="bg-green-600 text-white p-6 space-y-4">
+       {/* First Inning Score */}
+       <div className="flex justify-between items-center text-sm">
+         <div className="flex-1">
+diff --git a/app/components/scorer/ScorecardDisplay.tsx b/app/components/scorer/ScorecardDisplay.tsx
+index 911144b..5d5961b 100644
+--- a/app/components/scorer/ScorecardDisplay.tsx
++++ b/app/components/scorer/ScorecardDisplay.tsx
+@@ -62,7 +62,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
+           </div>
+ 
+           <div>
+-            <div className="text-2xl font-bold text-blue-400">
++            <div className="text-2xl font-bold text-green-400">
+               {overs}.{balls}
+             </div>
+             <div className="text-xs text-slate-400">Overs</div>
+@@ -98,7 +98,7 @@ export function ScorecardDisplay({ liveMatch, teamPlayers }: ScorecardDisplayPro
+                         ? 'bg-slate-600 text-slate-300'
+                         : parseInt(displayRuns) >= 4
+                           ? 'bg-green-600 text-white'
+-                          : 'bg-blue-600 text-white'
++                          : 'bg-green-600 text-white'
+                   }`}
+                   title={`${ball.over}.${ball.ball}: ${ball.batter.name} vs ${ball.bowler.name}`}
+                 >
+diff --git a/app/components/scorer/ScorerLandingPage.tsx b/app/components/scorer/ScorerLandingPage.tsx
+index 642ec7b..4adf37d 100644
+--- a/app/components/scorer/ScorerLandingPage.tsx
++++ b/app/components/scorer/ScorerLandingPage.tsx
+@@ -160,8 +160,8 @@ function DropdownInputField({
+                     }}
+                     className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                       isSelected
+-                        ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+-                        : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
++                        ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
++                        : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
+                     }`}
+                   >
+                     {option.label}
+@@ -444,7 +444,7 @@ export function ScorerLandingPage({
+                 <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+               </svg>
+             ) : (
+-              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
++              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+               </svg>
+             )}
+@@ -458,7 +458,7 @@ export function ScorerLandingPage({
+             {/* Start New Match Button */}
+             <button
+               onClick={handleStartNewMatch}
+-              className="w-full px-6 py-4 bg-blue-700 hover:bg-blue-600 text-white text-lg font-bold rounded-lg transition-colors"
++              className="w-full px-6 py-4 bg-green-700 hover:bg-green-600 text-white text-lg font-bold rounded-lg transition-colors"
+             >
+               Start New Match
+             </button>
+@@ -467,7 +467,7 @@ export function ScorerLandingPage({
+             {hasMatchToResume && (
+               <button
+                 onClick={onResumeMatch}
+-                className="w-full px-6 py-4 bg-blue-700 hover:bg-blue-600 text-white text-lg font-bold rounded-lg transition-colors"
++                className="w-full px-6 py-4 bg-green-700 hover:bg-green-600 text-white text-lg font-bold rounded-lg transition-colors"
+               >
+                 Resume Match
+               </button>
+@@ -514,7 +514,7 @@ export function ScorerLandingPage({
+             {/* Back to Home Button */}
+             <button
+               onClick={() => router.push('/')}
+-              className="w-full px-6 py-4 bg-card hover:bg-blue-600/10 text-foreground text-lg font-bold rounded-lg transition-colors border border-border"
++              className="w-full px-6 py-4 bg-card hover:bg-green-600/10 text-foreground text-lg font-bold rounded-lg transition-colors border border-border"
+             >
+               Back to Home
+             </button>
+@@ -530,7 +530,7 @@ export function ScorerLandingPage({
+       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
+         <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
+           <div className="mb-6">
+-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
++            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
+             <div className="mt-2">
+               <h1 className="text-2xl font-bold">Match Details</h1>
+             </div>
+@@ -687,15 +687,15 @@ export function ScorerLandingPage({
+       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-y-auto">
+         <div className="w-full max-w-xl my-8 rounded-2xl border border-border bg-card p-6 shadow-2xl backdrop-blur-sm sm:p-8">
+           <div className="mb-6">
+-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
++            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
+             <div className="mt-2">
+               <h1 className="text-2xl font-bold">Player Selection</h1>
+             </div>
+           </div>
+ 
+           <form onSubmit={handlePlayerSelection} className="space-y-5">
+-            <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 p-4">
+-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-500 opacity-80">Batting Team</p>
++            <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-4">
++              <p className="text-xs font-semibold uppercase tracking-wide text-green-500 opacity-80">Batting Team</p>
+               <p className="mt-1 text-lg font-semibold">🏏 {battingTeamName}</p>
+             </div>
+ 
+@@ -722,8 +722,8 @@ export function ScorerLandingPage({
+                         }}
+                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                           striker?.id === player.id
+-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+-                            : 'border-border bg-background text-foreground hover:border-blue-500/50'
++                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
++                            : 'border-border bg-background text-foreground hover:border-green-500/50'
+                         }`}
+                       >
+                         {player.name}
+@@ -778,8 +778,8 @@ export function ScorerLandingPage({
+                         }}
+                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                           nonStriker?.id === player.id
+-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+-                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
++                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
++                            : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
+                         }`}
+                       >
+                         {player.name}
+@@ -839,8 +839,8 @@ export function ScorerLandingPage({
+                         }}
+                         className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                           bowler?.id === player.id
+-                            ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+-                            : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
++                            ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
++                            : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
+                         }`}
+                       >
+                         {player.name}
+diff --git a/app/components/scorer/ScorerMenu.tsx b/app/components/scorer/ScorerMenu.tsx
+index 3c4fe93..203ada2 100644
+--- a/app/components/scorer/ScorerMenu.tsx
++++ b/app/components/scorer/ScorerMenu.tsx
+@@ -54,8 +54,8 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
+               }}
+               className={`w-full text-left px-4 py-3 rounded-xl transition-all font-black flex items-center gap-3 border-2 shadow-sm active:scale-95 ${
+                 currentView === item.id
+-                  ? 'bg-blue-600 text-white border-transparent'
+-                  : 'bg-background text-foreground border-border hover:bg-blue-600/5'
++                  ? 'bg-green-600 text-white border-transparent'
++                  : 'bg-background text-foreground border-border hover:bg-green-600/5'
+               }`}
+             >
+               <span className="text-lg">{item.icon}</span>
+@@ -67,7 +67,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
+         {/* Close Button */}
+         <button
+           onClick={() => setIsOpen(false)}
+-          className="absolute top-4 right-4 text-foreground hover:bg-blue-600/10 p-2 rounded transition-colors"
++          className="absolute top-4 right-4 text-foreground hover:bg-green-600/10 p-2 rounded transition-colors"
+         >
+           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+@@ -78,7 +78,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
+       {/* Hamburger Button */}
+       <button
+         onClick={() => setIsOpen(!isOpen)}
+-        className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-500/10 text-blue-600 transition-all hover:bg-blue-500/20 active:scale-90"
++        className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-green-500 bg-green-500/10 text-green-600 transition-all hover:bg-green-500/20 active:scale-90"
+         title="Menu"
+         aria-label="Menu"
+       >
+diff --git a/app/components/scorer/dialogs/BatterDropdownSelect.tsx b/app/components/scorer/dialogs/BatterDropdownSelect.tsx
+index 7163c47..f4775aa 100644
+--- a/app/components/scorer/dialogs/BatterDropdownSelect.tsx
++++ b/app/components/scorer/dialogs/BatterDropdownSelect.tsx
+@@ -88,7 +88,7 @@ export function BatterDropdownSelect({
+                             </span>
+                           )}
+                           {isSelected && (
+-                            <span className="rounded-full border border-blue-500/50 bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
++                            <span className="rounded-full border border-green-500/50 bg-green-500/10 px-2 py-0.5 text-[11px] font-semibold text-green-500">
+                               Selected
+                             </span>
+                           )}
+diff --git a/app/components/scorer/dialogs/BowlerDropdownSelect.tsx b/app/components/scorer/dialogs/BowlerDropdownSelect.tsx
+index 502b861..c66fb63 100644
+--- a/app/components/scorer/dialogs/BowlerDropdownSelect.tsx
++++ b/app/components/scorer/dialogs/BowlerDropdownSelect.tsx
+@@ -91,7 +91,7 @@ export function BowlerDropdownSelect({
+                             </span>
+                           )}
+                           {isSelected && (
+-                            <span className="rounded-full border border-blue-500/50 bg-blue-500/10 px-2 py-0.5 text-[11px] font-semibold text-blue-500">
++                            <span className="rounded-full border border-green-500/50 bg-green-500/10 px-2 py-0.5 text-[11px] font-semibold text-green-500">
+                               Selected
+                             </span>
+                           )}
+diff --git a/app/components/scorer/dialogs/ExtraDialog.tsx b/app/components/scorer/dialogs/ExtraDialog.tsx
+index 628bac8..82b6bc3 100644
+--- a/app/components/scorer/dialogs/ExtraDialog.tsx
++++ b/app/components/scorer/dialogs/ExtraDialog.tsx
+@@ -115,8 +115,8 @@ export function ExtraDialog() {
+                 key={type}
+                 className={`flex cursor-pointer items-center rounded-xl border-2 px-3 py-3 transition-all ${
+                   selectedRunType === type
+-                    ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+-                    : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
++                    ? 'border-green-500 bg-green-500/10 text-green-600'
++                    : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-600/5'
+                 }`}
+                 onClick={() => setSelectedRunType(type as 'leg-bye' | 'bye' | 'none')}
+               >
+@@ -126,7 +126,7 @@ export function ExtraDialog() {
+                   value={type}
+                   checked={selectedRunType === type}
+                   onChange={() => setSelectedRunType(type as 'leg-bye' | 'bye' | 'none')}
+-                  className="mr-3 h-4 w-4 accent-blue-500"
++                  className="mr-3 h-4 w-4 accent-green-500"
+                 />
+                 <span className="font-medium">
+                   {type === 'leg-bye' ? 'Leg Bye' : type === 'bye' ? 'Bye' : 'None'}
+diff --git a/app/components/scorer/dialogs/ManualBowlingStatsDialog.tsx b/app/components/scorer/dialogs/ManualBowlingStatsDialog.tsx
+index 2a1fb70..c838676 100644
+--- a/app/components/scorer/dialogs/ManualBowlingStatsDialog.tsx
++++ b/app/components/scorer/dialogs/ManualBowlingStatsDialog.tsx
+@@ -142,7 +142,7 @@ export function ManualBowlingStatsDialog() {
+                       value={bowler.overs ?? ''}
+                       onChange={(e) => updateBowler(index, 'overs', e.target.value)}
+                       onFocus={() => handleFieldFocus(index, 'overs')}
+-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
++                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
+                     />
+                   </div>
+                   <div>
+@@ -152,7 +152,7 @@ export function ManualBowlingStatsDialog() {
+                       value={bowler.maidens ?? ''}
+                       onChange={(e) => updateBowler(index, 'maidens', e.target.value)}
+                       onFocus={() => handleFieldFocus(index, 'maidens')}
+-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
++                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
+                     />
+                   </div>
+                   <div>
+@@ -162,7 +162,7 @@ export function ManualBowlingStatsDialog() {
+                       value={bowler.runs ?? ''}
+                       onChange={(e) => updateBowler(index, 'runs', e.target.value)}
+                       onFocus={() => handleFieldFocus(index, 'runs')}
+-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
++                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
+                     />
+                   </div>
+                   <div>
+@@ -172,7 +172,7 @@ export function ManualBowlingStatsDialog() {
+                       value={bowler.wickets ?? ''}
+                       onChange={(e) => updateBowler(index, 'wickets', e.target.value)}
+                       onFocus={() => handleFieldFocus(index, 'wickets')}
+-                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-blue-500 text-center"
++                      className="w-full bg-background border border-border rounded p-2 text-sm text-foreground focus:outline-none focus:border-green-500 text-center"
+                     />
+                   </div>
+                 </div>
+@@ -182,7 +182,7 @@ export function ManualBowlingStatsDialog() {
+           
+           <button
+             onClick={handleAddBowler}
+-            className="w-full py-2 border-2 border-dashed border-border rounded-lg opacity-40 hover:opacity-100 hover:border-blue-500 transition-all text-sm font-medium"
++            className="w-full py-2 border-2 border-dashed border-border rounded-lg opacity-40 hover:opacity-100 hover:border-green-500 transition-all text-sm font-medium"
+           >
+             + Add Another Bowler
+           </button>
+@@ -197,7 +197,7 @@ export function ManualBowlingStatsDialog() {
+           </button>
+           <button
+             onClick={handleSave}
+-            className="flex-1 px-4 py-2.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-blue-500/20"
++            className="flex-1 px-4 py-2.5 text-sm bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-green-500/20"
+           >
+             Continue to Upload
+           </button>
+diff --git a/app/components/scorer/dialogs/MatchDetailsDialog.tsx b/app/components/scorer/dialogs/MatchDetailsDialog.tsx
+index c1b817e..320b374 100644
+--- a/app/components/scorer/dialogs/MatchDetailsDialog.tsx
++++ b/app/components/scorer/dialogs/MatchDetailsDialog.tsx
+@@ -123,8 +123,8 @@ function DropdownInputField({
+                   }}
+                   className={`w-full rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition-all ${
+                     isSelected
+-                      ? 'border-blue-500 bg-blue-500/10 text-blue-500 shadow-sm'
+-                      : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-500/5'
++                      ? 'border-green-500 bg-green-500/10 text-green-500 shadow-sm'
++                      : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-500/5'
+                   }`}
+                 >
+                   {option.label}
+@@ -205,7 +205,7 @@ export function MatchDetailsDialog() {
+     <div className={modalOverlayClass}>
+       <div className={`${modalPanelClass} w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 sm:p-6`}>
+         <div className="mb-5">
+-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500 opacity-80">Live Scorer</p>
++          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-green-500 opacity-80">Live Scorer</p>
+           <h2 className="mt-2 text-xl font-bold">Change Match Details</h2>
+         </div>
+ 
+diff --git a/app/components/scorer/dialogs/NewBatsmanDialog.tsx b/app/components/scorer/dialogs/NewBatsmanDialog.tsx
+index ae38cb0..e85fb8e 100644
+--- a/app/components/scorer/dialogs/NewBatsmanDialog.tsx
++++ b/app/components/scorer/dialogs/NewBatsmanDialog.tsx
+@@ -100,8 +100,8 @@ export function NewBatsmanDialog() {
+             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
+               currentInnings.striker?.balls === 0
+                 ? dismissedBatsmanRole === 'striker'
+-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+-                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
++                  ? 'border-green-500 bg-green-500/10 text-green-600'
++                  : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-600/5'
+                 : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
+             }`}
+           >
+@@ -117,8 +117,8 @@ export function NewBatsmanDialog() {
+             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
+               currentInnings.nonStriker?.balls === 0
+                 ? dismissedBatsmanRole === 'non-striker'
+-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+-                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
++                  ? 'border-green-500 bg-green-500/10 text-green-600'
++                  : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-600/5'
+                 : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
+             }`}
+           >
+diff --git a/app/components/scorer/dialogs/OptionsDialog.tsx b/app/components/scorer/dialogs/OptionsDialog.tsx
+index 37efa05..705a093 100644
+--- a/app/components/scorer/dialogs/OptionsDialog.tsx
++++ b/app/components/scorer/dialogs/OptionsDialog.tsx
+@@ -134,7 +134,7 @@ export function OptionsDialog() {
+               disabled={!option.enabled}
+               className={`w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-black transition-all ${
+                 option.enabled
+-                  ? 'border-border bg-background text-foreground hover:border-blue-500 hover:bg-blue-600/5 hover:scale-[1.01] active:scale-[0.98]'
++                  ? 'border-border bg-background text-foreground hover:border-green-500 hover:bg-green-600/5 hover:scale-[1.01] active:scale-[0.98]'
+                   : 'cursor-not-allowed border-border/50 bg-background/50 text-foreground/30 opacity-40'
+               }`}
+             >
+diff --git a/app/components/scorer/dialogs/OverEndPopup.tsx b/app/components/scorer/dialogs/OverEndPopup.tsx
+index 2b8341e..33785d0 100644
+--- a/app/components/scorer/dialogs/OverEndPopup.tsx
++++ b/app/components/scorer/dialogs/OverEndPopup.tsx
+@@ -119,7 +119,7 @@ export function OverEndPopup() {
+         </div>
+         
+         <div className="mb-4 space-y-2">
+-          <div className="flex items-center justify-between rounded-xl border-2 border-blue-500 bg-blue-500/10 p-3 shadow-sm">
++          <div className="flex items-center justify-between rounded-xl border-2 border-green-500 bg-green-500/10 p-3 shadow-sm">
+             <span className="font-black text-foreground">{currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent}</span>
+             <div className="text-center leading-tight text-foreground">
+               <div className="text-xl font-black">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
+@@ -134,7 +134,7 @@ export function OverEndPopup() {
+             <div className={`${infoCardClass} space-y-2 border-2`}>
+               <div className="flex justify-between items-center">
+                 <span className="font-bold opacity-70">Runs Required:</span>
+-                <span className="font-black text-lg text-blue-600">{runsRequired}</span>
++                <span className="font-black text-lg text-green-600">{runsRequired}</span>
+               </div>
+               <div className="flex justify-between items-center">
+                 <span className="font-bold opacity-70">Balls Remaining:</span>
+diff --git a/app/components/scorer/dialogs/RunOutDialog.tsx b/app/components/scorer/dialogs/RunOutDialog.tsx
+index 3db537d..0eb230a 100644
+--- a/app/components/scorer/dialogs/RunOutDialog.tsx
++++ b/app/components/scorer/dialogs/RunOutDialog.tsx
+@@ -129,7 +129,7 @@ export function RunOutDialog() {
+             <div className="space-y-2">
+               <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
+                 batsmanOut === 'striker'
+-                  ? 'border-blue-500 bg-blue-900/40 text-white'
++                  ? 'border-green-500 bg-green-900/40 text-white'
+                   : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+               }`}>
+                 <input
+@@ -138,14 +138,14 @@ export function RunOutDialog() {
+                   value="striker"
+                   checked={batsmanOut === 'striker'}
+                   onChange={() => setBatsmanOut('striker')}
+-                  className="h-4 w-4 accent-blue-500"
++                  className="h-4 w-4 accent-green-500"
+                 />
+                 <span className="ml-3 font-medium">{strikerName}</span>
+               </label>
+ 
+               <label className={`flex cursor-pointer items-center rounded-xl border px-3 py-3 transition-all ${
+                 batsmanOut === 'non-striker'
+-                  ? 'border-blue-500 bg-blue-900/40 text-white'
++                  ? 'border-green-500 bg-green-900/40 text-white'
+                   : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+               }`}>
+                 <input
+@@ -154,7 +154,7 @@ export function RunOutDialog() {
+                   value="non-striker"
+                   checked={batsmanOut === 'non-striker'}
+                   onChange={() => setBatsmanOut('non-striker')}
+-                  className="h-4 w-4 accent-blue-500"
++                  className="h-4 w-4 accent-green-500"
+                 />
+                 <span className="ml-3 font-medium">{nonStrikerName}</span>
+               </label>
+@@ -214,7 +214,7 @@ export function RunOutDialog() {
+                   key={option.value}
+                   className={`flex cursor-pointer items-center rounded-xl border px-3 py-2.5 transition-all ${
+                     ballType === option.value
+-                      ? 'border-blue-500 bg-blue-900/40 text-white'
++                      ? 'border-green-500 bg-green-900/40 text-white'
+                       : 'border-slate-700 bg-slate-800 text-slate-200 hover:border-slate-500 hover:bg-slate-700'
+                   } ${option.value === 'regular' ? 'col-span-2' : ''}`}
+                 >
+@@ -224,7 +224,7 @@ export function RunOutDialog() {
+                     value={option.value}
+                     checked={ballType === option.value}
+                     onChange={() => setBallType(option.value as 'wide' | 'leg-bye' | 'bye' | 'no-ball' | 'regular')}
+-                    className="h-4 w-4 accent-blue-500"
++                    className="h-4 w-4 accent-green-500"
+                   />
+                   <span className="ml-3 text-sm font-medium">{option.label}</span>
+                 </label>
+diff --git a/app/components/scorer/dialogs/SixPlusDialog.tsx b/app/components/scorer/dialogs/SixPlusDialog.tsx
+index 82121b3..1a78dde 100644
+--- a/app/components/scorer/dialogs/SixPlusDialog.tsx
++++ b/app/components/scorer/dialogs/SixPlusDialog.tsx
+@@ -97,7 +97,7 @@ export function SixPlusDialog() {
+             <label
+               className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
+                 selectedType === 'none'
+-                  ? 'border-blue-500 bg-blue-900/40 text-white'
++                  ? 'border-green-500 bg-green-900/40 text-white'
+                   : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+               }`}
+             >
+@@ -107,7 +107,7 @@ export function SixPlusDialog() {
+                 value="none"
+                 checked={selectedType === 'none'}
+                 onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
+-                className="h-4 w-4 accent-blue-500"
++                className="h-4 w-4 accent-green-500"
+               />
+               <span className="text-sm">Regular Runs (Off Bat)</span>
+             </label>
+@@ -121,7 +121,7 @@ export function SixPlusDialog() {
+                   key={option.value}
+                   className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
+                     selectedType === option.value
+-                      ? 'border-blue-500 bg-blue-900/40 text-white'
++                      ? 'border-green-500 bg-green-900/40 text-white'
+                       : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                   }`}
+                 >
+@@ -131,7 +131,7 @@ export function SixPlusDialog() {
+                     value={option.value}
+                     checked={selectedType === option.value}
+                     onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
+-                    className="h-4 w-4 accent-blue-500"
++                    className="h-4 w-4 accent-green-500"
+                   />
+                   <span className="text-sm">{option.label}</span>
+                 </label>
+@@ -147,7 +147,7 @@ export function SixPlusDialog() {
+                   key={option.value}
+                   className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 transition-all ${
+                     selectedType === option.value
+-                      ? 'border-blue-500 bg-blue-900/40 text-white'
++                      ? 'border-green-500 bg-green-900/40 text-white'
+                       : 'border-slate-700 bg-slate-800 text-slate-100 hover:border-slate-500 hover:bg-slate-700'
+                   }`}
+                 >
+@@ -157,7 +157,7 @@ export function SixPlusDialog() {
+                     value={option.value}
+                     checked={selectedType === option.value}
+                     onChange={(e) => setSelectedType(e.target.value as 'none' | 'bye' | 'leg-bye' | 'wide' | 'no-ball')}
+-                    className="h-4 w-4 accent-blue-500"
++                    className="h-4 w-4 accent-green-500"
+                   />
+                   <span className="text-sm">{option.label}</span>
+                 </label>
+diff --git a/app/components/scorer/dialogs/UploadConfirmDialog.tsx b/app/components/scorer/dialogs/UploadConfirmDialog.tsx
+index c5baf06..2243e8e 100644
+--- a/app/components/scorer/dialogs/UploadConfirmDialog.tsx
++++ b/app/components/scorer/dialogs/UploadConfirmDialog.tsx
+@@ -207,7 +207,7 @@ export function UploadConfirmDialog() {
+                       onClick={() => setResult(res.val as any)}
+                       className={`flex-1 py-2 px-2 rounded-lg font-bold text-xs transition-all border ${
+                         result === res.val
+-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20'
++                          ? 'bg-green-600 border-green-600 text-white shadow-md shadow-green-500/20'
+                           : 'bg-card border-border hover:bg-foreground/5'
+                       }`}
+                     >
+diff --git a/app/components/scorer/dialogs/WicketDialog.tsx b/app/components/scorer/dialogs/WicketDialog.tsx
+index 78ef11e..4a089c1 100644
+--- a/app/components/scorer/dialogs/WicketDialog.tsx
++++ b/app/components/scorer/dialogs/WicketDialog.tsx
+@@ -147,7 +147,7 @@ export function WicketDialog() {
+                 <button
+                   key={item.mode}
+                   onClick={() => handleOtherDismissal(item.mode, item.needsSpecialFlow)}
+-                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-left text-sm font-black text-foreground transition-all hover:border-blue-500 hover:bg-blue-600/5 active:scale-[0.98]"
++                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-left text-sm font-black text-foreground transition-all hover:border-green-500 hover:bg-green-600/5 active:scale-[0.98]"
+                 >
+                   {item.label}
+                 </button>
+diff --git a/app/components/scorer/dialogs/dialogTheme.ts b/app/components/scorer/dialogs/dialogTheme.ts
+index 9810295..ff447f3 100644
+--- a/app/components/scorer/dialogs/dialogTheme.ts
++++ b/app/components/scorer/dialogs/dialogTheme.ts
+@@ -1,7 +1,7 @@
+ export const modalOverlayClass = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md';
+ export const modalPanelClass = 'rounded-3xl border border-border bg-card text-foreground shadow-2xl';
+ export const modalHeaderClass = 'mb-6';
+-export const modalEyebrowClass = 'text-xs font-bold uppercase tracking-[0.2em] text-blue-500 opacity-90';
++export const modalEyebrowClass = 'text-xs font-bold uppercase tracking-[0.2em] text-green-500 opacity-90';
+ export const modalTitleClass = 'mt-2 text-2xl font-black tracking-tight';
+ export const modalDescriptionClass = 'mt-1.5 text-sm opacity-60 leading-relaxed';
+ 
+@@ -9,15 +9,15 @@ export const sectionLabelClass = 'mb-2.5 text-[10px] font-bold uppercase trackin
+ export const formLabelClass = 'mb-2 block text-sm font-bold opacity-90';
+ export const helperTextClass = 'text-xs opacity-60';
+ export const infoCardClass = 'rounded-2xl border border-border bg-background/40 p-4';
+-export const optionCardClass = 'rounded-2xl border border-border bg-background px-4 py-3.5 text-left text-sm font-bold transition-all hover:border-blue-500 hover:shadow-md active:scale-[0.98]';
+-export const optionCardSelectedClass = 'border-blue-500 bg-blue-500/10 text-blue-600 shadow-sm';
++export const optionCardClass = 'rounded-2xl border border-border bg-background px-4 py-3.5 text-left text-sm font-bold transition-all hover:border-green-500 hover:shadow-md active:scale-[0.98]';
++export const optionCardSelectedClass = 'border-green-500 bg-green-500/10 text-green-600 shadow-sm';
+ 
+-export const inputClass = 'w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground text-sm font-bold placeholder:text-foreground/30 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm';
++export const inputClass = 'w-full px-4 py-3 bg-background border-2 border-border rounded-xl text-foreground text-sm font-bold placeholder:text-foreground/30 focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all shadow-sm';
+ export const selectSurfaceClass = 'space-y-1.5 max-h-60 overflow-y-auto rounded-2xl border-2 border-border bg-card p-2.5 shadow-2xl';
+-export const selectItemClass = 'w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-black transition-all border-transparent bg-background/50 text-foreground hover:border-blue-500/50 hover:bg-blue-500/5 hover:scale-[1.02] active:scale-[0.98]';
+-export const selectItemSelectedClass = 'border-blue-500 bg-blue-500/10 text-blue-600 shadow-sm scale-[1.02]';
++export const selectItemClass = 'w-full rounded-xl border-2 px-4 py-3 text-left text-sm font-black transition-all border-transparent bg-background/50 text-foreground hover:border-green-500/50 hover:bg-green-500/5 hover:scale-[1.02] active:scale-[0.98]';
++export const selectItemSelectedClass = 'border-green-500 bg-green-500/10 text-green-600 shadow-sm scale-[1.02]';
+ 
+-export const primaryButtonClass = 'bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl border-2 border-transparent transition-all shadow-lg shadow-blue-500/25 active:scale-95 py-3.5';
++export const primaryButtonClass = 'bg-green-600 hover:bg-green-700 text-white font-black rounded-xl border-2 border-transparent transition-all shadow-lg shadow-green-500/25 active:scale-95 py-3.5';
+ export const secondaryButtonClass = 'bg-background border-2 border-border text-foreground hover:bg-foreground/5 font-black rounded-xl transition-all active:scale-95 py-3.5 shadow-md active:shadow-sm';
+ export const accentButtonClass = 'bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl border-2 border-transparent transition-all shadow-lg shadow-amber-500/25 active:scale-95 py-3.5';
+ export const dangerButtonClass = 'bg-red-600 hover:bg-red-700 text-white font-black rounded-xl border-2 border-transparent transition-all shadow-lg shadow-red-500/25 active:scale-95 py-3.5';
+diff --git a/app/components/scorer/review-screens/BattingScorecard.tsx b/app/components/scorer/review-screens/BattingScorecard.tsx
+index 1677c15..58bdb4c 100644
+--- a/app/components/scorer/review-screens/BattingScorecard.tsx
++++ b/app/components/scorer/review-screens/BattingScorecard.tsx
+@@ -66,7 +66,7 @@ export function BattingScorecard() {
+       <div>
+         <div className="overflow-hidden border-2 border-border rounded-lg shadow-sm">
+           <table className="w-full text-xs">
+-            <thead className="bg-blue-600 text-white">
++            <thead className="bg-green-600 text-white">
+               <tr>
+                 <th className="px-2 py-2.5 text-left font-black uppercase tracking-wider">Batsman</th>
+                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">R</th>
+@@ -81,7 +81,7 @@ export function BattingScorecard() {
+               {allBatsmen.map((batsman) => (
+                 <tr
+                   key={batsman.id}
+-                  className={`border-b border-border/50 ${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-blue-500/10' : 'bg-background'}`}
++                  className={`border-b border-border/50 ${batsman.status === 'batting' && batsman.dismissal?.mode !== 'retired-hurt' ? 'bg-green-500/10' : 'bg-background'}`}
+                 >
+                   <td className="px-2 py-2.5">
+                     <div className="font-black text-foreground text-xs">{batsman.name}</div>
+diff --git a/app/components/scorer/review-screens/BowlingScorecard.tsx b/app/components/scorer/review-screens/BowlingScorecard.tsx
+index 74bfdf0..411eefb 100644
+--- a/app/components/scorer/review-screens/BowlingScorecard.tsx
++++ b/app/components/scorer/review-screens/BowlingScorecard.tsx
+@@ -47,7 +47,7 @@ export function BowlingScorecard() {
+       <div>
+         <div className="overflow-hidden border-2 border-border rounded-lg shadow-sm">
+           <table className="w-full text-xs">
+-            <thead className="bg-blue-600 text-white">
++            <thead className="bg-green-600 text-white">
+               <tr>
+                 <th className="px-2 py-2.5 text-left font-black uppercase tracking-wider">Bowler</th>
+                 <th className="px-2 py-2.5 text-center font-black uppercase tracking-wider">O</th>
+@@ -69,7 +69,7 @@ export function BowlingScorecard() {
+                 return (
+                   <tr
+                     key={bowler.id}
+-                    className={`border-b border-border/50 ${isCurrentBowler ? 'bg-blue-500/10' : 'bg-background'}`}
++                    className={`border-b border-border/50 ${isCurrentBowler ? 'bg-green-500/10' : 'bg-background'}`}
+                   >
+                     <td className="px-2 py-2.5 font-black text-foreground text-xs">{bowler.name}</td>
+                     <td className="px-2 py-2.5 text-center text-foreground font-bold opacity-80 text-xs">
+diff --git a/app/components/scorer/review-screens/FallOfWickets.tsx b/app/components/scorer/review-screens/FallOfWickets.tsx
+index 8397196..50c843b 100644
+--- a/app/components/scorer/review-screens/FallOfWickets.tsx
++++ b/app/components/scorer/review-screens/FallOfWickets.tsx
+@@ -75,7 +75,7 @@ export function FallOfWickets() {
+       ) : (
+       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+         <table className="w-full text-xs">
+-          <thead className="bg-blue-600 text-white border-b border-border">
++          <thead className="bg-green-600 text-white border-b border-border">
+             <tr>
+               <th className="px-2 py-2 text-center font-bold">Wicket</th>
+               <th className="px-2 py-2 text-center font-bold">Over</th>
+diff --git a/app/components/scorer/review-screens/MatchDetails.tsx b/app/components/scorer/review-screens/MatchDetails.tsx
+index 4ca92dd..2494930 100644
+--- a/app/components/scorer/review-screens/MatchDetails.tsx
++++ b/app/components/scorer/review-screens/MatchDetails.tsx
+@@ -94,7 +94,7 @@ function renderBattingStatsTable(
+   return (
+     <div className="overflow-x-auto">
+       <table className="w-full text-xs">
+-        <thead className="bg-blue-800 text-white">
++        <thead className="bg-green-800 text-white">
+           <tr>
+             <th className="px-2 py-2 text-left font-semibold">Batsman</th>
+             <th className="px-2 py-2 text-center font-semibold">R</th>
+@@ -138,7 +138,7 @@ function renderBowlingStatsTable(innings: InningsState | null | undefined) {
+   return (
+     <div className="overflow-x-auto">
+       <table className="w-full text-xs">
+-        <thead className="bg-blue-800 text-white">
++        <thead className="bg-green-800 text-white">
+           <tr>
+             <th className="px-2 py-2 text-left font-semibold">Bowler</th>
+             <th className="px-2 py-2 text-center font-semibold">O</th>
+@@ -263,8 +263,8 @@ function CollapsibleSection({
+         onClick={() => setIsOpen((prev) => !prev)}
+         className="flex w-full items-center justify-between px-3 py-3 text-left"
+       >
+-        <h3 className="text-sm font-bold text-blue-300">{title}</h3>
+-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 text-white text-[11px]">
++        <h3 className="text-sm font-bold text-green-300">{title}</h3>
++        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-700 text-white text-[11px]">
+           {isOpen ? '▲' : '▼'}
+         </span>
+       </button>
+diff --git a/app/components/scorer/review-screens/MatchResultPanel.tsx b/app/components/scorer/review-screens/MatchResultPanel.tsx
+index e58857c..d9c59c1 100644
+--- a/app/components/scorer/review-screens/MatchResultPanel.tsx
++++ b/app/components/scorer/review-screens/MatchResultPanel.tsx
+@@ -908,8 +908,8 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
+   return (
+     <div className="h-full overflow-y-auto bg-slate-950 px-4 py-5 sm:px-6">
+       <div className="mx-auto w-full max-w-3xl space-y-4">
+-        <section className="rounded-2xl border border-blue-400/35 bg-gradient-to-br from-blue-900/45 via-slate-900 to-slate-950 p-5 shadow-xl shadow-black/40">
+-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/80">Match Complete</p>
++        <section className="rounded-2xl border border-green-400/35 bg-gradient-to-br from-green-900/45 via-slate-900 to-slate-950 p-5 shadow-xl shadow-black/40">
++          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-200/80">Match Complete</p>
+           <h2 className="mt-2 text-2xl font-extrabold text-white">Result</h2>
+           <p className="mt-2 text-base font-semibold text-emerald-300">{summaryLine}</p>
+           <p className="mt-1 text-sm text-slate-300">
+diff --git a/app/components/scorer/review-screens/OversHistory.tsx b/app/components/scorer/review-screens/OversHistory.tsx
+index 27efb91..588d950 100644
+--- a/app/components/scorer/review-screens/OversHistory.tsx
++++ b/app/components/scorer/review-screens/OversHistory.tsx
+@@ -67,7 +67,7 @@ export function OversHistory() {
+       ) : (
+       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+         <table className="w-full table-fixed text-xs">
+-          <thead className="bg-blue-600 text-white border-b border-border">
++          <thead className="bg-green-600 text-white border-b border-border">
+             <tr>
+               <th className="w-16 px-2 py-2 text-center font-bold">Over</th>
+               <th className="w-16 px-2 py-2 text-center font-bold">Runs</th>
+@@ -85,7 +85,7 @@ export function OversHistory() {
+               >
+                 <td className="px-2 py-2 text-center font-semibold text-foreground dark:text-white">
+                   <div className="text-sm font-semibold mb-1">{overGroup.over + 1}.{overGroup.balls.length < 6 ? overGroup.balls.length : 0}</div>
+-                  <div className="text-m text-blue-600 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
++                  <div className="text-m text-green-600 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
+                 </td>
+                 <td className="px-2 py-2 text-center font-bold text-foreground dark:text-white">
+                   {overGroup.overRuns}
+diff --git a/app/components/scorer/review-screens/Partnerships.tsx b/app/components/scorer/review-screens/Partnerships.tsx
+index d7c4034..2be75ca 100644
+--- a/app/components/scorer/review-screens/Partnerships.tsx
++++ b/app/components/scorer/review-screens/Partnerships.tsx
+@@ -234,10 +234,10 @@ export function Partnerships() {
+           return (
+             <div
+               key={idx}
+-              className={`border-2 rounded-xl p-3 space-y-3 shadow-sm ${partnership.wicketNumber === 0 ? 'bg-blue-500/10 border-blue-500 shadow-blue-500/5' : 'bg-background border-border'}`}
++              className={`border-2 rounded-xl p-3 space-y-3 shadow-sm ${partnership.wicketNumber === 0 ? 'bg-green-500/10 border-green-500 shadow-green-500/5' : 'bg-background border-border'}`}
+             >
+               <div className="flex justify-between items-center">
+-                <h4 className={`font-black text-[10px] uppercase tracking-widest ${partnership.wicketNumber === 0 ? 'text-blue-600' : 'opacity-60 text-foreground'}`}>
++                <h4 className={`font-black text-[10px] uppercase tracking-widest ${partnership.wicketNumber === 0 ? 'text-green-600' : 'opacity-60 text-foreground'}`}>
+                   {partnershipLabel}
+                 </h4>
+                 <span className="text-sm font-black text-foreground">
+diff --git a/app/components/scorer/review-screens/ReviewTeamToggle.tsx b/app/components/scorer/review-screens/ReviewTeamToggle.tsx
+index 6046c2c..58fcdfa 100644
+--- a/app/components/scorer/review-screens/ReviewTeamToggle.tsx
++++ b/app/components/scorer/review-screens/ReviewTeamToggle.tsx
+@@ -78,8 +78,8 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
+         onClick={() => onSelect('Us')}
+         className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
+           selectedTeam === 'Us'
+-            ? 'border-transparent bg-blue-600 text-white'
+-            : 'border-border bg-background text-foreground hover:bg-blue-600/5'
++            ? 'border-transparent bg-green-600 text-white'
++            : 'border-border bg-background text-foreground hover:bg-green-600/5'
+         }`}
+       >
+         {teamName}
+@@ -88,8 +88,8 @@ export function ReviewTeamToggle({ selectedTeam, opponentName, onSelect }: Revie
+         onClick={() => onSelect('Them')}
+         className={`rounded-xl border-2 px-3 py-2 text-sm font-black transition-all active:scale-95 shadow-sm ${
+           selectedTeam === 'Them'
+-            ? 'border-transparent bg-blue-600 text-white'
+-            : 'border-border bg-background text-foreground hover:border-blue-600/5'
++            ? 'border-transparent bg-green-600 text-white'
++            : 'border-border bg-background text-foreground hover:border-green-600/5'
+         }`}
+       >
+         {getTeamDisplayName('Them', opponentName)}
+diff --git a/app/globals.css b/app/globals.css
+index 37d75ff..2d349cb 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -52,7 +52,7 @@ body {
+   border: 2px solid var(--input-border);
+   @apply w-full px-3 py-2.5 sm:px-4 sm:py-3
+          text-foreground text-sm sm:text-base rounded-xl
+-         focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
++         focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-500/10
+          transition-all;
+ }
+ .select-base {
+@@ -60,13 +60,13 @@ body {
+   border: 2px solid var(--input-border);
+   @apply w-full px-3 py-2.5 sm:px-4 sm:py-3
+          text-foreground text-sm sm:text-base rounded-xl
+-         focus:outline-none focus:border-blue-500
++         focus:outline-none focus:border-green-500
+          appearance-none cursor-pointer transition-all;
+ }
+ .btn-primary {
+-  @apply px-4 py-2.5 sm:px-6 sm:py-3 bg-blue-600 hover:bg-blue-700
++  @apply px-4 py-2.5 sm:px-6 sm:py-3 bg-green-600 hover:bg-green-700
+          text-white text-sm sm:text-base font-bold rounded-lg
+-         shadow-lg shadow-blue-500/20 active:scale-95
++         shadow-lg shadow-green-500/20 active:scale-95
+          transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+ }
+ .btn-secondary {
+diff --git a/app/lib/ball-display-utils.ts b/app/lib/ball-display-utils.ts
+index 0ad9776..498503c 100644
+--- a/app/lib/ball-display-utils.ts
++++ b/app/lib/ball-display-utils.ts
+@@ -88,7 +88,7 @@ export function formatBallDisplay(ball: Ball): string {
+  * Determine color for ball display
+  * Color coding:
+  * - Wicket (W): red-800 (matches wicket button)
+- * - Boundary (4): blue-800
++ * - Boundary (4): green-800
+  * - Six (6): green-800
+  * - Dot (0-3): gray-700
+  * - Wide/Bye/Leg-bye: yellow-600
+@@ -107,7 +107,7 @@ export function getBallColor(ball: Ball): string {
+       return 'bg-green-600 border border-green-500';
+     }
+     if (ball.runs.total === 5) {
+-      return 'bg-blue-600 border border-blue-500';
++      return 'bg-green-600 border border-green-500';
+     }
+     return 'bg-amber-600 border border-amber-500';
+   }
+@@ -125,7 +125,7 @@ export function getBallColor(ball: Ball): string {
+     return 'bg-green-600 border border-green-500';
+   }
+   if (ball.runs.total === 4) {
+-    return 'bg-blue-600 border border-blue-500';
++    return 'bg-green-600 border border-green-500';
+   }
+ 
+   // 0-3 runs
+diff --git a/app/match/review/page.tsx b/app/match/review/page.tsx
+index e6996cc..a8a45c2 100644
+--- a/app/match/review/page.tsx
++++ b/app/match/review/page.tsx
+@@ -136,7 +136,7 @@ export default function MatchReviewPage() {
+     return (
+       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+         <div className="text-center">
+-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
++          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent"></div>
+           <p className="mt-4 text-gray-400">Loading match data...</p>
+         </div>
+       </div>
+@@ -204,7 +204,7 @@ export default function MatchReviewPage() {
+ 
+           <div className="bg-gray-800 p-4 sm:p-6 rounded-xl border border-gray-700">
+             <div className="text-xs sm:text-sm font-medium text-gray-400 mb-1">Overs</div>
+-            <div className="text-2xl sm:text-3xl font-bold text-blue-400">
++            <div className="text-2xl sm:text-3xl font-bold text-green-400">
+               {overs}.{balls}
+             </div>
+           </div>
+@@ -263,7 +263,7 @@ export default function MatchReviewPage() {
+                   {performances.map((perf) => (
+                     <tr key={perf.id} className="hover:bg-gray-700/30 transition-colors">
+                       <td className="py-3 px-4 font-bold text-white">{perf.playerName}</td>
+-                      <td className="py-3 px-3 text-center text-blue-300">{perf.batting.runs}</td>
++                      <td className="py-3 px-3 text-center text-green-300">{perf.batting.runs}</td>
+                       <td className="py-3 px-3 text-center text-gray-400">{perf.batting.balls}</td>
+                       <td className="py-3 px-3 text-center text-gray-400">
+                         {perf.batting.strikeRate.toFixed(1)}
+@@ -306,7 +306,7 @@ export default function MatchReviewPage() {
+                 <tbody className="divide-y divide-gray-700">
+                   {allBalls.map((ball, idx) => (
+                     <tr key={idx} className="hover:bg-gray-700/30 transition-colors">
+-                      <td className="py-2 px-4 font-mono text-blue-400">{ball.over}.{ball.ball}</td>
++                      <td className="py-2 px-4 font-mono text-green-400">{ball.over}.{ball.ball}</td>
+                       <td className="py-2 px-2 text-white font-medium">{ball.batter.name}</td>
+                       <td className="py-2 px-2 text-gray-400">{ball.bowler.name}</td>
+                       <td className="py-2 px-2 text-center font-bold text-white">{ball.runs.batter}</td>
+@@ -349,7 +349,7 @@ export default function MatchReviewPage() {
+         </div>
+ 
+         {/* Info */}
+-        <div className="bg-blue-900/20 rounded-xl p-4 border border-blue-800/50 text-xs sm:text-sm text-blue-200">
++        <div className="bg-green-900/20 rounded-xl p-4 border border-green-800/50 text-xs sm:text-sm text-green-200">
+           <p className="flex items-center gap-2">
+             <span className="text-lg">💾</span>
+             This will save the match and {performances.length} player performance records to Firestore.
+diff --git a/app/page.tsx b/app/page.tsx
+index e034574..68f2075 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -15,7 +15,7 @@ export default function Home() {
+   return (
+     <>
+       <Header />
+-      <main className="flex-1 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
++      <main className="flex-1 bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
+         <div className="page-container space-y-4 sm:space-y-8">
+           {/* Recent Match Details */}
+           {!matchLoading && recentMatch && (
+diff --git a/app/player-stats/page.tsx b/app/player-stats/page.tsx
+index 4814bb5..43528a1 100644
+--- a/app/player-stats/page.tsx
++++ b/app/player-stats/page.tsx
+@@ -63,7 +63,7 @@ function PlayerStatsContent() {
+             <div>
+               <button
+                 onClick={() => setShowDetail(false)}
+-                className="flex items-center gap-1.5 text-blue-400 text-sm font-medium mb-4 hover:text-blue-300 transition-colors"
++                className="flex items-center gap-1.5 text-green-400 text-sm font-medium mb-4 hover:text-green-300 transition-colors"
+               >
+                 ← Back to Players
+               </button>
+diff --git a/app/review-stats/page.tsx b/app/review-stats/page.tsx
+index c03a59d..d44819b 100644
+--- a/app/review-stats/page.tsx
++++ b/app/review-stats/page.tsx
+@@ -58,7 +58,7 @@ export default function ReviewStatsPage() {
+               />
+               <button 
+                 onClick={() => setAppliedLimit(typeof matchLimit === 'number' ? Math.max(1, matchLimit) : 1)}
+-                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white transition-all hover:bg-blue-500 active:scale-95"
++                className="absolute right-1 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg bg-green-600 text-white transition-all hover:bg-green-500 active:scale-95"
+                 title="Search"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4">
+@@ -83,7 +83,7 @@ export default function ReviewStatsPage() {
+             onClick={() => setActiveTab('team')}
+             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+               activeTab === 'team'
+-                ? 'bg-blue-600 text-white shadow-md'
++                ? 'bg-green-600 text-white shadow-md'
+                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
+             }`}
+           >
+@@ -93,7 +93,7 @@ export default function ReviewStatsPage() {
+             onClick={() => setActiveTab('batting')}
+             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+               activeTab === 'batting'
+-                ? 'bg-blue-600 text-white shadow-md'
++                ? 'bg-green-600 text-white shadow-md'
+                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
+             }`}
+           >
+@@ -103,7 +103,7 @@ export default function ReviewStatsPage() {
+             onClick={() => setActiveTab('bowling')}
+             className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+               activeTab === 'bowling'
+-                ? 'bg-blue-600 text-white shadow-md'
++                ? 'bg-green-600 text-white shadow-md'
+                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700'
+             }`}
+           >
+diff --git a/app/scorer-testing/page.tsx b/app/scorer-testing/page.tsx
+index b5e7cac..d470fd0 100644
+--- a/app/scorer-testing/page.tsx
++++ b/app/scorer-testing/page.tsx
+@@ -450,7 +450,7 @@ export default function ScorerTestingPage() {
+         {/* Current State */}
+         {liveMatch && currentInnings && (
+           <div className="bg-gray-800 rounded-lg p-4 mb-6 text-sm">
+-            <h3 className="font-bold mb-3 text-blue-300">📊 Current State</h3>
++            <h3 className="font-bold mb-3 text-green-300">📊 Current State</h3>
+             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-gray-300">
+               <div>
+                 <p className="text-gray-500 text-xs">Match</p>
+@@ -484,7 +484,7 @@ export default function ScorerTestingPage() {
+ 
+         {/* Test Log */}
+         <div className="bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-1">
+-          <h3 className="font-bold mb-3 text-blue-300">📋 Test Log</h3>
++          <h3 className="font-bold mb-3 text-green-300">📋 Test Log</h3>
+           <div className="bg-gray-900 rounded p-3 max-h-96 overflow-y-auto space-y-1">
+             {testLog.map((log, idx) => (
+               <div
+@@ -497,7 +497,7 @@ export default function ScorerTestingPage() {
+                       : log.includes('⚠️')
+                         ? 'text-yellow-400'
+                         : log.includes('TEST')
+-                          ? 'text-blue-400 font-bold'
++                          ? 'text-green-400 font-bold'
+                           : log.includes('Result')
+                             ? 'text-cyan-400 font-bold'
+                             : 'text-gray-300'
+@@ -510,8 +510,8 @@ export default function ScorerTestingPage() {
+         </div>
+ 
+         {/* Test Coverage Information */}
+-        <div className="bg-blue-900/30 border border-blue-700 rounded-lg p-4 mt-6 text-sm">
+-          <h3 className="font-bold mb-3 text-blue-300">📋 Test Coverage</h3>
++        <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mt-6 text-sm">
++          <h3 className="font-bold mb-3 text-green-300">📋 Test Coverage</h3>
+           <ul className="space-y-2 text-gray-300">
+             <li>✓ TEST 1: Regular deliveries (0-7 runs)</li>
+             <li>✓ TEST 2: Strike rotation on odd runs</li>
+diff --git a/app/stats/team-stats/[matchId]/page.tsx b/app/stats/team-stats/[matchId]/page.tsx
+index bbba55e..664449f 100644
+--- a/app/stats/team-stats/[matchId]/page.tsx
++++ b/app/stats/team-stats/[matchId]/page.tsx
+@@ -122,10 +122,10 @@ export default function MatchDetailPage() {
+   
+   if (loading) {
+     return (
+-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
++      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
+         <Header />
+         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col items-center justify-center min-h-[50vh]">
+-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
++          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
+           <p className="mt-4 text-gray-300">Loading match details...</p>
+         </div>
+       </div>
+@@ -134,14 +134,14 @@ export default function MatchDetailPage() {
+ 
+   if (!match) {
+     return (
+-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
++      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
+         <Header />
+         <div className="max-w-6xl mx-auto px-6 py-8">
+           <div className="bg-gray-800 rounded-lg p-12 border border-gray-700 text-center">
+             <p className="text-gray-400 text-lg">Match not found</p>
+             <button
+               onClick={() => router.back()}
+-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
++              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+             >
+               Go Back
+             </button>
+@@ -178,7 +178,7 @@ export default function MatchDetailPage() {
+         {/* Back Button */}
+         <button
+           onClick={() => router.back()}
+-          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs sm:text-sm font-medium shadow-lg hover:scale-105 active:scale-95 transform"
++          className="mb-4 sm:mb-6 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium shadow-lg hover:scale-105 active:scale-95 transform"
+         >
+           ← Back to Team Stats
+         </button>
+@@ -196,7 +196,7 @@ export default function MatchDetailPage() {
+               }`}>
+                 {match.result === 'won' ? 'Won' : match.result === 'lost' ? 'Lost' : match.result === 'tie' ? 'Tied' : 'No Result'}
+               </span>
+-              {match.winMargin && <span className="text-blue-300 text-xs sm:text-sm font-semibold">{match.winMargin}</span>}
++              {match.winMargin && <span className="text-green-300 text-xs sm:text-sm font-semibold">{match.winMargin}</span>}
+             </div>
+           </div>
+           
+@@ -245,10 +245,10 @@ export default function MatchDetailPage() {
+           ) : (
+             <div className="overflow-x-auto">
+               <table className="w-full text-xs">
+-                <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
++                <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
+                   <tr>
+                     <th 
+-                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
++                      className="px-2 py-2 sm:px-4 sm:py-3 text-left font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800"
+                       onClick={() => handleBattingSort('playerName')}
+                     >
+                       Player {battingSortField === 'playerName' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'playerName' && '⇅'}
+@@ -284,7 +284,7 @@ export default function MatchDetailPage() {
+                       6s {battingSortField === 'sixes' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'sixes' && '⇅'}
+                     </th>
+                     <th 
+-                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer select-none hover:bg-blue-800"
++                      className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-100 cursor-pointer select-none hover:bg-green-800"
+                       onClick={() => handleBattingSort('strikeRate')}
+                     >
+                       SR {battingSortField === 'strikeRate' && (battingSortDir === 'asc' ? '↑' : '↓')}{battingSortField !== 'strikeRate' && '⇅'}
+@@ -300,7 +300,7 @@ export default function MatchDetailPage() {
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 font-semibold text-white truncate max-w-[100px] sm:max-w-none">
+                         {perf.playerName}{perf.batting.dismissed === false ? '*' : ''}
+                       </td>
+-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-blue-400">{perf.batting.runs}</td>
++                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-green-400">{perf.batting.runs}</td>
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.balls}</td>
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-400">{perf.batting.zeros || 0}</td>
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.batting.fours}</td>
+@@ -379,7 +379,7 @@ export default function MatchDetailPage() {
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.runs}</td>
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center font-semibold text-red-400">{perf.bowling.wickets}</td>
+                       <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-gray-300">{perf.bowling.zeros >= 0 ? perf.bowling.zeros : '-'}</td>
+-                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-blue-400">
++                      <td className="px-2 py-2 sm:px-4 sm:py-3 text-center text-green-400">
+                         {calcEconomy(perf.bowling.runs, oversToBalls(perf.bowling.overs)).toFixed(1)}
+                       </td>
+                     </tr>
+diff --git a/app/stats/team-stats/page.tsx b/app/stats/team-stats/page.tsx
+index 369757c..ae1a8c3 100644
+--- a/app/stats/team-stats/page.tsx
++++ b/app/stats/team-stats/page.tsx
+@@ -84,7 +84,7 @@ export default function TeamStatsPage() {
+   const winRate = stats.total > 0 ? ((stats.won / stats.total) * 100).toFixed(1) : 0;
+ 
+   return (
+-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
++    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
+       <Header />
+ 
+       <div className="page-container">
+@@ -93,12 +93,12 @@ export default function TeamStatsPage() {
+           <h1 className="page-title text-white mb-3 sm:mb-6">Team Statistics</h1>
+ 
+           {/* View Toggle Tabs */}
+-          <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
++          <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-green-600">
+             <button
+               onClick={() => setActiveView('month')}
+               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                 activeView === 'month'
+-                  ? 'bg-blue-600 text-white shadow-sm'
++                  ? 'bg-green-600 text-white shadow-sm'
+                   : 'text-gray-300 hover:text-white'
+               }`}
+             >
+@@ -108,7 +108,7 @@ export default function TeamStatsPage() {
+               onClick={() => setActiveView('year')}
+               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                 activeView === 'year'
+-                  ? 'bg-blue-600 text-white shadow-sm'
++                  ? 'bg-green-600 text-white shadow-sm'
+                   : 'text-gray-300 hover:text-white'
+               }`}
+             >
+@@ -135,8 +135,8 @@ export default function TeamStatsPage() {
+ 
+           {/* Overview cards */}
+           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
+-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left">
+-              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Total Matches</p>
++            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-2 sm:p-4 border border-green-500 shadow-sm text-white text-center sm:text-left">
++              <p className="text-green-100 text-[10px] sm:text-sm font-medium">Total Matches</p>
+               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
+             </div>
+             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 sm:p-4 border border-green-400 shadow-sm text-white text-center sm:text-left">
+@@ -151,8 +151,8 @@ export default function TeamStatsPage() {
+               <p className="text-yellow-100 text-[10px] sm:text-sm font-medium">Ties</p>
+               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.tied}</p>
+             </div>
+-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left col-span-2 md:col-span-1">
+-              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Win Rate</p>
++            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-2 sm:p-4 border border-green-500 shadow-sm text-white text-center sm:text-left col-span-2 md:col-span-1">
++              <p className="text-green-100 text-[10px] sm:text-sm font-medium">Win Rate</p>
+               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{winRate}%</p>
+             </div>
+           </div>
+@@ -161,7 +161,7 @@ export default function TeamStatsPage() {
+         {/* Filter buttons */}
+         <div className="mb-4 sm:mb-8">
+           <div className="flex flex-wrap gap-2">
+-            <button onClick={() => handleResultChange('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'}`}>
++            <button onClick={() => handleResultChange('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-green-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-green-600 hover:bg-green-600'}`}>
+               All ({stats.total})
+             </button>
+             <button onClick={() => handleResultChange('won')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'won' ? 'bg-green-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
+@@ -184,7 +184,7 @@ export default function TeamStatsPage() {
+           <>
+             {loading ? (
+               <div className="text-center py-12">
+-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
++                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
+                 <p className="mt-4 text-gray-400">Loading matches...</p>
+               </div>
+             ) : filteredMonthMatches.length === 0 ? (
+@@ -206,7 +206,7 @@ export default function TeamStatsPage() {
+           <>
+             {loading ? (
+               <div className="text-center py-12">
+-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
++                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
+                 <p className="mt-4 text-gray-400">Loading matches...</p>
+               </div>
+             ) : filteredYearMatches.length === 0 ? (

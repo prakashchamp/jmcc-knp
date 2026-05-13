@@ -142,7 +142,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
               value={bowler}
               onChange={(e) => setBowler(e.target.value)}
               placeholder="e.g., Bowler 1"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:opacity-40 focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground placeholder:opacity-40 focus:outline-none focus:border-green-500"
             />
           </div>
         </div>
@@ -157,8 +157,8 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                 onClick={() => handleQuickRun(r)}
                 className={`p-2 rounded-lg font-semibold transition-colors ${
                   runs === r.toString()
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-background border border-border text-foreground hover:bg-blue-600/10'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-background border border-border text-foreground hover:bg-green-600/10'
                 }`}
               >
                 {r}
@@ -208,7 +208,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                   min="0"
                   value={extraRuns}
                   onChange={(e) => setExtraRuns(e.target.value)}
-                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full px-2 py-1 bg-background border border-border rounded text-foreground text-xs focus:outline-none focus:border-green-500"
                 />
               </div>
             </div>
@@ -272,7 +272,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
                     value={wicketFielder}
                     onChange={(e) => setWicketFielder(e.target.value)}
                     placeholder="e.g., Fielder 1"
-                    className="w-full px-2 py-1 bg-background border border-border rounded text-foreground placeholder:opacity-40 text-xs focus:outline-none focus:border-blue-500"
+                    className="w-full px-2 py-1 bg-background border border-border rounded text-foreground placeholder:opacity-40 text-xs focus:outline-none focus:border-green-500"
                   />
                 </div>
               ) : null}
@@ -292,7 +292,7 @@ export function BallEntry({ onBallAdd, onUndo, teamPlayers, ballHistory, ballCou
           <button
             onClick={handleUndo}
             disabled={ballHistory.length === 0}
-            className="px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-background disabled:border-border disabled:text-foreground/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors text-white"
+            className="px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-background disabled:border-border disabled:text-foreground/30 disabled:cursor-not-allowed rounded-lg font-semibold transition-colors text-white"
           >
             Undo
           </button>

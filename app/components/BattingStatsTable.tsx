@@ -11,7 +11,7 @@ interface AllTimeBattingStatsTableProps {
 type SortField = 'playerName' | 'totalMatches' | 'totalInnings' | 'totalRuns' | 'totalBalls' | 'totalZeros' | 'ducks' | 'notOuts' | 'totalFours' | 'totalSixes' | 'thirties' | 'fifties' | 'bestScore' | 'strikeRate' | 'average';
 
 const SortIcon = ({ field, sortField, sortDirection }: { field: SortField; sortField: SortField; sortDirection: 'asc' | 'desc' }) => (
-  <span className={`ml-0.5 ${sortField === field ? 'text-blue-400' : 'text-gray-500'}`}>
+  <span className={`ml-0.5 ${sortField === field ? 'text-green-400' : 'text-gray-500'}`}>
     {sortField === field ? (sortDirection === 'asc' ? '↑' : '↓') : '⇅'}
   </span>
 );
@@ -78,8 +78,8 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
     );
   }
 
-  const thClass = 'px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-blue-100 cursor-pointer hover:bg-blue-800 text-xs sm:text-sm whitespace-nowrap';
-  const thClassLeft = 'px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-blue-100 cursor-pointer hover:bg-blue-800 text-xs sm:text-sm whitespace-nowrap';
+  const thClass = 'px-2 sm:px-4 py-2 sm:py-3 text-center font-semibold text-green-100 cursor-pointer hover:bg-green-800 text-xs sm:text-sm whitespace-nowrap';
+  const thClassLeft = 'px-2 sm:px-4 py-2 sm:py-3 text-left font-semibold text-green-100 cursor-pointer hover:bg-green-800 text-xs sm:text-sm whitespace-nowrap';
   const tdClass = 'px-2 sm:px-4 py-2 sm:py-2.5 text-center text-gray-300 text-xs sm:text-sm whitespace-nowrap';
 
   return (
@@ -87,7 +87,7 @@ export function AllTimeBattingStatsTable({ players, loading }: AllTimeBattingSta
       <h3 className="section-title text-white p-4 sm:p-6 pb-3 sm:pb-4">Batting Statistics</h3>
       <div className="table-scroll">
         <table className="w-full text-sm">
-          <thead className="bg-gradient-to-r from-blue-900 to-blue-800 border-b border-blue-700">
+          <thead className="bg-gradient-to-r from-green-900 to-green-800 border-b border-green-700">
             <tr>
               <th className={thClassLeft} onClick={() => handleSort('playerName')}>
                 Player <SortIcon field="playerName" sortField={sortField} sortDirection={sortDirection} />

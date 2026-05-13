@@ -63,7 +63,7 @@ function PlayerStatsContent() {
             <div>
               <button
                 onClick={() => setShowDetail(false)}
-                className="flex items-center gap-1.5 text-blue-400 text-sm font-medium mb-4 hover:text-blue-300 transition-colors"
+                className="flex items-center gap-1.5 text-green-400 text-sm font-medium mb-4 hover:text-green-300 transition-colors"
               >
                 ← Back to Players
               </button>

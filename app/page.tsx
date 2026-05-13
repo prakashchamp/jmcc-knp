@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="flex-1 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+      <main className="flex-1 bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
         <div className="page-container space-y-4 sm:space-y-8">
           {/* Recent Match Details */}
           {!matchLoading && recentMatch && (

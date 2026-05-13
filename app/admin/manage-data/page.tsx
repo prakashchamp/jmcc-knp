@@ -170,7 +170,7 @@ export default function ManageDataPage() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => router.push(`/admin/manage-data/edit/${match.id}`)}
-                            className="px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white rounded text-xs font-medium transition-colors"
+                            className="px-3 py-1.5 bg-green-600/20 hover:bg-green-600 text-green-400 hover:text-white rounded text-xs font-medium transition-colors"
                           >
                             Edit
                           </button>

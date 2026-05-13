@@ -60,7 +60,7 @@ export const EndOfInningsScreen: React.FC<EndOfInningsScreenProps> = ({
               </div>
               <div className="text-right">
                 <p className="text-slate-400 text-sm mb-1">Overs</p>
-                <p className="text-3xl font-bold text-blue-400">
+                <p className="text-3xl font-bold text-green-400">
                   {oversDisplay(innings.totalOversPlayed)}
                 </p>
               </div>

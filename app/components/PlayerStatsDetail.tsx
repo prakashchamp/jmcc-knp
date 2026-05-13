@@ -140,11 +140,11 @@ export function PlayerStatsDetail({ player, loading }: PlayerStatsDetailProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Player Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-4 sm:p-6">
+      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg p-4 sm:p-6">
         <h2 className="text-xl sm:text-3xl font-bold">{player.playerName}</h2>
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-2 sm:mt-4">
           <div>
-            <p className="text-blue-100 text-[10px] sm:text-sm">Total Matches</p>
+            <p className="text-green-100 text-[10px] sm:text-sm">Total Matches</p>
             <p className="text-xl sm:text-3xl font-bold">{player.totalMatches}</p>
           </div>
         </div>

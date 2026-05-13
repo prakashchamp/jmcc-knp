@@ -14,7 +14,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ matc
         <Header />
         <main className="page-container flex flex-col items-center justify-center py-20">
           <h1 className="text-2xl font-bold mb-4">Match Not Found</h1>
-          <Link href="/admin/manage-data" className="text-blue-400 hover:underline">
+          <Link href="/admin/manage-data" className="text-green-400 hover:underline">
             Back to Manage Data
           </Link>
         </main>
@@ -29,7 +29,7 @@ export default async function EditMatchPage({ params }: { params: Promise<{ matc
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-               <Link href="/admin/manage-data" className="text-blue-400 text-sm hover:underline">Manage Data</Link>
+               <Link href="/admin/manage-data" className="text-green-400 text-sm hover:underline">Manage Data</Link>
                <span className="text-gray-600 text-sm">/</span>
                <span className="text-gray-400 text-sm">Edit Match</span>
             </div>

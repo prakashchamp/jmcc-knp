@@ -142,9 +142,9 @@ export function QuickBallEntry({
               <span>SR: {striker.strikeRate.toFixed(1)}</span>
             </div>
           </div>
-          <div className="bg-blue-900/20 border border-blue-600 rounded px-3 py-2">
+          <div className="bg-green-900/20 border border-green-600 rounded px-3 py-2">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-blue-400">{nonStriker.name}</span>
+              <span className="font-bold text-green-400">{nonStriker.name}</span>
               <span className="text-slate-400">{nonStriker.runs}({nonStriker.balls})</span>
             </div>
           </div>
@@ -182,8 +182,8 @@ export function QuickBallEntry({
             <p className="text-green-400 font-semibold">STRIKER</p>
             <p className="text-xs text-white mt-1">{striker.name}</p>
           </div>
-          <div className="bg-blue-900/30 border border-blue-600 rounded p-2">
-            <p className="text-blue-400 font-semibold">NON-STRIKER</p>
+          <div className="bg-green-900/30 border border-green-600 rounded p-2">
+            <p className="text-green-400 font-semibold">NON-STRIKER</p>
             <p className="text-xs text-white mt-1">{nonStriker.name}</p>
           </div>
         </div>

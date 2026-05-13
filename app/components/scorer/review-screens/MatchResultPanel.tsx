@@ -908,8 +908,8 @@ export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: Mat
   return (
     <div className="h-full overflow-y-auto bg-slate-950 px-4 py-5 sm:px-6">
       <div className="mx-auto w-full max-w-3xl space-y-4">
-        <section className="rounded-2xl border border-blue-400/35 bg-gradient-to-br from-blue-900/45 via-slate-900 to-slate-950 p-5 shadow-xl shadow-black/40">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/80">Match Complete</p>
+        <section className="rounded-2xl border border-green-400/35 bg-gradient-to-br from-green-900/45 via-slate-900 to-slate-950 p-5 shadow-xl shadow-black/40">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-green-200/80">Match Complete</p>
           <h2 className="mt-2 text-2xl font-extrabold text-white">Result</h2>
           <p className="mt-2 text-base font-semibold text-emerald-300">{summaryLine}</p>
           <p className="mt-1 text-sm text-slate-300">

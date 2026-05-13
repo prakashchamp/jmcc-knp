@@ -119,7 +119,7 @@ export function OverEndPopup() {
         </div>
         
         <div className="mb-4 space-y-2">
-          <div className="flex items-center justify-between rounded-xl border-2 border-blue-500 bg-blue-500/10 p-3 shadow-sm">
+          <div className="flex items-center justify-between rounded-xl border-2 border-green-500 bg-green-500/10 p-3 shadow-sm">
             <span className="font-black text-foreground">{currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent}</span>
             <div className="text-center leading-tight text-foreground">
               <div className="text-xl font-black">{currentInnings.totalRuns}/{currentInnings.totalWickets}</div>
@@ -134,7 +134,7 @@ export function OverEndPopup() {
             <div className={`${infoCardClass} space-y-2 border-2`}>
               <div className="flex justify-between items-center">
                 <span className="font-bold opacity-70">Runs Required:</span>
-                <span className="font-black text-lg text-blue-600">{runsRequired}</span>
+                <span className="font-black text-lg text-green-600">{runsRequired}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-bold opacity-70">Balls Remaining:</span>

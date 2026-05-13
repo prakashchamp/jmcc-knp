@@ -155,7 +155,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
             value={opponent}
             onChange={(e) => setOpponent(e.target.value)}
             placeholder="e.g., City Tigers"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-green-500"
           />
         </div>
 
@@ -234,7 +234,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
               value={totalOvers}
               onChange={(e) => setTotalOvers(e.target.value)}
               placeholder="20"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-green-500"
             />
           </div>
         </div>
@@ -251,7 +251,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
           <button
             type="button"
             onClick={() => setStrikerOpen(!strikerOpen)}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
           >
             <span>{striker ? striker.name : 'Select Striker'}</span>
             <span>{strikerOpen ? '▼' : '▶'}</span>
@@ -268,7 +268,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
                     setStrikerOpen(false);
                   }}
                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
-                    striker?.id === player.id ? 'bg-blue-600' : ''
+                    striker?.id === player.id ? 'bg-green-600' : ''
                   }`}
                 >
                   {player.name}
@@ -309,7 +309,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
           <button
             type="button"
             onClick={() => setNonStrikerOpen(!nonStrikerOpen)}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
           >
             <span>{nonStriker ? nonStriker.name : 'Select Non-Striker'}</span>
             <span>{nonStrikerOpen ? '▼' : '▶'}</span>
@@ -326,7 +326,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
                     setNonStrikerOpen(false);
                   }}
                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
-                    nonStriker?.id === player.id ? 'bg-blue-600' : ''
+                    nonStriker?.id === player.id ? 'bg-green-600' : ''
                   }`}
                 >
                   {player.name}
@@ -367,7 +367,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
           <button
             type="button"
             onClick={() => setBowlerOpen(!bowlerOpen)}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-blue-500 flex justify-between items-center"
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-left focus:outline-none focus:border-green-500 flex justify-between items-center"
           >
             <span>{bowler ? bowler.name : 'Select Bowler'}</span>
             <span>{bowlerOpen ? '▼' : '▶'}</span>
@@ -384,7 +384,7 @@ export function MatchSetup({ onMatchStart, teamPlayers, loading }: MatchSetupPro
                     setBowlerOpen(false);
                   }}
                   className={`w-full px-4 py-2 text-left hover:bg-slate-600 ${
-                    bowler?.id === player.id ? 'bg-blue-600' : ''
+                    bowler?.id === player.id ? 'bg-green-600' : ''
                   }`}
                 >
                   {player.name}

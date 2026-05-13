@@ -500,7 +500,7 @@ export function LiveScorer(props: LiveScorerProps) {
         }
         // Exactly 5 runs on NB - blue
         if (runs === 5) {
-          return 'bg-blue-600 border-blue-500'; // 5NB - blue
+          return 'bg-green-600 border-green-500'; // 5NB - blue
         }
       }
       // All other runs on NB - amber
@@ -516,7 +516,7 @@ export function LiveScorer(props: LiveScorerProps) {
     if (ballStr.includes('6')) return 'bg-green-600 border-green-500';
     
     // Priority 9: 4 (always blue)
-    if (ballStr.includes('4')) return 'bg-blue-600 border-blue-500';
+    if (ballStr.includes('4')) return 'bg-green-600 border-green-500';
     
     // Default: 0, 1, 2, 3 and other numbers - all gray
     return 'bg-background border border-border opacity-40';
@@ -538,7 +538,7 @@ export function LiveScorer(props: LiveScorerProps) {
           <div className="w-20 flex justify-end gap-2">
             <button
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-blue-500 active:scale-90 shadow-sm"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-green-500 active:scale-90 shadow-sm"
               title="Toggle Theme"
               aria-label="Toggle Theme"
             >
@@ -547,7 +547,7 @@ export function LiveScorer(props: LiveScorerProps) {
                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
                 </svg>
               )}
@@ -555,7 +555,7 @@ export function LiveScorer(props: LiveScorerProps) {
             {view !== 'scorer' && (
               <button
                 onClick={() => handleViewChange('scorer')}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-blue-500 active:scale-90 shadow-sm"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border-2 border-border bg-background text-foreground transition-all hover:border-green-500 active:scale-90 shadow-sm"
                 title="Back"
                 aria-label="Back"
               >
@@ -589,9 +589,9 @@ export function LiveScorer(props: LiveScorerProps) {
           </div>
         )}
         {/* Teams Container */}
-        <div className="bg-card rounded py-1.5 px-2 mb-1 border border-blue-500/30">
+        <div className="bg-card rounded py-1.5 px-2 mb-1 border border-green-500/30">
           {/* JMCC Row */}
-          <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-blue-500/10 border-l-4 border-blue-500' : 'bg-card border-l-4 border-transparent'}`}>
+          <div className={`-mx-2 px-2 py-1 flex items-center justify-between text-xs mb-1 rounded ${innings.battingTeam === 'Us' ? 'bg-green-500/10 border-l-4 border-green-500' : 'bg-card border-l-4 border-transparent'}`}>
             <p className="text-xs font-semibold">{teamName}</p>
             <div className="flex items-center gap-2">
               <p className="font-bold text-base">{usInnings?.totalRuns ?? 0}/{usInnings?.totalWickets ?? 0}</p>
@@ -599,7 +599,7 @@ export function LiveScorer(props: LiveScorerProps) {
             </div>
           </div>
           {/* OPPONENT Row */}
-          <div className={`flex items-center justify-between text-xs rounded px-0 ${innings.battingTeam === 'Them' ? 'bg-blue-500/10 border-l-4 border-blue-500 -mx-2 px-2 py-1' : ''}`}>
+          <div className={`flex items-center justify-between text-xs rounded px-0 ${innings.battingTeam === 'Them' ? 'bg-green-500/10 border-l-4 border-green-500 -mx-2 px-2 py-1' : ''}`}>
             <p className="text-xs font-semibold">{liveMatch.opponent}</p>
             <div className="flex items-center gap-2">
               <p className="font-bold text-base">{themInnings?.totalRuns ?? 0}/{themInnings?.totalWickets ?? 0}</p>
@@ -609,7 +609,7 @@ export function LiveScorer(props: LiveScorerProps) {
         </div>
 
         {/* CRR, RRR, and Extras Row */}
-        <div className="bg-card flex justify-between items-center mt-1 py-1 px-3 rounded border border-blue-500/30">
+        <div className="bg-card flex justify-between items-center mt-1 py-1 px-3 rounded border border-green-500/30">
           <div className="flex items-center gap-1">
             <p className="text-xs font-semibold">CRR:</p>
             <p className="font-bold text-sm">{crr}</p>
@@ -628,7 +628,7 @@ export function LiveScorer(props: LiveScorerProps) {
 
         {/* Runs Required / Balls Remaining Row - Only for 2nd Innings */}
         {innings.inningsNumber === 2 && (
-          <div className="bg-card flex gap-2 justify-center items-center mt-1 py-1 rounded border border-blue-500/30">
+          <div className="bg-card flex gap-2 justify-center items-center mt-1 py-1 rounded border border-green-500/30">
             <div className="flex items-center gap-1">
               <p className="text-xs font-semibold">{runsRequired} runs required</p>
             </div>
@@ -659,7 +659,7 @@ export function LiveScorer(props: LiveScorerProps) {
           {/* Row 1 - Batsman 1 */}
           <div className={`flex items-center p-2 rounded mb-2 font-bold border-l-4 transition-colors ${
             innings.striker?.id === positionedBatsman1Id 
-              ? 'bg-blue-500/10 border-blue-500' 
+              ? 'bg-green-500/10 border-green-500' 
               : 'bg-card border-transparent'
           }`}>
             <button
@@ -668,7 +668,7 @@ export function LiveScorer(props: LiveScorerProps) {
             >
               <div className={`w-4 h-4 rounded-full border-2 ${
                 innings.striker?.id === positionedBatsman1Id
-                  ? 'border-blue-500 bg-blue-500'
+                  ? 'border-green-500 bg-green-500'
                   : 'border-border bg-card'
               }`}></div>
             </button>
@@ -685,7 +685,7 @@ export function LiveScorer(props: LiveScorerProps) {
           {/* Row 2 - Batsman 2 */}
           <div className={`flex items-center p-2 rounded font-bold border-l-4 transition-colors ${
             innings.striker?.id === positionedBatsman2Id 
-              ? 'bg-blue-500/10 border-blue-500' 
+              ? 'bg-green-500/10 border-green-500' 
               : 'bg-card border-transparent'
           }`}>
             <button
@@ -694,7 +694,7 @@ export function LiveScorer(props: LiveScorerProps) {
             >
               <div className={`w-4 h-4 rounded-full border-2 ${
                 innings.striker?.id === positionedBatsman2Id
-                  ? 'border-blue-500 bg-blue-500'
+                  ? 'border-green-500 bg-green-500'
                   : 'border-border bg-card'
               }`}></div>
             </button>
@@ -735,9 +735,9 @@ export function LiveScorer(props: LiveScorerProps) {
           </div>
           
           {/* Current Bowler Row */}
-          <div className="flex items-center bg-blue-500/10 p-2 rounded font-bold border-l-4 border-blue-500">
+          <div className="flex items-center bg-green-500/10 p-2 rounded font-bold border-l-4 border-green-500">
             <div className="w-6 flex justify-center">
-              <div className="w-4 h-4 rounded-full border-2 border-blue-500 bg-blue-500"></div>
+              <div className="w-4 h-4 rounded-full border-2 border-green-500 bg-green-500"></div>
             </div>
             <div className="w-36 truncate ml-2">{currentBowlerStats?.name || innings.currentBowler?.name || 'Bowler 1'}</div>
             <div className="flex-1"></div>
@@ -809,7 +809,7 @@ export function LiveScorer(props: LiveScorerProps) {
         {/* Row 2: 5 4 6 W */}
         <div className="grid grid-cols-4 gap-1">
           <ScorerButton label="5" onClick={() => handleNumberClick(5)} disabled={scoringLocked} />
-          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-blue-600 hover:bg-blue-700 text-white border-transparent" disabled={scoringLocked} />
+          <ScorerButton label="4" onClick={() => handleNumberClick(4)} className="bg-green-600 hover:bg-green-700 text-white border-transparent" disabled={scoringLocked} />
           <ScorerButton label="6" onClick={() => handleNumberClick(6)} className="bg-green-600 hover:bg-green-700 text-white border-transparent" disabled={scoringLocked} />
           <ScorerButton label="W" onClick={() => handleWicketClick()} className="bg-red-600 hover:bg-red-700 text-white border-transparent" disabled={scoringLocked} />
         </div>
@@ -826,7 +826,7 @@ export function LiveScorer(props: LiveScorerProps) {
         <div className="grid grid-cols-4 gap-1">
           <ScorerButton label="5P" onClick={() => handlePenaltyRuns(5)} className="bg-violet-600 hover:bg-violet-700 text-white border-transparent" disabled={scoringLocked} />
           <ScorerButton label="6+" onClick={() => handleSixPlusClick()} className="bg-violet-600 hover:bg-violet-700 text-white border-transparent" disabled={scoringLocked} />
-          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-background border border-border text-foreground hover:bg-blue-500/10" disabled={scoringLocked} />
+          <ScorerButton label="..." onClick={() => dispatch(openDialog({ dialog: 'options' }))} className="bg-background border border-border text-foreground hover:bg-green-500/10" disabled={scoringLocked} />
           <ScorerButton label="UNDO" onClick={() => handleUndo()} className="bg-purple-600 hover:bg-purple-700 text-white border-transparent" disabled={scoringLocked} />
         </div>
       </div>
@@ -897,7 +897,7 @@ function ScorerButton({ label, onClick, className = '', disabled = false }: { la
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full py-3 rounded-xl font-black border-2 ${className || 'bg-background border-border text-foreground hover:bg-blue-600/5'} ${disabled ? 'opacity-40 cursor-not-allowed hover:bg-inherit' : 'active:scale-95 shadow-md active:shadow-sm'} transition-all`}
+      className={`w-full py-3 rounded-xl font-black border-2 ${className || 'bg-background border-border text-foreground hover:bg-green-600/5'} ${disabled ? 'opacity-40 cursor-not-allowed hover:bg-inherit' : 'active:scale-95 shadow-md active:shadow-sm'} transition-all`}
     >
       {label}
     </button>

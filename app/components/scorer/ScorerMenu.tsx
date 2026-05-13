@@ -54,8 +54,8 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
               }}
               className={`w-full text-left px-4 py-3 rounded-xl transition-all font-black flex items-center gap-3 border-2 shadow-sm active:scale-95 ${
                 currentView === item.id
-                  ? 'bg-blue-600 text-white border-transparent'
-                  : 'bg-background text-foreground border-border hover:bg-blue-600/5'
+                  ? 'bg-green-600 text-white border-transparent'
+                  : 'bg-background text-foreground border-border hover:bg-green-600/5'
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -67,7 +67,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
         {/* Close Button */}
         <button
           onClick={() => setIsOpen(false)}
-          className="absolute top-4 right-4 text-foreground hover:bg-blue-600/10 p-2 rounded transition-colors"
+          className="absolute top-4 right-4 text-foreground hover:bg-green-600/10 p-2 rounded transition-colors"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -78,7 +78,7 @@ export function ScorerMenu({ currentView, onViewChange }: ScorerMenuProps) {
       {/* Hamburger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-blue-500 bg-blue-500/10 text-blue-600 transition-all hover:bg-blue-500/20 active:scale-90"
+        className="flex h-9 w-9 items-center justify-center rounded-lg border-2 border-green-500 bg-green-500/10 text-green-600 transition-all hover:bg-green-500/20 active:scale-90"
         title="Menu"
         aria-label="Menu"
       >

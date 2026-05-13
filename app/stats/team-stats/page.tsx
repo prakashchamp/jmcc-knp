@@ -84,7 +84,7 @@ export default function TeamStatsPage() {
   const winRate = stats.total > 0 ? ((stats.won / stats.total) * 100).toFixed(1) : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900">
       <Header />
 
       <div className="page-container">
@@ -93,12 +93,12 @@ export default function TeamStatsPage() {
           <h1 className="page-title text-white mb-3 sm:mb-6">Team Statistics</h1>
 
           {/* View Toggle Tabs */}
-          <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-blue-600">
+          <div className="flex gap-1 sm:gap-2 mb-4 sm:mb-6 bg-slate-700 p-1 rounded-lg w-fit border border-green-600">
             <button
               onClick={() => setActiveView('month')}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 activeView === 'month'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-green-600 text-white shadow-sm'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
@@ -108,7 +108,7 @@ export default function TeamStatsPage() {
               onClick={() => setActiveView('year')}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 activeView === 'year'
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-green-600 text-white shadow-sm'
                   : 'text-gray-300 hover:text-white'
               }`}
             >
@@ -135,8 +135,8 @@ export default function TeamStatsPage() {
 
           {/* Overview cards */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 sm:gap-4 mb-6 sm:mb-8">
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left">
-              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Total Matches</p>
+            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-2 sm:p-4 border border-green-500 shadow-sm text-white text-center sm:text-left">
+              <p className="text-green-100 text-[10px] sm:text-sm font-medium">Total Matches</p>
               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.total}</p>
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-2 sm:p-4 border border-green-400 shadow-sm text-white text-center sm:text-left">
@@ -151,8 +151,8 @@ export default function TeamStatsPage() {
               <p className="text-yellow-100 text-[10px] sm:text-sm font-medium">Ties</p>
               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{stats.tied}</p>
             </div>
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-2 sm:p-4 border border-blue-500 shadow-sm text-white text-center sm:text-left col-span-2 md:col-span-1">
-              <p className="text-blue-100 text-[10px] sm:text-sm font-medium">Win Rate</p>
+            <div className="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-2 sm:p-4 border border-green-500 shadow-sm text-white text-center sm:text-left col-span-2 md:col-span-1">
+              <p className="text-green-100 text-[10px] sm:text-sm font-medium">Win Rate</p>
               <p className="text-xl sm:text-3xl font-bold text-white mt-0.5 sm:mt-1">{winRate}%</p>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function TeamStatsPage() {
         {/* Filter buttons */}
         <div className="mb-4 sm:mb-8">
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => handleResultChange('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-blue-600 hover:bg-blue-600'}`}>
+            <button onClick={() => handleResultChange('all')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'all' ? 'bg-green-600 text-white shadow-md' : 'bg-slate-700 text-gray-100 border border-green-600 hover:bg-green-600'}`}>
               All ({stats.total})
             </button>
             <button onClick={() => handleResultChange('won')} className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-colors ${selectedResult === 'won' ? 'bg-green-600 text-white shadow-md' : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'}`}>
@@ -184,7 +184,7 @@ export default function TeamStatsPage() {
           <>
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
                 <p className="mt-4 text-gray-400">Loading matches...</p>
               </div>
             ) : filteredMonthMatches.length === 0 ? (
@@ -206,7 +206,7 @@ export default function TeamStatsPage() {
           <>
             {loading ? (
               <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-blue-600"></div>
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-300 border-t-green-600"></div>
                 <p className="mt-4 text-gray-400">Loading matches...</p>
               </div>
             ) : filteredYearMatches.length === 0 ? (

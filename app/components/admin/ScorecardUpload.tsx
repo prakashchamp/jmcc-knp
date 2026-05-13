@@ -640,7 +640,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           <input ref={battingInputRef} type="file" accept="image/*" onChange={(e) => handleImageSelect(e, 'batting')} className="hidden" />
           <button
             onClick={() => battingInputRef.current?.click()}
-            className="w-full py-3 px-4 border-2 border-dashed border-blue-500 rounded-lg hover:bg-blue-900/20 transition-colors text-blue-300 hover:text-blue-200 font-medium text-sm"
+            className="w-full py-3 px-4 border-2 border-dashed border-green-500 rounded-lg hover:bg-green-900/20 transition-colors text-green-300 hover:text-green-200 font-medium text-sm"
           >
             {battingImage ? '✓ Change Batting Image' : '+ Upload Batting Image'}
           </button>
@@ -652,7 +652,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
           )}
 
           {battingImage && (
-            <button onClick={handleParseBatting} disabled={isParsingBatting} className="mt-3 sm:mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
+            <button onClick={handleParseBatting} disabled={isParsingBatting} className="mt-3 sm:mt-4 w-full py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors">
               {isParsingBatting ? 'Parsing...' : 'Parse & Add Batters'}
             </button>
           )}
@@ -687,10 +687,10 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
       {/* Batting Performances */}
       <div className="bg-gray-800 rounded-lg border border-gray-700 p-4 sm:p-6">
         <div className="flex justify-between items-center mb-3 sm:mb-4">
-          <h4 className="card-title text-blue-400">Batting Performances</h4>
+          <h4 className="card-title text-green-400">Batting Performances</h4>
           <button 
             onClick={addBattingRow} 
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
+            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-xs sm:text-sm font-medium transition-colors"
           >
             + Add Batter
           </button>
@@ -761,7 +761,7 @@ export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
                   id={`out-${idx}`} 
                   checked={row.dismissed} 
                   onChange={(e) => updateBattingRow(idx, 'dismissed', e.target.checked)} 
-                  className="rounded border-gray-400 text-blue-600 focus:ring-blue-500" 
+                  className="rounded border-gray-400 text-green-600 focus:ring-green-500" 
                 />
                 <label htmlFor={`out-${idx}`} className="text-[10px] text-gray-300 font-medium">OUT</label>
               </div>

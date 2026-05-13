@@ -100,8 +100,8 @@ export function NewBatsmanDialog() {
             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
               currentInnings.striker?.balls === 0
                 ? dismissedBatsmanRole === 'striker'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+                  ? 'border-green-500 bg-green-500/10 text-green-600'
+                  : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-600/5'
                 : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
             }`}
           >
@@ -117,8 +117,8 @@ export function NewBatsmanDialog() {
             className={`flex-1 rounded-xl border-2 px-3 py-3 text-sm font-black transition-all shadow-sm active:scale-95 ${
               currentInnings.nonStriker?.balls === 0
                 ? dismissedBatsmanRole === 'non-striker'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-border bg-background text-foreground hover:border-blue-500/50 hover:bg-blue-600/5'
+                  ? 'border-green-500 bg-green-500/10 text-green-600'
+                  : 'border-border bg-background text-foreground hover:border-green-500/50 hover:bg-green-600/5'
                 : 'border-border/50 bg-background/50 text-foreground/40 cursor-not-allowed'
             }`}
           >

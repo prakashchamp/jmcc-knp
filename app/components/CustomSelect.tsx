@@ -68,7 +68,7 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
         disabled={disabled}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'}`}
+        className={`w-full flex items-center justify-between px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-white font-medium shadow-sm transition-colors ${disabled ? 'cursor-not-allowed opacity-70' : 'hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500'}`}
       >
         <span className="truncate">{selected?.label ?? customLabel ?? placeholder ?? 'Select...'}</span>
         <svg
@@ -97,12 +97,12 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
                   }
                 }}
                 placeholder={placeholder || 'Enter custom value'}
-                className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white outline-none focus:border-blue-500"
+                className="w-full rounded border border-gray-600 bg-gray-900 px-3 py-2 text-sm text-white outline-none focus:border-green-500"
               />
               <button
                 type="button"
                 onClick={selectCustomValue}
-                className="mt-2 w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-500"
+                className="mt-2 w-full rounded bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-500"
               >
                 Create new player
               </button>
@@ -125,7 +125,7 @@ export function CustomSelect({ id, label, options, value, onChange, className = 
                   }}
                   className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors select-none ${
                     isSelected
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-green-600 text-white'
                       : 'text-gray-200 hover:bg-gray-700'
                   }`}
                 >

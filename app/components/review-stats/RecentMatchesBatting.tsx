@@ -129,7 +129,7 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
 
   const renderSortIndicator = (field: SortField) => {
     if (sortField === field) {
-      return <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+      return <span className="text-green-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
     }
     return <span className="text-gray-500 ml-1">⇅</span>;
   };
@@ -200,7 +200,7 @@ export function RecentMatchesBatting({ matches, performances, loading }: RecentM
               >
                 <td className="px-4 py-3 font-bold text-white truncate max-w-[120px] sm:max-w-none">{stats.playerName}</td>
                 <td className="px-3 py-3 text-center text-gray-400 font-medium">{stats.matches}</td>
-                <td className="px-3 py-3 text-center font-bold text-blue-400">{stats.runs}</td>
+                <td className="px-3 py-3 text-center font-bold text-green-400">{stats.runs}</td>
                 <td className="px-3 py-3 text-center text-gray-500">{stats.balls}</td>
                 <td className="px-3 py-3 text-center text-gray-500">{stats.fours}</td>
                 <td className="px-3 py-3 text-center text-gray-500">{stats.sixes}</td>

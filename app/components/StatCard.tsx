@@ -38,7 +38,7 @@ export function StatCard({ rank, playerName, playerId, stats }: StatCardProps) {
   return (
     <div 
       onClick={handleClick}
-      className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-3 sm:p-6 hover:shadow-md transition-shadow ${playerId ? 'cursor-pointer hover:border-blue-500' : ''}`}
+      className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-3 sm:p-6 hover:shadow-md transition-shadow ${playerId ? 'cursor-pointer hover:border-green-500' : ''}`}
     >
       <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
         {/* Rank Badge */}
@@ -50,7 +50,7 @@ export function StatCard({ rank, playerName, playerId, stats }: StatCardProps) {
 
         {/* Player Name */}
         <div>
-          <p className={`text-base sm:text-lg font-bold ${playerId ? 'text-blue-400 hover:text-blue-300' : 'text-white'}`}>{playerName}</p>
+          <p className={`text-base sm:text-lg font-bold ${playerId ? 'text-green-400 hover:text-green-300' : 'text-white'}`}>{playerName}</p>
           <p className="text-[10px] sm:text-xs text-gray-400">{rankBadges[rank]} All-time rank</p>
         </div>
       </div>

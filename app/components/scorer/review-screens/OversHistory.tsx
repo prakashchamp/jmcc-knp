@@ -67,7 +67,7 @@ export function OversHistory() {
       ) : (
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <table className="w-full table-fixed text-xs">
-          <thead className="bg-blue-600 text-white border-b border-border">
+          <thead className="bg-green-600 text-white border-b border-border">
             <tr>
               <th className="w-16 px-2 py-2 text-center font-bold">Over</th>
               <th className="w-16 px-2 py-2 text-center font-bold">Runs</th>
@@ -85,7 +85,7 @@ export function OversHistory() {
               >
                 <td className="px-2 py-2 text-center font-semibold text-foreground dark:text-white">
                   <div className="text-sm font-semibold mb-1">{overGroup.over + 1}.{overGroup.balls.length < 6 ? overGroup.balls.length : 0}</div>
-                  <div className="text-m text-blue-600 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
+                  <div className="text-m text-green-600 font-semibold">{overGroup.cumulativeRuns} / {overGroup.cumulativeWickets}</div>
                 </td>
                 <td className="px-2 py-2 text-center font-bold text-foreground dark:text-white">
                   {overGroup.overRuns}
