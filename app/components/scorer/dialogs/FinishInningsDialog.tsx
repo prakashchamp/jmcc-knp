@@ -25,7 +25,7 @@ export function FinishInningsDialog() {
   const oversText = `${Math.floor(currentInnings.totalBalls / 6)}.${currentInnings.totalBalls % 6}`;
   const ballExtras = currentInnings.ballHistory.reduce((sum, ball) => sum + (ball.runs.extras || 0), 0);
   const totalExtras = ballExtras + (currentInnings.penaltyExtras || 0);
-  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'KNP');
   const battingTeamName = currentInnings.battingTeam === 'Us' ? teamName : liveMatch.opponent;
 
   const isSecondInnings = currentInnings.inningsNumber === 2;

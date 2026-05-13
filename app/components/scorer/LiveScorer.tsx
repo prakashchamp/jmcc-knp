@@ -94,7 +94,7 @@ export function LiveScorer(props: LiveScorerProps) {
   const loading = useSelector((state: RootState) => state.scorer.loading);
   const error = useSelector((state: RootState) => state.scorer.error);
   const lastCompletedMatch = useSelector((state: RootState) => state.scorer.lastCompletedMatch);
-  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'KNP');
   const [positionedBatsman1Id, setPositionedBatsman1Id] = useState<string | null>(null);
   const [positionedBatsman2Id, setPositionedBatsman2Id] = useState<string | null>(null);
   const [previousOverNumber, setPreviousOverNumber] = useState(0);

@@ -279,7 +279,7 @@ export const LiveScorerPWA: React.FC<LiveScorerPWAProps> = ({
       {/* Match Header */}
       <div className="text-center mb-4 pb-3 border-b-2 border-slate-200">
         <p className="text-sm font-semibold text-slate-600">
-          {innings.battingTeam === 'ABC' ? 'JMCC' : innings.battingTeam}, {innings.inningsNumber}
+          {innings.battingTeam === 'ABC' ? 'KNP' : innings.battingTeam}, {innings.inningsNumber}
           {innings.inningsNumber === 1 ? 'st' : 'nd'} innings
         </p>
         <div className="flex justify-between items-baseline mt-2">

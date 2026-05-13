@@ -29,7 +29,7 @@ const formatDate = (dateInput: string) => {
 export function MatchResultPanel({ liveMatch, onStartNewMatch, onOpenView }: MatchResultPanelProps) {
   const dispatch = useDispatch<AppDispatch>();
   const currentInnings = useSelector((state: RootState) => state.scorer.currentInnings);
-  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'KNP');
   const usInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Us');
   const themInnings = getBattingTeamInnings(liveMatch, currentInnings, 'Them');
   // const [showShareMenu, setShowShareMenu] = useState(false);

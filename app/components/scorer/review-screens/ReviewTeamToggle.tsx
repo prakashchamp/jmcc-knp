@@ -11,7 +11,7 @@ interface ReviewTeamToggleProps {
   onSelect: (team: ReviewTeam) => void;
 }
 
-export function getTeamDisplayName(team: ReviewTeam, opponentName?: string, teamName: string = 'JMCC') {
+export function getTeamDisplayName(team: ReviewTeam, opponentName?: string, teamName: string = 'KNP') {
   return team === 'Us' ? teamName : opponentName || 'Opponent';
 }
 

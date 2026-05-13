@@ -279,7 +279,7 @@ function CollapsibleSection({
  */
 export function MatchDetails() {
   const { liveMatch, currentInnings } = useSelector((state: RootState) => state.scorer);
-  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'KNP');
 
   if (!liveMatch) {
     return (

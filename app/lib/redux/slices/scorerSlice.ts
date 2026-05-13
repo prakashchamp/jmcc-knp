@@ -2207,7 +2207,7 @@ export const scorerSlice = createSlice({
         const winner = innings.battingTeam;
         const wicketsRemaining = Math.max(0, 10 - innings.totalWickets);
         match.result = winner === 'Us' ? 'won' : 'lost';
-        match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
+        match.winMargin = `${winner === 'Us' ? 'KNP' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
       } else if (secondInningsRuns === firstInnings.totalRuns) {
         match.result = 'tie';
         match.winMargin = 'Match tied';
@@ -2215,7 +2215,7 @@ export const scorerSlice = createSlice({
         const winner = firstInnings.battingTeam;
         const runMargin = firstInnings.totalRuns - secondInningsRuns;
         match.result = winner === 'Us' ? 'won' : 'lost';
-        match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${runMargin} run${runMargin === 1 ? '' : 's'}`;
+        match.winMargin = `${winner === 'Us' ? 'KNP' : match.opponent} won by ${runMargin} run${runMargin === 1 ? '' : 's'}`;
       }
 
       match.status = 'complete';
@@ -2247,7 +2247,7 @@ export const scorerSlice = createSlice({
       const winner = secondInnings.battingTeam;
 
       match.result = winner === 'Us' ? 'won' : 'lost';
-      match.winMargin = `${winner === 'Us' ? 'JMCC' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
+      match.winMargin = `${winner === 'Us' ? 'KNP' : match.opponent} won by ${wicketsRemaining} wicket${wicketsRemaining === 1 ? '' : 's'}`;
       match.status = 'complete';
       match.completedAt = match.completedAt || new Date().toISOString();
       match.updatedAt = new Date().toISOString();

@@ -171,7 +171,7 @@ export function MatchDetailsDialog() {
 
   if (!liveMatch) return null;
 
-  const teamName = useSelector((state: RootState) => state.team.team?.name || 'JMCC');
+  const teamName = useSelector((state: RootState) => state.team.team?.name || 'KNP');
 
   const venueOptions: DropdownOption[] = ['Home', 'Away', 'Neutral'].map((option) => ({
     value: option,
