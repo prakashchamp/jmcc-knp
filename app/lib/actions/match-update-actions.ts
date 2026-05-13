@@ -29,7 +29,7 @@ export async function updateMatchAction(matchId: string, updatedMatch: Match, up
     ]));
 
     // RESOLVE AND UPDATE TEAM ROSTER
-    const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+    const teamDoc = await db.collection('teams').doc('jmcc_knp_singleton').get();
     const teamData = teamDoc.data();
     const teamPlayers = teamData?.players || [];
     const existingPlayers = new Map<string, string>();
@@ -69,7 +69,7 @@ export async function updateMatchAction(matchId: string, updatedMatch: Match, up
         if (p.jerseyNumber !== undefined) clean.jerseyNumber = p.jerseyNumber;
         return clean;
       });
-      await db.collection('teams').doc('jmcc_spartans_singleton').update({
+      await db.collection('teams').doc('jmcc_knp_singleton').update({
         players: updatedRoster,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });

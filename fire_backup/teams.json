@@ -1,10 +1,10 @@
 [
   {
-    "id": "jmcc_spartans_singleton",
+    "id": "jmcc_knp_singleton",
     "data": {
       "createdAt": "2026-05-05T05:45:38.848Z",
-      "name": "JMCC Spartans",
-      "id": "jmcc_spartans_singleton",
+      "name": "JMCC KNP",
+      "id": "jmcc_knp_singleton",
       "players": [
         {
           "id": "prakash",

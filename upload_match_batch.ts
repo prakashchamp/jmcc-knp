@@ -114,7 +114,7 @@ function buildPerformances(rawPerfs: any[], roster: any[], matchId: string, matc
 
 async function uploadMatch(config: { matchDate: string; year: string; month: string; rawMatch: any; rawPerformances: any[] }) {
   const { matchDate, year, month, rawMatch, rawPerformances } = config;
-  const rosterSnap = await db.collection('jmcc_spartans_singleton').doc('roster').get();
+  const rosterSnap = await db.collection('jmcc_knp_singleton').doc('roster').get();
   const roster = rosterSnap.data()?.players || [];
   const matchId = `match_${Date.now()}`;
   const matchData = { ...rawMatch, id: matchId, date: matchDate, year, month, created_at: new Date().toISOString() };

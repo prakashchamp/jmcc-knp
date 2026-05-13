@@ -21,7 +21,7 @@ The scorecard upload component now uses **Google Cloud Vision API** instead of T
 **Option B: Create new Google Cloud Project** 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click the project dropdown → **NEW PROJECT**
-3. Name: "JMCC Spartans Cricket Stats"
+3. Name: "JMCC KNP Cricket Stats"
 4. Click **CREATE**
 5. Wait for the project to create (~30 seconds)
 

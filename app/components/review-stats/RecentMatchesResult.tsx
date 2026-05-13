@@ -126,7 +126,7 @@ export function RecentMatchesResult({ matches, loading }: RecentMatchesResultPro
                 {/* Score pill */}
                 <div className="flex items-center justify-between bg-white/10 rounded-lg px-3 py-2 border border-white/15 mb-3">
                   <div className="text-center">
-                    <p className="text-[9px] text-white/55 uppercase tracking-wider font-bold mb-0.5">Spartans</p>
+                    <p className="text-[9px] text-white/55 uppercase tracking-wider font-bold mb-0.5">KNP</p>
                     <p className="text-base sm:text-xl font-black text-white">
                       {match.teamRuns ?? 0}<span className="text-white/40 text-xs mx-0.5">/</span>{match.teamWickets ?? 0}
                     </p>

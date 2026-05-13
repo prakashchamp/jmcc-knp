@@ -213,7 +213,7 @@ export function useTeamPlayers() {
         setLoading(true);
         setError(null);
 
-        const result = await getServerDocument<Team>('teams', 'jmcc_spartans_singleton');
+        const result = await getServerDocument<Team>('teams', 'jmcc_knp_singleton');
         if (result) {
           setPlayers(result.data.players || []);
         } else {

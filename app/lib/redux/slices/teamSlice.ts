@@ -3,7 +3,7 @@ import { Team, TeamPlayer } from '@/app/lib/cricket-schema';
 import { RootState } from '@/app/lib/redux/store';
 import { getServerCollection, getServerDocument, syncTeamAndCascade } from '@/app/lib/actions/firebase-actions';
 
-export const SINGLETON_TEAM_ID = 'jmcc_spartans_singleton';
+export const SINGLETON_TEAM_ID = 'jmcc_knp_singleton';
 
 /**
  * Set team with optional sync to Firestore

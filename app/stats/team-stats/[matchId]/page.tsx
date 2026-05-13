@@ -203,7 +203,7 @@ export default function MatchDetailPage() {
           {/* Score Summary Banner */}
           <div className="bg-slate-700/50 rounded-xl p-4 sm:p-6 mb-6 border border-slate-600 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12">
             <div className="text-center">
-              <p className="text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">Spartans</p>
+              <p className="text-slate-400 text-xs uppercase tracking-wider font-bold mb-1">KNP</p>
               <p className="text-2xl sm:text-4xl font-black text-white">
                 {match.teamRuns ?? 0}<span className="text-slate-400 text-xl sm:text-2xl mx-1">/</span>{match.teamWickets ?? 0}
               </p>
@@ -231,7 +231,7 @@ export default function MatchDetailPage() {
             <div className="bg-slate-700/30 p-3 rounded-lg border border-slate-600/50 col-span-2 sm:col-span-1">
               <p className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider font-bold">Toss</p>
               <p className="text-sm sm:text-base font-semibold text-white mt-1">
-                {match.tossWonBy === 'Us' ? 'Spartans won' : `${match.opponent} won`} ({match.tossDecision})
+                {match.tossWonBy === 'Us' ? 'KNP won' : `${match.opponent} won`} ({match.tossDecision})
               </p>
             </div>
           </div>

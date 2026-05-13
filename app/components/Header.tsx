@@ -112,7 +112,7 @@ export function Header() {
         >
           <Image
             src="/jmcc.jpg"
-            alt="JMCC Spartans Logo"
+            alt="JMCC KNP Logo"
             width={38}
             height={38}
             className="sm:w-12 sm:h-12 rounded-full object-cover shadow-md aspect-square"

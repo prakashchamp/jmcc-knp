@@ -34,7 +34,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
   try {
     // RESOLVE TRUE PLAYER IDs FROM TEAM
     // Fetch JMCC team and get players from team.players
-    const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+    const teamDoc = await db.collection('teams').doc('jmcc_knp_singleton').get();
     const teamData = teamDoc.data();
     const teamPlayers = teamData?.players || [];
     const existingPlayers = new Map<string, string>();
@@ -81,7 +81,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
         if (p.jerseyNumber !== undefined) clean.jerseyNumber = p.jerseyNumber;
         return clean;
       });
-      await db.collection('teams').doc('jmcc_spartans_singleton').update({
+      await db.collection('teams').doc('jmcc_knp_singleton').update({
         players: updatedPlayers,
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
@@ -96,7 +96,7 @@ export async function uploadManualMatchAction(match: Match, performances: Perfor
       }
 
       // Get singleton team
-      const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
+      const teamRef = db.collection('teams').doc('jmcc_knp_singleton');
       const teamDoc = await transaction.get(teamRef);
 
       // 2. PERFORM ALL WRITES
@@ -190,7 +190,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
 
   // RESOLVE TRUE PLAYER IDs FROM TEAM
   // Fetch JMCC team and get players from team.players
-  const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+  const teamDoc = await db.collection('teams').doc('jmcc_knp_singleton').get();
   const teamData = teamDoc.data();
   const teamPlayers = teamData?.players || [];
   const existingPlayers = new Map<string, string>();
@@ -235,7 +235,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
       if (p.jerseyNumber !== undefined) clean.jerseyNumber = p.jerseyNumber;
       return clean;
     });
-    await db.collection('teams').doc('jmcc_spartans_singleton').update({
+    await db.collection('teams').doc('jmcc_knp_singleton').update({
       players: updatedPlayers,
       updatedAt: admin.firestore.FieldValue.serverTimestamp()
     });
@@ -257,7 +257,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
 
   // 2. Prepare Match Data
   const firstInnings = match.innings.find(i => i.inningsNumber === 1);
-  const derivedFirstInningsTeam = firstInnings?.battingTeam === 'Us' ? 'JMCC Spartans' : match.opponent;
+  const derivedFirstInningsTeam = firstInnings?.battingTeam === 'Us' ? 'JMCC KNP' : match.opponent;
   const derivedFirstInningsScore = firstInnings?.totalRuns || 0;
 
   const matchData = {
@@ -294,7 +294,7 @@ export async function uploadMatchToCloudAction(match: LiveMatch) {
       }
 
       // Get singleton team
-      const teamRef = db.collection('teams').doc('jmcc_spartans_singleton');
+      const teamRef = db.collection('teams').doc('jmcc_knp_singleton');
       const teamDoc = await transaction.get(teamRef);
 
       // 2. PERFORM ALL WRITES

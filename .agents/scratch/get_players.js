@@ -19,7 +19,7 @@ async function getTeamPlayers() {
   }
 
   const db = admin.firestore();
-  const teamDoc = await db.collection('teams').doc('jmcc_spartans_singleton').get();
+  const teamDoc = await db.collection('teams').doc('jmcc_knp_singleton').get();
   const teamData = teamDoc.data();
   console.log('---PLAYERS_START---');
   console.log(JSON.stringify(teamData?.players || [], null, 2));

@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "JMCC Spartans - Cricket Team Dashboard",
-  description: "Cricket team statistics, player achievements, and match records for JMCC Spartans",
+  title: "JMCC KNP - Cricket Team Dashboard",
+  description: "Cricket team statistics, player achievements, and match records for JMCC KNP",
   manifest: "/manifest.json",
 };
 

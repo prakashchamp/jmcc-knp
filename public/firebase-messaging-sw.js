@@ -3,9 +3,9 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compa
 
 firebase.initializeApp({
   apiKey: "AIzaSyASHS_A9yezi98w9TId5NnwyncUXmgZt_w",
-  authDomain: "jmcc-spartans.firebaseapp.com",
-  projectId: "jmcc-spartans",
-  storageBucket: "jmcc-spartans.appspot.com",
+  authDomain: "jmcc-knp.firebaseapp.com",
+  projectId: "jmcc-knp",
+  storageBucket: "jmcc-knp.appspot.com",
   messagingSenderId: "605062830647",
   appId: "1:605062830647:web:1edaa51eb4040a7dfdfdb2",
 });

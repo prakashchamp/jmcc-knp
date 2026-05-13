@@ -1,6 +1,6 @@
 /**
  * Cricket Data Schema & TypeScript Types
- * Defines all Firestore collection structures for JMCC Spartans
+ * Defines all Firestore collection structures for JMCC KNP
  */
 
 // ============================================================================

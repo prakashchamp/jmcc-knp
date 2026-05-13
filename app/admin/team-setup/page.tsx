@@ -140,7 +140,7 @@ export default function TeamSetupPage() {
     });
     
     setPlayers(mergedPlayers);
-    if (!teamName) setTeamName('JMCC Spartans');
+    if (!teamName) setTeamName('JMCC KNP');
     setHasPendingChanges(true);
     setMessage({ type: 'success', text: `Reconstructed roster with ${newPlayers.length} players from existing stats.` });
   };

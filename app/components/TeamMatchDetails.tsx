@@ -108,7 +108,7 @@ export function TeamMatchDetails({ match }: TeamMatchDetailsProps) {
         {/* Score row */}
         <div className="flex items-center justify-between mb-3 sm:mb-4 bg-white/10 rounded-lg px-3 py-2 border border-white/15">
           <div className="text-center">
-            <p className="text-[10px] sm:text-xs text-white/60 font-medium uppercase tracking-wider mb-0.5">Spartans</p>
+            <p className="text-[10px] sm:text-xs text-white/60 font-medium uppercase tracking-wider mb-0.5">KNP</p>
             <p className="text-lg sm:text-2xl font-black text-white">
               {match.teamRuns ?? 0}<span className="text-white/50 text-sm mx-0.5">/</span>{match.teamWickets ?? 0}
             </p>
