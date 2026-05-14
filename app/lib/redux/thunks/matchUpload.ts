@@ -1,6 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { RootState } from '../store';
 import { uploadMatchToCloudAction } from '@/app/lib/actions/match-upload-actions';
+import { sendMatchUpdateNotification } from '@/app/lib/actions/notification-actions';
 import { mergeInningsIntoMatch } from '../slices/scorerSlice';
 import { syncTeam } from '../slices/teamSlice';
 
@@ -42,26 +43,46 @@ export const uploadMatchToFirestore = createAsyncThunk(
         if ((overrides as any).firstInningsScore !== undefined) (matchToUpload as any).firstInningsScore = (overrides as any).firstInningsScore;
       }
 
-      // Call the server action
-      const result = await uploadMatchToCloudAction(matchToUpload);
-      
-      if (!result.success) {
-        // Enqueue for offline sync
-        dispatch({ type: 'scorer/enqueueSyncMatch', payload: matchToUpload });
-        return rejectWithValue(result.error || 'Failed to upload match. Saved to offline queue.');
+      // Call the server action with retry logic
+      let lastError = '';
+      const maxRetries = 3;
+      const initialDelay = 2000;
+
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const result = await uploadMatchToCloudAction(matchToUpload);
+          if (result.success) {
+            // Dequeue on success
+            dispatch({ type: 'scorer/dequeueSyncMatch', payload: matchToUpload.id });
+
+            // Sync team if we have pending local players
+            if (state.team.pendingCloudPush && state.team.team) {
+              await dispatch(syncTeam(state.team.team)).unwrap().catch(err => {
+                console.error("Failed to sync team after match upload", err);
+              });
+            }
+            return { matchId: matchToUpload.id };
+          }
+          lastError = result.error || 'Unknown upload error';
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : 'Network error';
+        }
+
+        if (i < maxRetries - 1) {
+          console.log(`Retry ${i + 1}/${maxRetries} for match ${matchToUpload.id} in ${initialDelay * Math.pow(2, i)}ms...`);
+          await new Promise(res => setTimeout(res, initialDelay * Math.pow(2, i)));
+        }
       }
 
-      // Dequeue on success
-      dispatch({ type: 'scorer/dequeueSyncMatch', payload: matchToUpload.id });
+      // All retries failed
+      await sendMatchUpdateNotification(
+        'Live Match Upload Failed',
+        `Live match against ${matchToUpload.opponent} failed to upload after ${maxRetries} attempts. Saved to offline queue.`
+      );
 
-      // Sync team if we have pending local players
-      if (state.team.pendingCloudPush && state.team.team) {
-        await dispatch(syncTeam(state.team.team)).unwrap().catch(err => {
-          console.error("Failed to sync team after match upload", err);
-        });
-      }
-
-      return { matchId: matchToUpload.id };
+      // Enqueue for offline sync
+      dispatch({ type: 'scorer/enqueueSyncMatch', payload: matchToUpload });
+      return rejectWithValue(lastError || 'Failed to upload match. Saved to offline queue.');
     } catch (error) {
       // It errored out (likely network issue), so we enqueue it too
       const state = getState() as RootState;

@@ -101,15 +101,13 @@ export function UploadConfirmDialog() {
         opponentWickets,
       };
 
-      const resultAction = await dispatch(uploadMatchToFirestore(overrides));
-      if (uploadMatchToFirestore.fulfilled.match(resultAction)) {
-        setSuccess(true);
-        setTimeout(() => {
-          dispatch(closeDialog());
-        }, 1500);
-      } else {
-        setError(resultAction.payload as string || 'Upload failed');
-      }
+      // Fire and forget upload (with internal retries)
+      dispatch(uploadMatchToFirestore(overrides));
+
+      setSuccess(true);
+      setTimeout(() => {
+        dispatch(closeDialog());
+      }, 1500);
     } catch (err) {
       setError('An unexpected error occurred');
     } finally {
@@ -134,7 +132,7 @@ export function UploadConfirmDialog() {
         <div className="mb-6 space-y-5">
           <p className="text-sm text-slate-400">
             {success 
-              ? `Successfully uploaded match data and ${teamName} player performances.` 
+              ? `Upload initiated! Please wait for a few minutes for the data to update across the app.` 
               : `Review and confirm match details before uploading.`}
           </p>
 

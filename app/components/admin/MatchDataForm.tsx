@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Match, Performance } from '@/app/lib/cricket-schema';
 import { DatePickerField } from '@/app/components/DatePickerField';
 import { uploadManualMatchAction } from '@/app/lib/actions/match-upload-actions';
+import { sendMatchUpdateNotification } from '@/app/lib/actions/notification-actions';
 import { CustomSelect } from '@/app/components/CustomSelect';
 import { findTopBatters, findTopBowlers } from '@/app/lib/firestore-mapper';
 import type { RootState } from '@/app/lib/redux/store';
@@ -40,8 +41,8 @@ function normalizePlayerName(name: string) {
 export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
   const dispatch = useDispatch();
   const [match, setMatch] = useState<Partial<Match>>(matchData.match);
-  const teamRoster = useSelector((state: RootState) => state.team.team?.players || []);
-  const playerOptions = teamRoster.map((player) => ({ value: player.id, label: player.name }));
+  const teamRoster = useSelector((state: RootState) => state.team.team?.players) || [];
+  const playerOptions = useMemo(() => teamRoster.map((player) => ({ value: player.id, label: player.name })), [teamRoster]);
 
   const findRosterPlayerId = (name: string) => {
     const normalized = normalizePlayerName(name);
@@ -188,6 +189,34 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
     return true;
   };
 
+  const uploadWithRetry = async (completeMatch: Match, finalPerformances: Performance[], maxRetries = 3, initialDelay = 2000) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        console.log(`Upload attempt ${i + 1}...`);
+        const result = await uploadManualMatchAction(completeMatch, finalPerformances);
+        if (result.success) {
+          console.log('Upload successful!');
+          return true;
+        }
+        throw new Error(result.error || 'Unknown error');
+      } catch (err) {
+        console.error(`Attempt ${i + 1} failed:`, err);
+        if (i === maxRetries - 1) {
+          // Final failure - send notification
+          await sendMatchUpdateNotification(
+            'Match Upload Failed',
+            `Manual upload for match against ${completeMatch.opponent} failed after ${maxRetries} attempts. Please retry manually.`
+          );
+          return false;
+        }
+        // Exponential backoff
+        const delay = initialDelay * Math.pow(2, i);
+        await new Promise(res => setTimeout(res, delay));
+      }
+    }
+    return false;
+  };
+
   const handleSubmit = async () => {
     if (!validateData()) return;
     setLoading(true);
@@ -294,22 +323,25 @@ export function MatchDataForm({ matchData, onSuccess }: MatchDataFormProps) {
       completeMatch.topBatters = findTopBatters(finalPerformances);
       completeMatch.topBowlers = findTopBowlers(finalPerformances);
 
-      const result = await uploadManualMatchAction(completeMatch, finalPerformances);
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to save match data');
-      }
+      // Start async upload process (don't await)
+      uploadWithRetry(completeMatch, finalPerformances).then(success => {
+        if (!success) {
+          console.error('Async upload failed permanently.');
+        }
+      });
 
       // Refresh local Redux team roster so new players show up immediately
       dispatch(fetchTeam() as any);
 
-      setSuccessMessage('Match data saved and stats updated successfully!');
+      setSuccessMessage('Match upload queued! Retrying in background if needed.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => {
         onSuccess();
       }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save data');
+      const msg = err instanceof Error ? err.message : 'Failed to prepare data';
+      setError(msg);
+      alert(msg);
     } finally {
       setLoading(false);
     }

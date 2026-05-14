@@ -39,7 +39,7 @@ interface BowlingRow {
 }
 
 export function ScorecardUpload({ onDataParsed }: ScorecardUploadProps) {
-  const rosterPlayers = useSelector((state: RootState) => state.team.team?.players || []);
+  const rosterPlayers = useSelector((state: RootState) => state.team.team?.players) || [];
   const { players: firestorePlayers } = useAllPlayers();
 
   const normalizePlayerName = (name: string) => name.trim().toLowerCase().replace(/\s+/g, ' ');

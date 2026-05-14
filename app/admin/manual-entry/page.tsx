@@ -42,7 +42,7 @@ export default function ManualEntryPage() {
             <h1 className="page-title text-white">Manual Entry</h1>
             <p className="hint-text mt-1 sm:mt-2">Enter match data manually or via screenshot</p>
           </div>
-          <button 
+          <button
             onClick={() => router.push('/admin')}
             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
           >
@@ -54,11 +54,10 @@ export default function ManualEntryPage() {
         <div className="mb-4 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-4">
             <div
-              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
-                step === 'entry' || step === 'review'
+              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${step === 'entry' || step === 'review'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-700 text-gray-400'
-              }`}
+                }`}
             >
               1
             </div>
@@ -68,9 +67,8 @@ export default function ManualEntryPage() {
             <div className="flex-1 h-0.5 sm:h-1 bg-gradient-to-r from-green-600 to-gray-700 mx-1 sm:mx-4"></div>
 
             <div
-              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${
-                step === 'review' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'
-              }`}
+              className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full text-sm sm:text-base font-bold flex-shrink-0 ${step === 'review' ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'
+                }`}
             >
               2
             </div>
@@ -81,10 +79,11 @@ export default function ManualEntryPage() {
         </div>
 
         {/* Content */}
+
         {step === 'entry' && (
           <ScorecardUpload onDataParsed={handleDataParsed} />
         )}
-        
+
         {step === 'review' && parsedData && (
           <MatchDataForm matchData={parsedData} onSuccess={handleFormSubmit} />
         )}
