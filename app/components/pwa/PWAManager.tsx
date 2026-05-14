@@ -17,7 +17,16 @@ export function PWAManager() {
     const setupFCM = async () => {
       if ('serviceWorker' in navigator) {
         try {
-          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          const params = new URLSearchParams({
+            apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+            authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+            storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
+            messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+            appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+          });
+          const swUrl = `/firebase-messaging-sw.js?${params.toString()}`;
+          const registration = await navigator.serviceWorker.register(swUrl);
           console.log('Service Worker registered with scope:', registration.scope);
 
           // Wait until the service worker is active

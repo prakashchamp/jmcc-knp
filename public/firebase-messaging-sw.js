@@ -1,20 +1,24 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
-firebase.initializeApp({
-  apiKey: "AIzaSyASHS_A9yezi98w9TId5NnwyncUXmgZt_w",
-  authDomain: "jmcc-knp.firebaseapp.com",
-  projectId: "jmcc-knp",
-  storageBucket: "jmcc-knp.appspot.com",
-  messagingSenderId: "605062830647",
-  appId: "1:605062830647:web:1edaa51eb4040a7dfdfdb2",
-});
+// Parse configuration from query parameters
+const urlParams = new URLSearchParams(location.search);
+const firebaseConfig = {
+  apiKey: urlParams.get('apiKey'),
+  authDomain: urlParams.get('authDomain'),
+  projectId: urlParams.get('projectId'),
+  storageBucket: urlParams.get('storageBucket'),
+  messagingSenderId: urlParams.get('messagingSenderId'),
+  appId: urlParams.get('appId'),
+};
+
+firebase.initializeApp(firebaseConfig);
 
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
+
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
